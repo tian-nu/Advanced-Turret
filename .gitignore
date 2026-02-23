@@ -1,0 +1,40 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run
+
+# Files from Forge MDK
+forge*changelog.txt
+
+# IDE
+.vscode/
+
+# Documentation and reference
+forge文档/
+代码参考文档/
+其他炮塔开源mod参考/
+
+# Blockbench metadata
+*.png.json
+
+# Backup files
+*.old
+*.bak

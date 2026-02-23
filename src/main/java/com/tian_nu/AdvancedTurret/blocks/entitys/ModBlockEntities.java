@@ -1,0 +1,38 @@
+package com.tian_nu.AdvancedTurret.blocks.entitys;
+
+import com.tian_nu.AdvancedTurret.TurretMod;
+import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+
+/**
+ * 方块实体类型注册类
+ *
+ * @author tian_nu
+ */
+public class ModBlockEntities {
+
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
+            DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, TurretMod.MOD_ID);
+
+    public static final RegistryObject<BlockEntityType<TurretBaseBlockEntity>> TURRET_BASE =
+            BLOCK_ENTITIES.register("turret_base", () ->
+                    BlockEntityType.Builder.of(TurretBaseBlockEntity::new,
+                            ModBlocks.TURRET_BASE_T1.get(),
+                            ModBlocks.TURRET_BASE_T2.get(),
+                            ModBlocks.TURRET_BASE_T3.get()
+                    ).build(null));
+
+    public static final RegistryObject<BlockEntityType<MachineGunTurretBlockEntity>> MACHINE_GUN_TURRET =
+            BLOCK_ENTITIES.register("machine_gun_turret", () ->
+                    BlockEntityType.Builder.of(MachineGunTurretBlockEntity::new,
+                            ModBlocks.MACHINE_GUN_TURRET.get()
+                    ).build(null));
+
+    public static void register(IEventBus eventBus) {
+        BLOCK_ENTITIES.register(eventBus);
+    }
+}

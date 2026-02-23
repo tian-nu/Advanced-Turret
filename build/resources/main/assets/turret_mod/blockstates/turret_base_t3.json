@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "turret_mod:block/turret_base_t3"
+    }
+  }
+}

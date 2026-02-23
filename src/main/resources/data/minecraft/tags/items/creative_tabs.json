@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "#turret_mod:base_items",
+    "#turret_mod:turret_types",
+    "#turret_mod:components",
+    "#turret_mod:turret_bases"
+  ]
+}

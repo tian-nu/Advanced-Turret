@@ -1,0 +1,31 @@
+{
+  "item.turret_mod.test_item": "Test Item",
+  "item.turret_mod.turret": "Turret",
+  "item.turret_mod.railgun_turret": "Railgun Turret",
+  "item.turret_mod.creative_power_component": "Creative Power Component",
+
+  "block.turret_mod.turret_base_t1": "Turret Base T1",
+  "block.turret_mod.turret_base_t2": "Turret Base T2",
+  "block.turret_mod.turret_base_t3": "Turret Base T3",
+  "block.turret_mod.machine_gun_turret": "Machine Gun Turret",
+
+  "itemGroup.turret_tab": "Turret Mod",
+
+  "container.turret_base": "Turret Base",
+
+  "tooltip.turret.energy": "%d/%d FE",
+
+  "gui.turret_config.button": "Configure GUI",
+  "gui.turret_config.title": "Turret GUI Configuration",
+  "gui.turret_config.background_alpha": "Background Alpha",
+  "gui.turret_config.energy_alpha": "Energy Bar Alpha",
+  "gui.done": "Done",
+  "gui.reset": "Reset",
+
+  "gui.turret_personal_config.button": "Personal Config",
+  "gui.turret_personal_config.title": "Turret Personal Configuration",
+  "gui.turret_config.auto_reload": "Auto Reload",
+  "gui.turret_config.enabled": "Enabled",
+  "gui.turret_config.disabled": "Disabled",
+  "gui.cancel": "Cancel"
+}

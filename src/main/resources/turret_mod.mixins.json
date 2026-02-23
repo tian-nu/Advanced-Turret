@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.tian_nu.AdvancedTurret.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "turret_mod.refmap.json",
+  "mixins": [],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

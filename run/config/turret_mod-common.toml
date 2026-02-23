@@ -1,0 +1,19 @@
+#T1炮塔基座最大能量存储
+#Range: 1000 ~ 100000
+turretBaseMaxEnergyT1 = 10000
+#T2炮塔基座最大能量存储
+#Range: 1000 ~ 500000
+turretBaseMaxEnergyT2 = 40000
+#T3炮塔基座最大能量存储
+#Range: 1000 ~ 1000000
+turretBaseMaxEnergyT3 = 100000
+#能量最大传输速率 (FE/tick)
+#Range: 100 ~ 10000
+maxTransferRate = 1000
+#机枪炮塔每次射击能量消耗
+#Range: 10 ~ 1000
+machineGunEnergyCost = 100
+#磁轨炮炮塔每次射击能量消耗
+#Range: 100 ~ 10000
+railgunEnergyCost = 1000
+

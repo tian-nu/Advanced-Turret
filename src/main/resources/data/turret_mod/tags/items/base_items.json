@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "turret_mod:test_item",
+    "turret_mod:turret"
+  ]
+}
