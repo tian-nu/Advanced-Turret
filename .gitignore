@@ -41,3 +41,6 @@ forge文档/
 
 # Log files
 *.log
+
+# Task files
+*.task
