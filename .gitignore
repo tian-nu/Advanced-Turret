@@ -17,9 +17,9 @@ out
 build
 .gradle
 
-# other
+# run directory (logs, saves, configs)
+run/
 eclipse
-run
 
 # Files from Forge MDK
 forge*changelog.txt
@@ -38,3 +38,6 @@ forge文档/
 # Backup files
 *.old
 *.bak
+
+# Log files
+*.log
