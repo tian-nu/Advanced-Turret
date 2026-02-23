@@ -2,6 +2,8 @@ package com.tian_nu.AdvancedTurret.blocks.entitys;
 
 import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.MachineGunTurretBlock;
+import com.tian_nu.AdvancedTurret.entity.TurretBulletEntity;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -12,7 +14,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,6 +21,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -41,6 +43,8 @@ import java.util.List;
  * @author tian_nu
  */
 public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlockEntity {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     // ========== 常量 ==========
 
@@ -185,13 +189,14 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         base.setChanged();
         base.syncToClient();
 
-        Arrow bullet = new Arrow(level, muzzlePos.x, muzzlePos.y, muzzlePos.z);
+        TurretBulletEntity bullet = new TurretBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, BULLET_DAMAGE);
         bullet.setOwner(null);
-        bullet.setBaseDamage(BULLET_DAMAGE);
-        bullet.shoot(direction.x, direction.y, direction.z, (float) BULLET_SPEED, 0.0F);
-        bullet.setCritArrow(true);
+        bullet.shoot(direction, (float) BULLET_SPEED);
 
-        level.addFreshEntity(bullet);
+        boolean spawned = level.addFreshEntity(bullet);
+        if (!spawned) {
+            LOGGER.warn("Failed to spawn turret bullet at {}", muzzlePos);
+        }
 
         level.playSound(null, pos, SoundEvents.ARROW_SHOOT, SoundSource.BLOCKS, 1.0F, 1.5F);
 

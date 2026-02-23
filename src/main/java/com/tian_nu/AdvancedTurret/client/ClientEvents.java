@@ -2,6 +2,8 @@ package com.tian_nu.AdvancedTurret.client;
 
 import com.tian_nu.AdvancedTurret.TurretMod;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
+import com.tian_nu.AdvancedTurret.client.renderer.TurretBulletRenderer;
+import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
 import com.tian_nu.AdvancedTurret.gui.TurretScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -40,5 +42,13 @@ public class ClientEvents {
             ModBlockEntities.MACHINE_GUN_TURRET.get(), 
             MachineGunTurretGeoRenderer::new
         );
+    }
+    
+    /**
+     * 注册实体渲染器
+     */
+    @SubscribeEvent
+    public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(ModEntities.TURRET_BULLET.get(), TurretBulletRenderer::new);
     }
 }

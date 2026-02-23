@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
 import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
+import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
 import com.tian_nu.AdvancedTurret.items.ModCreativeModeTabs;
 import com.tian_nu.AdvancedTurret.items.ModItems;
@@ -48,6 +49,7 @@ public class TurretMod {
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
         ModMenuTypes.register(modEventBus);
+        ModEntities.register(modEventBus);
         
         // 注册事件监听器
         modEventBus.addListener(this::commonSetup);
