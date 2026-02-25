@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "advanced_turret:machine_gun_turret",
+    "advanced_turret:railgun_turret"
+  ]
+}

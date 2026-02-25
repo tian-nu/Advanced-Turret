@@ -28,6 +28,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.network.chat.Component;
+import java.util.List;
+import net.minecraft.ChatFormatting;
+
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.StateDefinition;
+
 /**
  * 机枪炮塔方块
  * 
@@ -52,7 +62,35 @@ public class MachineGunTurretBlock extends BaseEntityBlock {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
     }
-    
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        if (placer instanceof Player player) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof MachineGunTurretBlockEntity turret) {
+                TurretBaseBlockEntity base = turret.getBaseEntity();
+                if (base != null && base.getOwner() == null) {
+                    base.setOwner(player.getUUID());
+                }
+                
+                // 将所有者信息保存到方块实体中，以便在被破坏时恢复到掉落物
+                net.minecraft.nbt.CompoundTag tag = stack.getOrCreateTag();
+                if (tag.contains("OwnerName")) {
+                    // 这里可以保存更多信息
+                }
+            }
+        }
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
+        if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
+            String ownerName = stack.getTag().getString("OwnerName");
+            tooltip.add(Component.translatable("gui.advanced_turret.owner_tooltip", ownerName).withStyle(ChatFormatting.GOLD));
+        }
+        super.appendHoverText(stack, level, tooltip, flag);
+    }
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING);
@@ -90,8 +128,10 @@ public class MachineGunTurretBlock extends BaseEntityBlock {
         Direction facing = state.getValue(FACING);
         // 如果基座被移除，破坏炮塔
         if (direction == facing.getOpposite()) {
-            if (!(level.getBlockEntity(neighborPos) instanceof TurretBaseBlockEntity)) {
-                return net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
+            Direction relative = facing.getOpposite();
+            BlockPos basePos = pos.relative(relative);
+            if (!(level.getBlockEntity(basePos) instanceof TurretBaseBlockEntity)) {
+                return Blocks.AIR.defaultBlockState();
             }
         }
         return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
@@ -100,14 +140,15 @@ public class MachineGunTurretBlock extends BaseEntityBlock {
     @Override
     public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, 
                                         @NotNull BlockPos pos, @NotNull CollisionContext context) {
-        return switch (state.getValue(FACING)) {
-            case UP -> SHAPE_UP;
-            case DOWN -> SHAPE_DOWN;
-            case NORTH -> SHAPE_NORTH;
-            case SOUTH -> SHAPE_SOUTH;
-            case EAST -> SHAPE_EAST;
-            case WEST -> SHAPE_WEST;
-        };
+        switch (state.getValue(FACING)) {
+            case UP: return SHAPE_UP;
+            case DOWN: return SHAPE_DOWN;
+            case NORTH: return SHAPE_NORTH;
+            case SOUTH: return SHAPE_SOUTH;
+            case EAST: return SHAPE_EAST;
+            case WEST: return SHAPE_WEST;
+            default: return SHAPE_UP;
+        }
     }
     
     @Override

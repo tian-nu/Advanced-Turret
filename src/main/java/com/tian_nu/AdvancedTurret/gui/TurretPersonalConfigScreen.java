@@ -22,7 +22,7 @@ public class TurretPersonalConfigScreen extends Screen {
     private final TurretPersonalConfig config;
     
     private static final ResourceLocation CONFIG_TEXTURE = 
-        ResourceLocation.fromNamespaceAndPath("turret_mod", "textures/gui/container/personal_config.png");
+        ResourceLocation.fromNamespaceAndPath("advanced_turret", "textures/gui/container/personal_config.png");
     
     // GUI尺寸
     private static final int GUI_WIDTH = 250;

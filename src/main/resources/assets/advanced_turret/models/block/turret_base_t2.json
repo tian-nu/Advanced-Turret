@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "advanced_turret:block/turret_base_t2"
+  }
+}

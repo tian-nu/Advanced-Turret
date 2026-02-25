@@ -29,10 +29,10 @@ public class ModNetwork {
     public static void register() {
         CHANNEL.registerMessage(
                 packetId++,
-                EnergySyncPacket.class,
-                EnergySyncPacket::encode,
-                EnergySyncPacket::decode,
-                EnergySyncPacket::handle
+                SmartChipConfigPacket.class,
+                SmartChipConfigPacket::encode,
+                SmartChipConfigPacket::decode,
+                SmartChipConfigPacket::handle
         );
     }
 }

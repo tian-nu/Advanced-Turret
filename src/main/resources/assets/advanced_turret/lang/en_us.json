@@ -1,0 +1,47 @@
+{
+  "item.advanced_turret.turret": "Turret",
+  "item.advanced_turret.railgun_turret": "Railgun Turret",
+  "item.advanced_turret.creative_power_component": "Creative Power Component",
+  "item.advanced_turret.smart_chip": "Smart Chip",
+  "item.advanced_turret.smart_chip.tooltip": "§7Install in turret base to enable advanced features",
+
+  "message.advanced_turret.chip_installed": "Smart Chip Installed",
+  "message.advanced_turret.chip_slot_full": "Plugin Slot Full",
+  "gui.advanced_turret.target_mode.hostile": "Hostile",
+  "gui.advanced_turret.target_mode.neutral": "Neutral",
+  "gui.advanced_turret.target_mode.friendly": "Friendly",
+  "gui.advanced_turret.target_mode.players": "Players",
+  "gui.advanced_turret.target_mode.blacklist_only": "Mode: Blacklist Only",
+  "gui.advanced_turret.target_mode.all": "Mode: All Mobs",
+  "gui.advanced_turret.blacklist_label": "Blacklist (Comma separated IDs):",
+  "gui.advanced_turret.whitelist_label": "Whitelist (Comma separated IDs):",
+  "gui.advanced_turret.owner_tooltip": "Owner: %s",
+  "block.advanced_turret.turret_base_t2": "Turret Base T2",
+  "block.advanced_turret.turret_base_t3": "Turret Base T3",
+  "block.advanced_turret.machine_gun_turret": "Machine Gun Turret",
+
+  "itemGroup.turret_tab": "Turret Mod",
+
+  "container.turret_base": "Turret Base",
+
+  "tooltip.turret.energy": "%d/%d FE",
+
+  "gui.turret_config.button": "Configure GUI",
+  "gui.turret_config.title": "Turret GUI Configuration",
+  "gui.turret_config.background_alpha": "Background Alpha",
+  "gui.turret_config.energy_alpha": "Energy Bar Alpha",
+  "gui.done": "Done",
+  "gui.reset": "Reset",
+
+  "gui.turret_personal_config.button": "Personal Config",
+  "gui.advanced_turret.smart_config": "Smart Config",
+  "gui.advanced_turret.friendly_fire": "Friendly Fire",
+  "gui.advanced_turret.friendly_fire.tooltip": "Don't attack owner and tamed mobs when enabled",
+  "gui.advanced_turret.predictive_aiming": "Predictive Aiming",
+  "gui.advanced_turret.predictive_aiming.tooltip": "Aim ahead based on target velocity",
+  "gui.turret_personal_config.title": "Turret Personal Configuration",
+  "gui.turret_config.auto_reload": "Auto Reload",
+  "gui.turret_config.enabled": "Enabled",
+  "gui.turret_config.disabled": "Disabled",
+  "gui.cancel": "Cancel"
+}

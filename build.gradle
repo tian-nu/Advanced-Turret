@@ -125,6 +125,6 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 mixin {
-    add sourceSets.main, "turret_mod.refmap.json"
-    config "turret_mod.mixins.json"
+    add sourceSets.main, "advanced_turret.refmap.json"
+    config "advanced_turret.mixins.json"
 }

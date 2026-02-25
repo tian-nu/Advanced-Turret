@@ -30,7 +30,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 @Mod(TurretMod.MOD_ID)
 public class TurretMod {
     
-    public static final String MOD_ID = "turret_mod";
+    public static final String MOD_ID = "advanced_turret";
     private static final Logger LOGGER = LogUtils.getLogger();
     
     /**

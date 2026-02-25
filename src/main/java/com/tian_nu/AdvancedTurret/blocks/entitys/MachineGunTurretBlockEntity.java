@@ -3,6 +3,8 @@ package com.tian_nu.AdvancedTurret.blocks.entitys;
 import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.MachineGunTurretBlock;
 import com.tian_nu.AdvancedTurret.entity.TurretBulletEntity;
+import com.tian_nu.AdvancedTurret.items.SmartChipItem;
+import com.tian_nu.AdvancedTurret.items.SmartChipItem.TargetMode;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,14 +13,21 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.ambient.AmbientCreature;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.NeutralMob;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -88,6 +97,13 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 
         TurretBaseBlockEntity base = blockEntity.getBaseEntity();
         if (base == null) return;
+
+        Direction facing = state.getValue(MachineGunTurretBlock.FACING);
+        if (!base.isFaceEnabled(facing)) {
+            blockEntity.target = null;
+            blockEntity.setAnimData(HAS_TARGET, false);
+            return;
+        }
 
         if (blockEntity.cooldown > 0) {
             blockEntity.cooldown--;
@@ -166,7 +182,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
      * 检查是否可以射击
      */
     private boolean canShoot(TurretBaseBlockEntity base) {
-        int energyCost = Config.machineGunEnergyCost;
+        int energyCost = 100;
         return base.getEnergyStored() >= energyCost;
     }
 
@@ -174,6 +190,10 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
      * 执行射击
      */
     private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base) {
+        // Double check energy cost before shooting logic (redundant but safe)
+        int energyCost = 100;
+        if (base.getEnergyStored() < energyCost) return;
+
         if (!(level instanceof ServerLevel serverLevel)) return;
 
         Direction facing = state.getValue(MachineGunTurretBlock.FACING);
@@ -182,15 +202,22 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 
         Vec3 targetPos = target.position().add(0, target.getEyeHeight() * 0.5, 0);
 
+        // 预判瞄准
+        if (base.isPredictiveAiming()) {
+            double dist = muzzlePos.distanceTo(targetPos);
+            double time = dist / BULLET_SPEED;
+            targetPos = targetPos.add(target.getDeltaMovement().scale(time));
+        }
+
         Vec3 direction = targetPos.subtract(muzzlePos).normalize();
 
-        int energyCost = Config.machineGunEnergyCost;
-        base.getEnergyStorage().extractEnergy(energyCost, false);
-        base.setChanged();
-        base.syncToClient();
+        // Consume energy
+        base.consumeEnergy(energyCost);
 
+        // 播放射击音效
         TurretBulletEntity bullet = new TurretBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, BULLET_DAMAGE);
         bullet.setOwner(null);
+        bullet.setSourcePos(pos);
         bullet.shoot(direction, (float) BULLET_SPEED);
 
         boolean spawned = level.addFreshEntity(bullet);
@@ -218,12 +245,12 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         double z = pos.getZ() + 0.5;
 
         return switch (facing) {
-            case UP -> new Vec3(x, pos.getY() + 0.8, z);
-            case DOWN -> new Vec3(x, pos.getY() + 0.2, z);
-            case NORTH -> new Vec3(x, y, pos.getZ() + 0.2);
-            case SOUTH -> new Vec3(x, y, pos.getZ() + 0.8);
-            case EAST -> new Vec3(pos.getX() + 0.8, y, z);
-            case WEST -> new Vec3(pos.getX() + 0.2, y, z);
+            case UP -> new Vec3(x, pos.getY() + 0.4, z);
+            case DOWN -> new Vec3(x, pos.getY() + 0.4, z);
+            case NORTH -> new Vec3(x, y, pos.getZ() + 0.4);
+            case SOUTH -> new Vec3(x, y, pos.getZ() + 0.4);
+            case EAST -> new Vec3(pos.getX() + 0.4, y, z);
+            case WEST -> new Vec3(pos.getX() + 0.4, y, z);
         };
     }
 
@@ -267,12 +294,87 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
      * 检查是否为有效目标
      */
     private boolean isValidTarget(LivingEntity entity, Level level, BlockPos pos) {
-        if (!(entity instanceof Enemy) && !(entity instanceof Mob mob && mob.isAggressive())) {
+        if (!entity.isAlive()) {
+            return false;
+        }
+        
+        if (entity.isInvulnerable()) {
             return false;
         }
 
-        if (!entity.isAlive()) {
+        TurretBaseBlockEntity base = getBaseEntity();
+        if (base == null) return false;
+        
+        ItemStack pluginStack = base.getPluginStack();
+        String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
+        
+        // 1. 黑名单检查 (强制攻击)
+        List<String> blacklist = SmartChipItem.getBlacklist(pluginStack);
+        boolean inBlacklist = blacklist.contains(entityId);
+        
+        // 2. 白名单检查 (强制排除)
+        List<String> whitelist = SmartChipItem.getWhitelist(pluginStack);
+        if (whitelist.contains(entityId)) {
             return false;
+        }
+        
+        // 3. 目标模式检查 (如果没有在黑名单中)
+        if (!inBlacklist) {
+            // 使用 Flags 进行组合检查
+            int flags = SmartChipItem.getTargetFlags(pluginStack);
+            boolean matched = false;
+            
+            // Hostile (Monster/Enemy)
+            if ((flags & SmartChipItem.FLAG_HOSTILE) != 0) {
+                if (entity instanceof Enemy) matched = true;
+            }
+            
+            // Neutral (NeutralMob, like Enderman, Piglin, Wolf)
+            if (!matched && (flags & SmartChipItem.FLAG_NEUTRAL) != 0) {
+                // NeutralMob interface covers most neutral mobs
+                // Also check if it's a Mob but NOT Enemy and NOT Animal (rough heuristic)
+                if (entity instanceof NeutralMob) matched = true;
+            }
+            
+            // Friendly (Animal, Ambient, WaterAnimal)
+            if (!matched && (flags & SmartChipItem.FLAG_FRIENDLY) != 0) {
+                if (entity instanceof Animal || entity instanceof AmbientCreature || entity instanceof WaterAnimal) matched = true;
+            }
+            
+            // Players
+            if (!matched && (flags & SmartChipItem.FLAG_PLAYERS) != 0) {
+                if (entity instanceof Player p && !p.isCreative() && !p.isSpectator()) matched = true;
+            }
+            
+            // Blacklist Only Mode Check (Special case handled by TargetMode Enum for UI compatibility, 
+            // but logic here relies on flags mostly. 
+            // If user selected "Blacklist Only", flags might be 0)
+            
+            // If ALL flags are off, check if it's "Blacklist Only" mode explicitly or just nothing
+            if (flags == 0) {
+                // If flags are 0, we don't match anything unless it was in blacklist (already checked above)
+            }
+            
+            if (!matched) return false;
+        }
+
+        // 4. 友伤保护检查
+        if (base.isFriendlyFire()) {
+            java.util.UUID ownerId = base.getOwner();
+            if (ownerId != null) {
+                // 检查实体是否是主人
+                if (entity.getUUID().equals(ownerId)) return false;
+                
+                // 检查实体是否被主人驯服
+                if (entity instanceof net.minecraft.world.entity.TamableAnimal tameable) {
+                    java.util.UUID tameOwner = tameable.getOwnerUUID();
+                    if (tameOwner != null && tameOwner.equals(ownerId)) {
+                        return false;
+                    }
+                }
+                
+                // 额外检查：如果是玩家，检查是否是同一队伍（可选，暂时只检查ID）
+            }
         }
 
         if (!isTargetInRange(entity, pos)) {
@@ -296,18 +398,54 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 
     /**
      * 检查是否有视线
+     * 检测目标头部、中心和脚部
      */
     private boolean hasLineOfSight(LivingEntity entity, Level level, BlockPos pos) {
         Direction facing = getBlockState().getValue(MachineGunTurretBlock.FACING);
         Vec3 start = calculateMuzzlePosition(pos, facing);
-        Vec3 end = entity.position().add(0, entity.getEyeHeight() * 0.5, 0);
+        
+        // 目标检测点：眼睛、中心、脚部
+        Vec3[] targetPoints = new Vec3[] {
+            entity.position().add(0, entity.getEyeHeight(), 0),
+            entity.position().add(0, entity.getBbHeight() * 0.5, 0),
+            entity.position()
+        };
+        
+        for (Vec3 end : targetPoints) {
+            if (canSeePoint(level, pos, facing, start, end)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 
-        return level.clip(new net.minecraft.world.level.ClipContext(
-                start, end,
+    private boolean canSeePoint(Level level, BlockPos pos, Direction facing, Vec3 start, Vec3 end) {
+        Vec3 direction = end.subtract(start).normalize();
+        Vec3 adjustedStart = start.add(direction.scale(0.5));
+
+        net.minecraft.world.phys.BlockHitResult hitResult = level.clip(new net.minecraft.world.level.ClipContext(
+                adjustedStart, end,
                 net.minecraft.world.level.ClipContext.Block.COLLIDER,
                 net.minecraft.world.level.ClipContext.Fluid.NONE,
                 null
-        )).getType() == net.minecraft.world.phys.HitResult.Type.MISS;
+        ));
+        
+        if (hitResult.getType() == net.minecraft.world.phys.HitResult.Type.MISS) {
+            return true;
+        }
+        
+        BlockPos hitPos = hitResult.getBlockPos();
+        if (hitPos.equals(pos)) {
+            return true;
+        }
+        
+        BlockPos basePos = pos.relative(facing.getOpposite());
+        if (hitPos.equals(basePos)) {
+            return true;
+        }
+        
+        return false;
     }
 
     @Override

@@ -1,6 +1,0 @@
-{
-  "parent": "block/cube_all",
-  "textures": {
-    "all": "turret_mod:block/turret_base_t2"
-  }
-}

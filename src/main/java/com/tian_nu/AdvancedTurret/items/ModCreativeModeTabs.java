@@ -35,6 +35,7 @@ public class ModCreativeModeTabs {
                         
                         // 特殊组件
                         output.accept(ModItems.CREATIVE_POWER_COMPONENT.get());
+                        output.accept(ModItems.SMART_CHIP.get());
                         
                         // 炮塔基座
                         output.accept(ModBlocks.TURRET_BASE_T1.get());
