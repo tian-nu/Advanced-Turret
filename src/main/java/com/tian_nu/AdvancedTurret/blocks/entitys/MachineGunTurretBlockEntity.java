@@ -98,6 +98,17 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         TurretBaseBlockEntity base = blockEntity.getBaseEntity();
         if (base == null) return;
 
+        // 无电量低头动画提示
+        if (base.getEnergyStored() == 0) {
+            blockEntity.target = null;
+            // 设置低头动画（目标位置在炮塔下方）
+            blockEntity.setAnimData(HAS_TARGET, true);
+            blockEntity.setAnimData(TARGET_POS_X, pos.getX() + 0.5);
+            blockEntity.setAnimData(TARGET_POS_Y, pos.getY() - 2.0);  // 向下看
+            blockEntity.setAnimData(TARGET_POS_Z, pos.getZ() + 0.5);
+            return;
+        }
+
         Direction facing = state.getValue(MachineGunTurretBlock.FACING);
         if (!base.isFaceEnabled(facing)) {
             blockEntity.target = null;

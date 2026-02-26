@@ -61,10 +61,12 @@ public class TurretMenu extends AbstractContainerMenu {
         this.levelAccess = ContainerLevelAccess.create(turretBase.getLevel(), turretBase.getBlockPos());
         this.data = data;
         this.pluginSlotStart = AMMO_END;
-        this.containerSlots = AMMO_END + (turretBase.hasPluginSlot() ? 1 : 0);
+        // 使用实际槽数量兼容旧存档
+        int actualPluginSlots = Math.min(turretBase.getPluginSlotCount(), turretBase.getBasePluginSlot().getSlots());
+        this.containerSlots = AMMO_END + actualPluginSlots;  // 动态插件槽数量
         
         addAmmoSlots();
-        addPluginSlot();
+        addPluginSlots();  // 支持多插件槽
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
         
@@ -85,9 +87,18 @@ public class TurretMenu extends AbstractContainerMenu {
         }
     }
 
-    private void addPluginSlot() {
-        if (!blockEntity.hasPluginSlot()) return;
-        addSlot(new SlotItemHandler(blockEntity.getBasePluginSlot(), 0, 80, 60));
+    private void addPluginSlots() {
+        // 使用实际槽数量兼容旧存档
+        int slotCount = Math.min(blockEntity.getPluginSlotCount(), blockEntity.getBasePluginSlot().getSlots());
+        if (slotCount == 0) return;
+        
+        // 添加插件槽（从弹药槽右侧开始）
+        for (int i = 0; i < slotCount; i++) {
+            // 第一个插件槽在弹药槽右侧，第二个在下方
+            int x = 80 + (i % 2) * 18;  // 第一列80，第二列98
+            int y = 60 + (i / 2) * 18;  // 第一行60，第二行78
+            addSlot(new SlotItemHandler(blockEntity.getBasePluginSlot(), i, x, y));
+        }
     }
     
     private void addPlayerInventory(Inventory playerInventory) {
@@ -140,9 +151,15 @@ public class TurretMenu extends AbstractContainerMenu {
                 }
             } else {
                 // 从玩家背包移动到容器
-                if (blockEntity.hasPluginSlot() && isPluginItem(itemstack1)) {
-                    if (!this.moveItemStackTo(itemstack1, pluginSlotStart, pluginSlotStart + 1, false)) {
-                        return ItemStack.EMPTY;
+                // 使用实际槽数量兼容旧存档
+                int pluginSlotCount = Math.min(blockEntity.getPluginSlotCount(), blockEntity.getBasePluginSlot().getSlots());
+                if (pluginSlotCount > 0 && isPluginItem(itemstack1)) {
+                    // 尝试移动到插件槽
+                    if (!this.moveItemStackTo(itemstack1, pluginSlotStart, pluginSlotStart + pluginSlotCount, false)) {
+                        // 插件槽满了，尝试移动到弹药槽
+                        if (!this.moveItemStackTo(itemstack1, AMMO_START, AMMO_END, false)) {
+                            return ItemStack.EMPTY;
+                        }
                     }
                 } else if (!this.moveItemStackTo(itemstack1, AMMO_START, AMMO_END, false)) {
                     return ItemStack.EMPTY;

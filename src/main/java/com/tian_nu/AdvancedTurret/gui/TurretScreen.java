@@ -192,15 +192,24 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
             }
         }
 
-        if (menu.getBlockEntity().hasPluginSlot()) {
-            int slotX = x + 79;
-            int slotY = y + 59;
+        // 渲染插件槽边框
+        // 使用实际槽数量兼容旧存档
+        int pluginSlotCount = Math.min(
+            menu.getBlockEntity().getPluginSlotCount(), 
+            menu.getBlockEntity().getBasePluginSlot().getSlots()
+        );
+        if (pluginSlotCount > 0) {
             int pluginBorder = 0x80FFFF00;
-            guiGraphics.fill(slotX, slotY, slotX + 18, slotY + 18, ammoFill);
-            guiGraphics.fill(slotX, slotY, slotX + 18, slotY + 1, pluginBorder);
-            guiGraphics.fill(slotX, slotY + 17, slotX + 18, slotY + 18, pluginBorder);
-            guiGraphics.fill(slotX, slotY, slotX + 1, slotY + 18, pluginBorder);
-            guiGraphics.fill(slotX + 17, slotY, slotX + 18, slotY + 18, pluginBorder);
+            for (int i = 0; i < pluginSlotCount; i++) {
+                // 与TurretMenu中的布局保持一致
+                int slotX = x + 79 + (i % 2) * 18;  // 第一列79，第二列97
+                int slotY = y + 59 + (i / 2) * 18;  // 第一行59，第二行77
+                guiGraphics.fill(slotX, slotY, slotX + 18, slotY + 18, ammoFill);
+                guiGraphics.fill(slotX, slotY, slotX + 18, slotY + 1, pluginBorder);
+                guiGraphics.fill(slotX, slotY + 17, slotX + 18, slotY + 18, pluginBorder);
+                guiGraphics.fill(slotX, slotY, slotX + 1, slotY + 18, pluginBorder);
+                guiGraphics.fill(slotX + 17, slotY, slotX + 18, slotY + 18, pluginBorder);
+            }
         }
         
         renderEnergyBar(guiGraphics, x, y);

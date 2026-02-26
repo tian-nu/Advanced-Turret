@@ -72,8 +72,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     /** 弹药槽位数量（全等级一致） */
     public static final int AMMO_SLOTS = 9;
-    /** 功能插件槽位数量（全基座唯一、仅允许 1 个） */
-    public static final int BASE_PLUGIN_SLOTS = 1;
+    /** 最大功能插件槽位数量（T4/T5支持双槽） */
+    public static final int MAX_PLUGIN_SLOTS = 2;
     /** 每个面的最大升级槽位数量（为未来 T5 预留） */
     public static final int MAX_UPGRADE_SLOTS_PER_FACE = 3;
     
@@ -114,7 +114,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
     };
     
-    private final ItemStackHandler basePluginSlot = new ItemStackHandler(BASE_PLUGIN_SLOTS) {
+    // 使用最大槽位数量，实际可用槽位由getPluginSlotCount()决定
+    private final ItemStackHandler basePluginSlot = new ItemStackHandler(MAX_PLUGIN_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -129,6 +130,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
 
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+            // 只允许在等级允许的槽位范围内放入物品
+            if (slot >= getPluginSlotCount()) return false;
             return hasPluginSlot() && isPluginItem(stack);
         }
     };
@@ -166,14 +169,14 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     private final IItemHandler combinedInventory = new IItemHandler() {
         @Override
         public int getSlots() {
-            return AMMO_SLOTS + BASE_PLUGIN_SLOTS + (6 * MAX_UPGRADE_SLOTS_PER_FACE);
+            return AMMO_SLOTS + MAX_PLUGIN_SLOTS + (6 * MAX_UPGRADE_SLOTS_PER_FACE);
         }
         
         @Override
         public @NotNull ItemStack getStackInSlot(int slot) {
             if (slot < AMMO_SLOTS) return ammoInventory.getStackInSlot(slot);
-            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.getStackInSlot(slot - AMMO_SLOTS);
-            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            if (slot < AMMO_SLOTS + MAX_PLUGIN_SLOTS) return basePluginSlot.getStackInSlot(slot - AMMO_SLOTS);
+            int faceSlot = slot - AMMO_SLOTS - MAX_PLUGIN_SLOTS;
             int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
             int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
             if (faceIndex < 0 || faceIndex >= 6) return ItemStack.EMPTY;
@@ -183,8 +186,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
             if (slot < AMMO_SLOTS) return ammoInventory.insertItem(slot, stack, simulate);
-            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.insertItem(slot - AMMO_SLOTS, stack, simulate);
-            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            if (slot < AMMO_SLOTS + MAX_PLUGIN_SLOTS) return basePluginSlot.insertItem(slot - AMMO_SLOTS, stack, simulate);
+            int faceSlot = slot - AMMO_SLOTS - MAX_PLUGIN_SLOTS;
             int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
             int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
             if (faceIndex < 0 || faceIndex >= 6) return stack;
@@ -194,8 +197,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
             if (slot < AMMO_SLOTS) return ammoInventory.extractItem(slot, amount, simulate);
-            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.extractItem(slot - AMMO_SLOTS, amount, simulate);
-            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            if (slot < AMMO_SLOTS + MAX_PLUGIN_SLOTS) return basePluginSlot.extractItem(slot - AMMO_SLOTS, amount, simulate);
+            int faceSlot = slot - AMMO_SLOTS - MAX_PLUGIN_SLOTS;
             int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
             int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
             if (faceIndex < 0 || faceIndex >= 6) return ItemStack.EMPTY;
@@ -205,8 +208,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         public int getSlotLimit(int slot) {
             if (slot < AMMO_SLOTS) return ammoInventory.getSlotLimit(slot);
-            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.getSlotLimit(slot - AMMO_SLOTS);
-            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            if (slot < AMMO_SLOTS + MAX_PLUGIN_SLOTS) return basePluginSlot.getSlotLimit(slot - AMMO_SLOTS);
+            int faceSlot = slot - AMMO_SLOTS - MAX_PLUGIN_SLOTS;
             int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
             int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
             if (faceIndex < 0 || faceIndex >= 6) return 0;
@@ -216,8 +219,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
             if (slot < AMMO_SLOTS) return ammoInventory.isItemValid(slot, stack);
-            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.isItemValid(slot - AMMO_SLOTS, stack);
-            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            if (slot < AMMO_SLOTS + MAX_PLUGIN_SLOTS) return basePluginSlot.isItemValid(slot - AMMO_SLOTS, stack);
+            int faceSlot = slot - AMMO_SLOTS - MAX_PLUGIN_SLOTS;
             int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
             int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
             if (faceIndex < 0 || faceIndex >= 6) return false;
@@ -275,6 +278,21 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         };
     }
 
+    /**
+     * 获取插件槽位数量
+     * T1: 无插件槽
+     * T2-T3: 1个插件槽
+     * T4-T5: 2个插件槽
+     */
+    public int getPluginSlotCount() {
+        return switch (getTier()) {
+            case 1 -> 0;
+            case 2, 3 -> 1;
+            case 4, 5 -> 2;  // T4/T5双槽
+            default -> 0;
+        };
+    }
+
     public boolean hasPluginSlot() {
         return getTier() >= 2;
     }
@@ -320,11 +338,32 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     public ItemStack getPluginStack() {
-        ItemStack stack = basePluginSlot.getStackInSlot(0);
-        if (!stack.isEmpty() && stack.getItem() instanceof com.tian_nu.AdvancedTurret.items.SmartChipItem) {
-            return stack;
+        // 遍历所有可用的插件槽，返回第一个智能芯片
+        // 使用实际槽数量兼容旧存档
+        int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
+        for (int i = 0; i < slotCount; i++) {
+            ItemStack stack = basePluginSlot.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.getItem() instanceof com.tian_nu.AdvancedTurret.items.SmartChipItem) {
+                return stack;
+            }
         }
         return ItemStack.EMPTY;
+    }
+    
+    /**
+     * 获取所有插件（用于多插件叠加功能）
+     */
+    public java.util.List<ItemStack> getAllPluginStacks() {
+        java.util.List<ItemStack> plugins = new java.util.ArrayList<>();
+        // 使用实际槽数量兼容旧存档
+        int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
+        for (int i = 0; i < slotCount; i++) {
+            ItemStack stack = basePluginSlot.getStackInSlot(i);
+            if (!stack.isEmpty()) {
+                plugins.add(stack);
+            }
+        }
+        return plugins;
     }
 
     // 获取所有有效的插件（如果需要多插件叠加逻辑）
@@ -467,8 +506,16 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     private boolean hasCreativePowerComponent() {
-        ItemStack stack = basePluginSlot.getStackInSlot(0);
-        return !stack.isEmpty() && stack.is(ModItems.CREATIVE_POWER_COMPONENT.get());
+        // 检查所有插件槽是否有创造能量组件
+        // 使用实际槽数量而不是理论槽数量，以兼容旧存档
+        int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
+        for (int i = 0; i < slotCount; i++) {
+            ItemStack stack = basePluginSlot.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.is(ModItems.CREATIVE_POWER_COMPONENT.get())) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private void checkCreativePowerComponent() {
