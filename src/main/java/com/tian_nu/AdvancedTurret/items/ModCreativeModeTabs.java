@@ -31,16 +31,26 @@ public class ModCreativeModeTabs {
                         
                         // 炮塔类型
                         output.accept(ModBlocks.MACHINE_GUN_TURRET.get());
-                        output.accept(ModItems.RAILGUN_TURRET.get());
+                        output.accept(ModBlocks.RAILGUN_TURRET.get());
                         
                         // 特殊组件
                         output.accept(ModItems.CREATIVE_POWER_COMPONENT.get());
                         output.accept(ModItems.SMART_CHIP.get());
+                        output.accept(ModItems.SOLAR_PLUGIN.get());
+                        output.accept(ModItems.AMMO_RECYCLING_PLUGIN.get());
+                        output.accept(ModItems.REDSTONE_CONVERSION_PLUGIN.get());
+                        output.accept(ModItems.ATTACK_BOOST_COMPONENT.get());
+                        output.accept(ModItems.ENERGY_EFFICIENCY_COMPONENT.get());
+                        output.accept(ModItems.RANGE_COMPONENT.get());
+                        output.accept(ModItems.ACCURACY_COMPONENT.get());
+                        output.accept(ModItems.FIRE_RATE_COMPONENT.get());
                         
                         // 炮塔基座
                         output.accept(ModBlocks.TURRET_BASE_T1.get());
                         output.accept(ModBlocks.TURRET_BASE_T2.get());
                         output.accept(ModBlocks.TURRET_BASE_T3.get());
+                        output.accept(ModBlocks.TURRET_BASE_T4.get());
+                        output.accept(ModBlocks.TURRET_BASE_T5.get());
                     }).build());
 
     public static void register(IEventBus eventBus) {

@@ -20,6 +20,9 @@ public class ModMenuTypes {
     
     public static final RegistryObject<MenuType<TurretMenu>> TURRET_BASE = 
             MENUS.register("turret_base", () -> IForgeMenuType.create(TurretMenu::new));
+
+    public static final RegistryObject<MenuType<TurretFaceConfigMenu>> TURRET_FACE_CONFIG =
+            MENUS.register("turret_face_config", () -> IForgeMenuType.create(TurretFaceConfigMenu::new));
     
     public static void register(IEventBus eventBus) {
         MENUS.register(eventBus);

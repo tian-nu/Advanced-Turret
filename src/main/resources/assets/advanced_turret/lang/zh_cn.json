@@ -2,6 +2,14 @@
   "item.advanced_turret.turret": "炮塔",
   "item.advanced_turret.railgun_turret": "磁轨炮炮塔",
   "item.advanced_turret.creative_power_component": "创造能量组件",
+  "item.advanced_turret.solar_plugin": "太阳能插件",
+  "item.advanced_turret.ammo_recycling_plugin": "弹药循环插件",
+  "item.advanced_turret.redstone_conversion_plugin": "红石转化插件",
+  "item.advanced_turret.attack_boost_component": "攻击增强组件",
+  "item.advanced_turret.energy_efficiency_component": "能量效率组件",
+  "item.advanced_turret.range_component": "射击范围组件",
+  "item.advanced_turret.accuracy_component": "瞄准精度组件",
+  "item.advanced_turret.fire_rate_component": "射速超频组件",
   "item.advanced_turret.smart_chip": "智能芯片",
   "item.advanced_turret.smart_chip.tooltip": "§7安装到炮塔基座以启用高级功能",
 
@@ -16,13 +24,21 @@
   "gui.advanced_turret.blacklist_label": "黑名单 (ID用逗号分隔):",
   "gui.advanced_turret.whitelist_label": "白名单 (ID用逗号分隔):",
   "gui.advanced_turret.owner_tooltip": "主人: %s",
+  "tooltip.advanced_turret.turret.place_on_base": "只能放置在炮塔基座的面上",
+  "tooltip.advanced_turret.machine_gun_turret.stats": "伤害 %.1f | 射程 %.0f | 射速 %d tick/发 | 能耗 %d FE/发",
+  "tooltip.advanced_turret.railgun_turret.stats": "伤害 %.1f | 射程 %.0f | 射速 %d tick/发 | 能耗 %d FE/发",
+  "block.advanced_turret.turret_base_t1": "炮塔基座 T1",
   "block.advanced_turret.turret_base_t2": "炮塔基座 T2",
   "block.advanced_turret.turret_base_t3": "炮塔基座 T3",
+  "block.advanced_turret.turret_base_t4": "炮塔基座 T4",
+  "block.advanced_turret.turret_base_t5": "炮塔基座 T5",
   "block.advanced_turret.machine_gun_turret": "机枪炮塔",
+  "block.advanced_turret.railgun_turret": "磁轨炮炮塔",
 
   "itemGroup.turret_tab": "炮塔模组",
 
   "container.turret_base": "炮塔基座",
+  "container.turret_face_config": "炮塔面配置",
 
   "tooltip.turret.energy": "%d/%d FE",
 

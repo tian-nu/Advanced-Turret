@@ -2,6 +2,14 @@
   "item.advanced_turret.turret": "Turret",
   "item.advanced_turret.railgun_turret": "Railgun Turret",
   "item.advanced_turret.creative_power_component": "Creative Power Component",
+  "item.advanced_turret.solar_plugin": "Solar Plugin",
+  "item.advanced_turret.ammo_recycling_plugin": "Ammo Recycling Plugin",
+  "item.advanced_turret.redstone_conversion_plugin": "Redstone Conversion Plugin",
+  "item.advanced_turret.attack_boost_component": "Attack Boost Component",
+  "item.advanced_turret.energy_efficiency_component": "Energy Efficiency Component",
+  "item.advanced_turret.range_component": "Range Component",
+  "item.advanced_turret.accuracy_component": "Accuracy Component",
+  "item.advanced_turret.fire_rate_component": "Fire Rate Overclock Component",
   "item.advanced_turret.smart_chip": "Smart Chip",
   "item.advanced_turret.smart_chip.tooltip": "§7Install in turret base to enable advanced features",
 
@@ -16,13 +24,21 @@
   "gui.advanced_turret.blacklist_label": "Blacklist (Comma separated IDs):",
   "gui.advanced_turret.whitelist_label": "Whitelist (Comma separated IDs):",
   "gui.advanced_turret.owner_tooltip": "Owner: %s",
+  "tooltip.advanced_turret.turret.place_on_base": "Place on a turret base face only",
+  "tooltip.advanced_turret.machine_gun_turret.stats": "Damage %.1f | Range %.0f | Rate %d tick/shot | Cost %d FE/shot",
+  "tooltip.advanced_turret.railgun_turret.stats": "Damage %.1f | Range %.0f | Rate %d tick/shot | Cost %d FE/shot",
+  "block.advanced_turret.turret_base_t1": "Turret Base T1",
   "block.advanced_turret.turret_base_t2": "Turret Base T2",
   "block.advanced_turret.turret_base_t3": "Turret Base T3",
+  "block.advanced_turret.turret_base_t4": "Turret Base T4",
+  "block.advanced_turret.turret_base_t5": "Turret Base T5",
   "block.advanced_turret.machine_gun_turret": "Machine Gun Turret",
+  "block.advanced_turret.railgun_turret": "Railgun Turret",
 
   "itemGroup.turret_tab": "Turret Mod",
 
   "container.turret_base": "Turret Base",
+  "container.turret_face_config": "Turret Face Config",
 
   "tooltip.turret.energy": "%d/%d FE",
 

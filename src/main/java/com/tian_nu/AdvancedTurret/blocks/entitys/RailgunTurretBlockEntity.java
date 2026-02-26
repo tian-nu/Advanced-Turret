@@ -1,26 +1,23 @@
 package com.tian_nu.AdvancedTurret.blocks.entitys;
 
+import com.mojang.logging.LogUtils;
 import com.tian_nu.AdvancedTurret.Config;
-import com.tian_nu.AdvancedTurret.blocks.MachineGunTurretBlock;
+import com.tian_nu.AdvancedTurret.blocks.RailgunTurretBlock;
 import com.tian_nu.AdvancedTurret.entity.TurretBulletEntity;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem;
-import com.tian_nu.AdvancedTurret.items.SmartChipItem.TargetMode;
-import com.mojang.logging.LogUtils;
+import net.minecraft.world.entity.ambient.AmbientCreature;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.ambient.AmbientCreature;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -28,14 +25,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.network.SerializableDataTicket;
 import software.bernie.geckolib.util.GeckoLibUtil;
@@ -43,62 +38,40 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * 机枪炮塔方块实体
- *
- * <p>放置在炮塔基座上，使用基座的能量进行射击</p>
- * <p>使用GeckoLib进行动画渲染</p>
- *
- * @author tian_nu
- */
-public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlockEntity {
+public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEntity {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    // ========== 常量 ==========
+    public static final int FIRE_RATE = 30;
+    public static final double SEARCH_RADIUS = 24.0;
+    public static final double BULLET_SPEED = 6.0;
+    public static final float BULLET_DAMAGE = 12.0F;
 
-    /** 射击间隔 (tick) */
-    public static final int FIRE_RATE = 5;
-    /** 搜索范围 */
-    public static final double SEARCH_RADIUS = 16.0;
-    /** 子弹速度 */
-    public static final double BULLET_SPEED = 3.0;
-    /** 子弹伤害 */
-    public static final float BULLET_DAMAGE = 4.0F;
-
-    // ========== GeckoLib数据同步票 ==========
     public static SerializableDataTicket<Boolean> HAS_TARGET;
     public static SerializableDataTicket<Double> TARGET_POS_X;
     public static SerializableDataTicket<Double> TARGET_POS_Y;
     public static SerializableDataTicket<Double> TARGET_POS_Z;
 
-    // ========== GeckoLib动画缓存 ==========
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-
-    // ========== 字段 ==========
 
     private int cooldown = 0;
     private LivingEntity target = null;
     private int targetLostTicks = 0;
-    
-    /** 当前yaw角度（弧度） */
+
     public float yRot0 = 0.0f;
-    /** 当前pitch角度（弧度） */
     public float xRot0 = 0.0f;
 
-    public MachineGunTurretBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.MACHINE_GUN_TURRET.get(), pos, state);
+    public RailgunTurretBlockEntity(BlockPos pos, BlockState state) {
+        super(ModBlockEntities.RAILGUN_TURRET.get(), pos, state);
     }
 
-    public static void tick(Level level, BlockPos pos, BlockState state, MachineGunTurretBlockEntity blockEntity) {
-        if (level.isClientSide) {
-            return;
-        }
+    public static void tick(Level level, BlockPos pos, BlockState state, RailgunTurretBlockEntity blockEntity) {
+        if (level.isClientSide) return;
 
         TurretBaseBlockEntity base = blockEntity.getBaseEntity();
         if (base == null) return;
 
-        Direction facing = state.getValue(MachineGunTurretBlock.FACING);
+        Direction facing = state.getValue(RailgunTurretBlock.FACING);
         if (!base.isFaceEnabled(facing)) {
             blockEntity.target = null;
             blockEntity.setAnimData(HAS_TARGET, false);
@@ -112,36 +85,21 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         blockEntity.updateTarget(level, pos, base, facing);
 
         if (blockEntity.target != null && blockEntity.cooldown <= 0) {
-            if (blockEntity.canShoot(base)) {
-                blockEntity.shoot(level, pos, state, base);
+            if (blockEntity.canShoot(base, facing)) {
+                blockEntity.shoot(level, pos, state, base, facing);
                 blockEntity.cooldown = base.getFireRateForFace(facing, FIRE_RATE);
             }
         }
     }
 
-    // ========== GeckoLib动画控制 ==========
-    
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 0, state -> PlayState.CONTINUE));
-    }
-    
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return this.cache;
-    }
-
-    /**
-     * 获取连接的炮塔基座
-     */
     public TurretBaseBlockEntity getBaseEntity() {
         Level level = getLevel();
         if (level == null) return null;
 
         BlockState state = getBlockState();
-        if (!(state.getBlock() instanceof MachineGunTurretBlock)) return null;
+        if (!(state.getBlock() instanceof RailgunTurretBlock)) return null;
 
-        Direction facing = state.getValue(MachineGunTurretBlock.FACING);
+        Direction facing = state.getValue(RailgunTurretBlock.FACING);
         BlockPos basePos = worldPosition.relative(facing.getOpposite());
 
         BlockEntity blockEntity = level.getBlockEntity(basePos);
@@ -151,9 +109,6 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         return null;
     }
 
-    /**
-     * 更新目标
-     */
     private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base, Direction facing) {
         if (target == null || !isValidTarget(target, level, pos)) {
             target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
@@ -167,44 +122,28 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
                 }
             } else {
                 targetLostTicks = 0;
-                if (target != null) {
-                    Vec3 targetPos = target.position().add(0, target.getEyeHeight() * 0.5, 0);
-                    setAnimData(TARGET_POS_X, targetPos.x);
-                    setAnimData(TARGET_POS_Y, targetPos.y);
-                    setAnimData(TARGET_POS_Z, targetPos.z);
-                    setAnimData(HAS_TARGET, true);
-                }
+                Vec3 targetPos = target.position().add(0, target.getEyeHeight() * 0.5, 0);
+                setAnimData(TARGET_POS_X, targetPos.x);
+                setAnimData(TARGET_POS_Y, targetPos.y);
+                setAnimData(TARGET_POS_Z, targetPos.z);
+                setAnimData(HAS_TARGET, true);
             }
         }
     }
 
-    /**
-     * 检查是否可以射击
-     */
-    private boolean canShoot(TurretBaseBlockEntity base) {
-        BlockState state = getBlockState();
-        if (!(state.getBlock() instanceof MachineGunTurretBlock)) return false;
-        Direction facing = state.getValue(MachineGunTurretBlock.FACING);
-        int energyCost = base.getEnergyCostForFace(facing, Config.machineGunEnergyCost);
+    private boolean canShoot(TurretBaseBlockEntity base, Direction facing) {
+        int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
         return base.getEnergyStored() >= energyCost;
     }
 
-    /**
-     * 执行射击
-     */
-    private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base) {
-        // Double check energy cost before shooting logic (redundant but safe)
-        Direction facing = state.getValue(MachineGunTurretBlock.FACING);
-        int energyCost = base.getEnergyCostForFace(facing, Config.machineGunEnergyCost);
+    private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base, Direction facing) {
+        int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
         if (base.getEnergyStored() < energyCost) return;
-
         if (!(level instanceof ServerLevel serverLevel)) return;
 
         Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
-
         Vec3 targetPos = target.position().add(0, target.getEyeHeight() * 0.5, 0);
 
-        // 预判瞄准
         if (base.isPredictiveAiming()) {
             double dist = muzzlePos.distanceTo(targetPos);
             double time = dist / BULLET_SPEED;
@@ -213,10 +152,8 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 
         Vec3 direction = targetPos.subtract(muzzlePos).normalize();
 
-        // Consume energy
         base.consumeEnergy(energyCost);
 
-        // 播放射击音效
         float damage = base.getDamageForFace(facing, BULLET_DAMAGE);
         TurretBulletEntity bullet = new TurretBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
         bullet.setOwner(null);
@@ -225,25 +162,19 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 
         boolean spawned = level.addFreshEntity(bullet);
         if (!spawned) {
-            LOGGER.warn("Failed to spawn turret bullet at {}", muzzlePos);
+            LOGGER.warn("Failed to spawn railgun bullet at {}", muzzlePos);
         }
 
-        level.playSound(null, pos, SoundEvents.ARROW_SHOOT, SoundSource.BLOCKS, 1.0F, 1.5F);
+        level.playSound(null, pos, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1.0F, 1.0F);
 
     }
 
-    /**
-     * 计算炮口位置
-     */
     private Vec3 calculateMuzzlePosition(BlockPos pos, Direction facing) {
         Vec3 center = pos.getCenter();
         Vec3 outward = new Vec3(facing.getStepX(), facing.getStepY(), facing.getStepZ()).scale(0.6);
         return center.add(outward);
     }
 
-    /**
-     * 搜索目标
-     */
     private LivingEntity findTarget(Level level, BlockPos pos, double searchRadius) {
         AABB searchArea = new AABB(
                 pos.getX() - searchRadius, pos.getY() - searchRadius, pos.getZ() - searchRadius,
@@ -265,106 +196,82 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         LivingEntity closest = enemies.stream()
                 .min(Comparator.comparingDouble(e -> e.distanceToSqr(turretPos)))
                 .orElse(null);
-        
+
         if (closest != null) {
-            Vec3 targetPos = closest.position().add(0, closest.getEyeHeight() * 0.5, 0);
-            setAnimData(TARGET_POS_X, targetPos.x);
-            setAnimData(TARGET_POS_Y, targetPos.y);
-            setAnimData(TARGET_POS_Z, targetPos.z);
+            Vec3 tpos = closest.position().add(0, closest.getEyeHeight() * 0.5, 0);
+            setAnimData(TARGET_POS_X, tpos.x);
+            setAnimData(TARGET_POS_Y, tpos.y);
+            setAnimData(TARGET_POS_Z, tpos.z);
             setAnimData(HAS_TARGET, true);
         }
-        
+
         return closest;
     }
 
-    /**
-     * 检查是否为有效目标
-     */
     private boolean isValidTarget(LivingEntity entity, Level level, BlockPos pos) {
         if (!entity.isAlive()) {
             return false;
         }
-        
+
         if (entity.isInvulnerable()) {
             return false;
         }
 
         TurretBaseBlockEntity base = getBaseEntity();
         if (base == null) return false;
-        
+
         ItemStack pluginStack = base.getPluginStack();
         String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
-        
-        // 1. 黑名单检查 (强制攻击)
+
         List<String> blacklist = SmartChipItem.getBlacklist(pluginStack);
         boolean inBlacklist = blacklist.contains(entityId);
-        
-        // 2. 白名单检查 (强制排除)
+
         List<String> whitelist = SmartChipItem.getWhitelist(pluginStack);
         if (whitelist.contains(entityId)) {
             return false;
         }
-        
-        // 3. 目标模式检查 (如果没有在黑名单中)
+
         if (!inBlacklist) {
-            // 使用 Flags 进行组合检查
             int flags = SmartChipItem.getTargetFlags(pluginStack);
             boolean matched = false;
-            
-            // Hostile (Monster/Enemy)
+
             if ((flags & SmartChipItem.FLAG_HOSTILE) != 0) {
                 if (entity instanceof Enemy) matched = true;
             }
-            
-            // Neutral (NeutralMob, like Enderman, Piglin, Wolf)
+
             if (!matched && (flags & SmartChipItem.FLAG_NEUTRAL) != 0) {
-                // NeutralMob interface covers most neutral mobs
-                // Also check if it's a Mob but NOT Enemy and NOT Animal (rough heuristic)
                 if (entity instanceof NeutralMob) matched = true;
             }
-            
-            // Friendly (Animal, Ambient, WaterAnimal)
+
             if (!matched && (flags & SmartChipItem.FLAG_FRIENDLY) != 0) {
                 if (entity instanceof Animal || entity instanceof AmbientCreature || entity instanceof WaterAnimal) matched = true;
             }
-            
-            // Players
+
             if (!matched && (flags & SmartChipItem.FLAG_PLAYERS) != 0) {
                 if (entity instanceof Player p && !p.isCreative() && !p.isSpectator()) matched = true;
             }
-            
-            // Blacklist Only Mode Check (Special case handled by TargetMode Enum for UI compatibility, 
-            // but logic here relies on flags mostly. 
-            // If user selected "Blacklist Only", flags might be 0)
-            
-            // If ALL flags are off, check if it's "Blacklist Only" mode explicitly or just nothing
+
             if (flags == 0) {
-                // If flags are 0, we don't match anything unless it was in blacklist (already checked above)
             }
-            
+
             if (!matched) return false;
         }
 
-        // 4. 友伤保护检查
         if (base.isFriendlyFire()) {
             java.util.UUID ownerId = base.getOwner();
             if (ownerId != null) {
-                // 检查实体是否是主人
                 if (entity.getUUID().equals(ownerId)) return false;
-                
-                // 检查实体是否被主人驯服
+
                 if (entity instanceof net.minecraft.world.entity.TamableAnimal tameable) {
                     java.util.UUID tameOwner = tameable.getOwnerUUID();
                     if (tameOwner != null && tameOwner.equals(ownerId)) {
                         return false;
                     }
                 }
-                
-                // 额外检查：如果是玩家，检查是否是同一队伍（可选，暂时只检查ID）
             }
         }
 
-        Direction facing = getBlockState().getValue(MachineGunTurretBlock.FACING);
+        Direction facing = getBlockState().getValue(RailgunTurretBlock.FACING);
         double searchRadius = base.getSearchRadiusForFace(facing, SEARCH_RADIUS);
         if (!isTargetInRange(entity, pos, searchRadius)) {
             return false;
@@ -377,35 +284,24 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         return true;
     }
 
-    /**
-     * 检查目标是否在范围内
-     */
     private boolean isTargetInRange(LivingEntity entity, BlockPos pos, double searchRadius) {
         Vec3 turretPos = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
         return entity.distanceToSqr(turretPos) <= searchRadius * searchRadius;
     }
 
-    /**
-     * 检查是否有视线
-     * 检测目标头部、中心和脚部
-     */
     private boolean hasLineOfSight(LivingEntity entity, Level level, BlockPos pos) {
-        Direction facing = getBlockState().getValue(MachineGunTurretBlock.FACING);
+        Direction facing = getBlockState().getValue(RailgunTurretBlock.FACING);
         Vec3 start = calculateMuzzlePosition(pos, facing);
-        
-        // 目标检测点：眼睛、中心、脚部
         Vec3[] targetPoints = new Vec3[] {
-            entity.position().add(0, entity.getEyeHeight(), 0),
-            entity.position().add(0, entity.getBbHeight() * 0.5, 0),
-            entity.position()
+                entity.position().add(0, entity.getEyeHeight(), 0),
+                entity.position().add(0, entity.getBbHeight() * 0.5, 0),
+                entity.position()
         };
-        
         for (Vec3 end : targetPoints) {
             if (canSeePoint(level, pos, start, end)) {
                 return true;
             }
         }
-        
         return false;
     }
 
@@ -413,13 +309,13 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         Vec3 outward = end.subtract(start).normalize();
         Vec3 adjustedStart = start.add(outward.scale(0.2));
 
-        net.minecraft.world.phys.BlockHitResult hitResult = level.clip(new net.minecraft.world.level.ClipContext(
+        var hitResult = level.clip(new net.minecraft.world.level.ClipContext(
                 adjustedStart, end,
                 net.minecraft.world.level.ClipContext.Block.COLLIDER,
                 net.minecraft.world.level.ClipContext.Fluid.NONE,
                 null
         ));
-        
+
         if (hitResult.getType() == net.minecraft.world.phys.HitResult.Type.MISS) {
             return true;
         }
@@ -427,24 +323,12 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.putInt("Cooldown", cooldown);
-        tag.putFloat("YRot0", yRot0);
-        tag.putFloat("XRot0", xRot0);
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 0, state -> PlayState.CONTINUE));
     }
 
     @Override
-    public void load(@NotNull CompoundTag tag) {
-        super.load(tag);
-        if (tag.contains("Cooldown")) {
-            cooldown = tag.getInt("Cooldown");
-        }
-        if (tag.contains("YRot0")) {
-            yRot0 = tag.getFloat("YRot0");
-        }
-        if (tag.contains("XRot0")) {
-            xRot0 = tag.getFloat("XRot0");
-        }
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
     }
 }

@@ -2,8 +2,11 @@ package com.tian_nu.AdvancedTurret.blocks;
 
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
+import com.tian_nu.AdvancedTurret.gui.TurretFaceConfigMenu;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -42,7 +45,18 @@ public class TurretBaseBlock extends BaseEntityBlock {
         
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof TurretBaseBlockEntity turretEntity && player instanceof ServerPlayer serverPlayer) {
-            NetworkHooks.openScreen(serverPlayer, turretEntity, pos);
+            if (player.isShiftKeyDown()) {
+                NetworkHooks.openScreen(
+                        serverPlayer,
+                        new SimpleMenuProvider(
+                                (id, inv, p) -> new TurretFaceConfigMenu(id, inv, turretEntity),
+                                Component.translatable("container.turret_face_config")
+                        ),
+                        buf -> buf.writeBlockPos(pos)
+                );
+            } else {
+                NetworkHooks.openScreen(serverPlayer, turretEntity, pos);
+            }
             return InteractionResult.CONSUME;
         }
         

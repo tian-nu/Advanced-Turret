@@ -39,10 +39,30 @@ public class ModBlocks {
                     .mapColor(MapColor.GOLD)
                     .requiresCorrectToolForDrops()
                     .strength(2.5f, 10.0f)));
+
+    // T4炮塔基座：钻石材质，铁镐等级挖掘
+    public static final RegistryObject<Block> TURRET_BASE_T4 =
+            registerBlock("turret_base_t4", () -> new TurretBaseBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.DIAMOND)
+                    .requiresCorrectToolForDrops()
+                    .strength(3.0f, 12.0f)));
+
+    // T5炮塔基座：绿宝石材质，铁镐等级挖掘
+    public static final RegistryObject<Block> TURRET_BASE_T5 =
+            registerBlock("turret_base_t5", () -> new TurretBaseBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.EMERALD)
+                    .requiresCorrectToolForDrops()
+                    .strength(3.5f, 14.0f)));
     
     // 机枪炮塔
     public static final RegistryObject<Block> MACHINE_GUN_TURRET =
             registerBlock("machine_gun_turret", () -> new MachineGunTurretBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .noOcclusion()
+                    .strength(1.0f, 6.0f)));
+
+    public static final RegistryObject<Block> RAILGUN_TURRET =
+            registerBlock("railgun_turret", () -> new RailgunTurretBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .noOcclusion()
                     .strength(1.0f, 6.0f)));

@@ -83,12 +83,16 @@ public class SmartChipItem extends Item {
         if (be instanceof TurretBaseBlockEntity base) {
             ItemStack heldStack = context.getItemInHand();
             // 尝试插入插件
-            ItemStack existingPlugin = base.getPluginSlot().getStackInSlot(0);
+            if (!base.hasPluginSlot()) {
+                return InteractionResult.FAIL;
+            }
+
+            ItemStack existingPlugin = base.getBasePluginSlot().getStackInSlot(0);
             if (existingPlugin.isEmpty()) {
                 if (!level.isClientSide) {
                     ItemStack toInsert = heldStack.copy();
                     toInsert.setCount(1);
-                    base.getPluginSlot().insertItem(0, toInsert, false);
+                    base.getBasePluginSlot().insertItem(0, toInsert, false);
                     heldStack.shrink(1);
                     player.displayClientMessage(Component.translatable("message.advanced_turret.chip_installed").withStyle(ChatFormatting.GREEN), true);
                 }

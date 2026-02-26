@@ -2,6 +2,8 @@ package com.tian_nu.AdvancedTurret.gui;
 
 import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
+import com.tian_nu.AdvancedTurret.items.ModItems;
+import com.tian_nu.AdvancedTurret.items.SmartChipItem;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * 炮塔基座菜单
  * 
- * <p>管理存储槽位、升级槽位、插件槽位和玩家物品栏</p>
+ * <p>管理弹药槽位和玩家物品栏</p>
  * 
  * @author tian_nu
  */
@@ -27,17 +29,12 @@ public class TurretMenu extends AbstractContainerMenu {
     private final TurretBaseBlockEntity blockEntity;
     private final ContainerLevelAccess levelAccess;
     private final ContainerData data;
+    private final int containerSlots;
     
     // 槽位索引常量
-    private static final int STORAGE_START = 0;
-    private static final int STORAGE_END = STORAGE_START + TurretBaseBlockEntity.STORAGE_SLOTS;
-    private static final int UPGRADE_START = STORAGE_END;
-    private static final int UPGRADE_END = UPGRADE_START + TurretBaseBlockEntity.UPGRADE_SLOTS;
-    private static final int PLUGIN_START = UPGRADE_END;
-    private static final int PLUGIN_END = PLUGIN_START + TurretBaseBlockEntity.PLUGIN_SLOTS;
-    private static final int PLAYER_INV_START = PLUGIN_END;
-    private static final int PLAYER_INV_END = PLAYER_INV_START + 27;
-    private static final int PLAYER_HOTBAR_END = PLAYER_INV_END + 9;
+    private static final int AMMO_START = 0;
+    private static final int AMMO_END = AMMO_START + TurretBaseBlockEntity.AMMO_SLOTS;
+    private final int pluginSlotStart;
     
     // 客户端构造函数
     public TurretMenu(int containerId, Inventory playerInventory, FriendlyByteBuf extraData) {
@@ -63,10 +60,11 @@ public class TurretMenu extends AbstractContainerMenu {
         this.blockEntity = turretBase;
         this.levelAccess = ContainerLevelAccess.create(turretBase.getLevel(), turretBase.getBlockPos());
         this.data = data;
+        this.pluginSlotStart = AMMO_END;
+        this.containerSlots = AMMO_END + (turretBase.hasPluginSlot() ? 1 : 0);
         
-        addStorageSlots();
-        addUpgradeSlots();
-        addPluginSlots();
+        addAmmoSlots();
+        addPluginSlot();
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
         
@@ -75,30 +73,21 @@ public class TurretMenu extends AbstractContainerMenu {
     
     // UI 重构：调整槽位坐标
     // 背景图尺寸 194x166
-    // 存储槽位 (3x3) 放在左侧
-    private void addStorageSlots() {
+    // 弹药槽位 (3x3) 放在左侧
+    private void addAmmoSlots() {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 int index = row * 3 + col;
                 int x = 8 + col * 18;
                 int y = 18 + row * 18;
-                addSlot(new SlotItemHandler(blockEntity.getStorageInventory(), index, x, y));
+                addSlot(new SlotItemHandler(blockEntity.getAmmoInventory(), index, x, y));
             }
         }
     }
-    
-    // 升级槽位 (2个) 放在中间
-    private void addUpgradeSlots() {
-        // x = 8 + 3*18 + 10 = 72
-        addSlot(new SlotItemHandler(blockEntity.getUpgradeSlots(), 0, 80, 18));
-        addSlot(new SlotItemHandler(blockEntity.getUpgradeSlots(), 1, 80, 36));
-    }
-    
-    // 插件槽位 (3个) 放在中间下方
-    private void addPluginSlots() {
-        for (int i = 0; i < 3; i++) {
-            addSlot(new SlotItemHandler(blockEntity.getPluginSlot(), i, 80 + i * 18, 60));
-        }
+
+    private void addPluginSlot() {
+        if (!blockEntity.hasPluginSlot()) return;
+        addSlot(new SlotItemHandler(blockEntity.getBasePluginSlot(), 0, 80, 60));
     }
     
     private void addPlayerInventory(Inventory playerInventory) {
@@ -140,28 +129,22 @@ public class TurretMenu extends AbstractContainerMenu {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
             
-            // 槽位范围：
-            // Storage: 0-8
-            // Upgrade: 9-10
-            // Plugin: 11-13
-            // Player Inv: 14-40
-            // Hotbar: 41-49
-            
-            if (index < PLAYER_INV_START) {
+            int playerInvStart = containerSlots;
+            int playerInvEnd = playerInvStart + 27;
+            int playerHotbarEnd = playerInvEnd + 9;
+
+            if (index < playerInvStart) {
                 // 从容器移动到玩家背包
-                if (!this.moveItemStackTo(itemstack1, PLAYER_INV_START, PLAYER_HOTBAR_END, true)) {
+                if (!this.moveItemStackTo(itemstack1, playerInvStart, playerHotbarEnd, true)) {
                     return ItemStack.EMPTY;
                 }
             } else {
                 // 从玩家背包移动到容器
-                // 优先尝试插件
-                if (itemstack1.getItem() instanceof com.tian_nu.AdvancedTurret.items.SmartChipItem) {
-                    if (!this.moveItemStackTo(itemstack1, PLUGIN_START, PLUGIN_END, false)) {
+                if (blockEntity.hasPluginSlot() && isPluginItem(itemstack1)) {
+                    if (!this.moveItemStackTo(itemstack1, pluginSlotStart, pluginSlotStart + 1, false)) {
                         return ItemStack.EMPTY;
                     }
-                } 
-                // 其次尝试升级组件 (暂无具体类，假设所有其他都去存储)
-                else if (!this.moveItemStackTo(itemstack1, STORAGE_START, STORAGE_END, false)) {
+                } else if (!this.moveItemStackTo(itemstack1, AMMO_START, AMMO_END, false)) {
                     return ItemStack.EMPTY;
                 }
             }
@@ -175,10 +158,20 @@ public class TurretMenu extends AbstractContainerMenu {
         return itemstack;
     }
 
+    private boolean isPluginItem(ItemStack stack) {
+        return stack.getItem() instanceof SmartChipItem
+                || stack.is(ModItems.CREATIVE_POWER_COMPONENT.get())
+                || stack.is(ModItems.SOLAR_PLUGIN.get())
+                || stack.is(ModItems.AMMO_RECYCLING_PLUGIN.get())
+                || stack.is(ModItems.REDSTONE_CONVERSION_PLUGIN.get());
+    }
+
     @Override
     public boolean stillValid(Player player) {
         return stillValid(this.levelAccess, player, ModBlocks.TURRET_BASE_T1.get()) ||
                stillValid(this.levelAccess, player, ModBlocks.TURRET_BASE_T2.get()) ||
-               stillValid(this.levelAccess, player, ModBlocks.TURRET_BASE_T3.get());
+                stillValid(this.levelAccess, player, ModBlocks.TURRET_BASE_T3.get()) ||
+                stillValid(this.levelAccess, player, ModBlocks.TURRET_BASE_T4.get()) ||
+                stillValid(this.levelAccess, player, ModBlocks.TURRET_BASE_T5.get());
     }
 }

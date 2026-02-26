@@ -1,8 +1,7 @@
 package com.tian_nu.AdvancedTurret.entity;
 
-import com.tian_nu.AdvancedTurret.blocks.MachineGunTurretBlock;
-import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -20,7 +19,6 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -34,8 +32,8 @@ public class TurretBulletEntity extends Projectile {
     private static final EntityDataAccessor<Integer> SOURCE_POS = SynchedEntityData.defineId(TurretBulletEntity.class, EntityDataSerializers.INT);
     
     private int lifetime = 100;
-    private int ticksExisted = 0;
     private BlockPos sourcePos = null;
+    private int ignoreSourceBlockTicks = 2;
     
     public TurretBulletEntity(EntityType<? extends TurretBulletEntity> type, Level level) {
         super(type, level);
@@ -74,64 +72,37 @@ public class TurretBulletEntity extends Projectile {
     public void tick() {
         super.tick();
         
-        ticksExisted++;
-        
         if (this.lifetime-- <= 0) {
             this.discard();
             return;
         }
-        
+
         Vec3 movement = this.getDeltaMovement();
         Vec3 nextPos = this.position().add(movement);
-        
+
         if (!this.level().isClientSide) {
-            // 初始几tick忽略碰撞，防止在发射器内部碰撞
-            boolean isInitialTick = ticksExisted <= 5;
-            
-            HitResult hitResult = this.level().clip(new net.minecraft.world.level.ClipContext(
-                this.position(), nextPos,
-                net.minecraft.world.level.ClipContext.Block.COLLIDER,
-                net.minecraft.world.level.ClipContext.Fluid.NONE,
-                this
-            ));
-            
+            HitResult hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitLivingEntity);
             if (hitResult.getType() != HitResult.Type.MISS) {
-                BlockPos hitBlockPos = ((net.minecraft.world.phys.BlockHitResult) hitResult).getBlockPos();
-                
-                // 如果是初始tick且击中发射源（炮塔或基座），则忽略
-                if (isInitialTick && isSourceTurret(hitBlockPos)) {
-                    // 忽略
-                } else {
-                    this.onHit(hitResult);
+                if (hitResult instanceof net.minecraft.world.phys.BlockHitResult blockHit
+                        && sourcePos != null
+                        && blockHit.getBlockPos().equals(sourcePos)
+                        && ignoreSourceBlockTicks > 0) {
+                    ignoreSourceBlockTicks--;
+                    this.setPos(nextPos);
                     return;
                 }
-            }
-            
-            EntityHitResult entityHitResult = this.findHitEntity(this.position(), nextPos);
-            if (entityHitResult != null) {
-                this.onHitEntity(entityHitResult);
+                this.onHit(hitResult);
                 return;
             }
         }
-        
+
         this.setPos(nextPos);
     }
-    
-    private boolean isSourceTurret(BlockPos pos) {
-        if (sourcePos != null) {
-            // 检查是否是发射源炮塔
-            if (pos.equals(sourcePos)) return true;
-            
-            // 检查是否是发射源基座
-            BlockEntity be = this.level().getBlockEntity(sourcePos);
-            if (be instanceof MachineGunTurretBlockEntity turret) {
-                TurretBaseBlockEntity base = turret.getBaseEntity();
-                if (base != null && pos.equals(base.getBlockPos())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+
+    private boolean canHitLivingEntity(Entity entity) {
+        return entity instanceof LivingEntity living
+                && living.isAlive()
+                && !entity.equals(this.getOwner());
     }
     
     protected EntityHitResult findHitEntity(Vec3 start, Vec3 end) {
@@ -141,7 +112,9 @@ public class TurretBulletEntity extends Projectile {
             start,
             end,
             this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0),
-            entity -> entity instanceof LivingEntity && entity.isAlive() && !entity.equals(this.getOwner())
+            entity -> entity instanceof LivingEntity
+                    && entity.isAlive()
+                    && !entity.equals(this.getOwner())
         );
     }
     
@@ -157,6 +130,8 @@ public class TurretBulletEntity extends Projectile {
             }
             
             Entity owner = this.getOwner();
+            livingEntity.invulnerableTime = 0;
+            livingEntity.hurtTime = 0;
             if (owner instanceof LivingEntity livingOwner) {
                 livingEntity.hurt(this.damageSources().mobProjectile(this, livingOwner), this.getDamage());
             } else {
@@ -175,6 +150,8 @@ public class TurretBulletEntity extends Projectile {
         if (be instanceof TurretBaseBlockEntity) {
             base = (TurretBaseBlockEntity) be;
         } else if (be instanceof MachineGunTurretBlockEntity turret) {
+            base = turret.getBaseEntity();
+        } else if (be instanceof com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity turret) {
             base = turret.getBaseEntity();
         }
         

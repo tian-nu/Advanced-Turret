@@ -5,6 +5,7 @@ import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.client.renderer.TurretBulletRenderer;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
+import com.tian_nu.AdvancedTurret.gui.TurretFaceConfigScreen;
 import com.tian_nu.AdvancedTurret.gui.TurretScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
@@ -28,6 +29,7 @@ public class ClientEvents {
     public static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             MenuScreens.register(ModMenuTypes.TURRET_BASE.get(), TurretScreen::new);
+            MenuScreens.register(ModMenuTypes.TURRET_FACE_CONFIG.get(), TurretFaceConfigScreen::new);
             
             com.tian_nu.AdvancedTurret.ConfigManager.loadConfig();
         });
@@ -41,6 +43,10 @@ public class ClientEvents {
         event.registerBlockEntityRenderer(
             ModBlockEntities.MACHINE_GUN_TURRET.get(), 
             MachineGunTurretGeoRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+            ModBlockEntities.RAILGUN_TURRET.get(),
+            RailgunTurretGeoRenderer::new
         );
     }
     

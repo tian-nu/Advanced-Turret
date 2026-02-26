@@ -5,6 +5,7 @@ import com.tian_nu.AdvancedTurret.ConfigManager;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
 import com.tian_nu.AdvancedTurret.items.ModItems;
 import com.tian_nu.AdvancedTurret.network.ModNetwork;
+import com.tian_nu.AdvancedTurret.network.TurretOpenFaceConfigPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -50,6 +51,7 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
     
     // 智能插件按钮
     private Button smartConfigButton;
+    private Button faceConfigButton;
     private boolean hasSmartChip = false;
     
     public TurretScreen(TurretMenu menu, Inventory playerInventory, Component title) {
@@ -81,6 +83,11 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         }).bounds(guiLeft + this.imageWidth + 5, guiTop + 20, 80, 20).build();
         this.smartConfigButton.visible = false;
         addRenderableWidget(this.smartConfigButton);
+
+        this.faceConfigButton = Button.builder(Component.literal("面配置"), b -> {
+            ModNetwork.CHANNEL.sendToServer(new TurretOpenFaceConfigPacket(menu.getBlockEntity().getBlockPos()));
+        }).bounds(guiLeft + this.imageWidth + 5, guiTop + 45, 80, 20).build();
+        addRenderableWidget(this.faceConfigButton);
     }
     
     private void addConfigButton() {
@@ -170,6 +177,31 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, backgroundAlpha);
         guiGraphics.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+        int ammoBorder = 0x80909090;
+        int ammoFill = 0x30000000;
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                int sx = x + 8 + col * 18 - 1;
+                int sy = y + 18 + row * 18 - 1;
+                guiGraphics.fill(sx, sy, sx + 18, sy + 18, ammoFill);
+                guiGraphics.fill(sx, sy, sx + 18, sy + 1, ammoBorder);
+                guiGraphics.fill(sx, sy + 17, sx + 18, sy + 18, ammoBorder);
+                guiGraphics.fill(sx, sy, sx + 1, sy + 18, ammoBorder);
+                guiGraphics.fill(sx + 17, sy, sx + 18, sy + 18, ammoBorder);
+            }
+        }
+
+        if (menu.getBlockEntity().hasPluginSlot()) {
+            int slotX = x + 79;
+            int slotY = y + 59;
+            int pluginBorder = 0x80FFFF00;
+            guiGraphics.fill(slotX, slotY, slotX + 18, slotY + 18, ammoFill);
+            guiGraphics.fill(slotX, slotY, slotX + 18, slotY + 1, pluginBorder);
+            guiGraphics.fill(slotX, slotY + 17, slotX + 18, slotY + 18, pluginBorder);
+            guiGraphics.fill(slotX, slotY, slotX + 1, slotY + 18, pluginBorder);
+            guiGraphics.fill(slotX + 17, slotY, slotX + 18, slotY + 18, pluginBorder);
+        }
         
         renderEnergyBar(guiGraphics, x, y);
         RenderSystem.disableBlend();

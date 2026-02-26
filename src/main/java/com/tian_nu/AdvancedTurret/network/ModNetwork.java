@@ -34,5 +34,21 @@ public class ModNetwork {
                 SmartChipConfigPacket::decode,
                 SmartChipConfigPacket::handle
         );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                TurretOpenFaceConfigPacket.class,
+                TurretOpenFaceConfigPacket::encode,
+                TurretOpenFaceConfigPacket::decode,
+                TurretOpenFaceConfigPacket::handle
+        );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                TurretFaceSelectPacket.class,
+                TurretFaceSelectPacket::encode,
+                TurretFaceSelectPacket::decode,
+                TurretFaceSelectPacket::handle
+        );
     }
 }

@@ -1,5 +1,7 @@
 package com.tian_nu.AdvancedTurret.blocks.entitys;
 
+import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
+import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.items.ModItems;
 import com.tian_nu.AdvancedTurret.gui.TurretMenu;
 import net.minecraft.core.BlockPos;
@@ -21,16 +23,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 
 /**
  * 炮塔基座方块实体
@@ -48,7 +46,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         public int get(int index) {
             return switch (index) {
                 case 0 -> TurretBaseBlockEntity.this.energyStorage.getEnergyStored();
-                case 1 -> TurretBaseBlockEntity.this.energyStorage.getMaxEnergyStored();
+                case 1 -> TurretBaseBlockEntity.this.getMaxEnergyStored();
                 default -> 0;
             };
         }
@@ -67,17 +65,17 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
 
     // ========== 常量定义 ==========
     
-    /** 各等级炮塔能量容量 (T1, T2, T3) */
-    public static final int[] MAX_ENERGIES = {10000, 40000, 100000};
+    /** 各等级炮塔能量容量 (T1..T5) */
+    public static final int[] MAX_ENERGIES = {10000, 40000, 100000, 250000, 500000};
     /** 最大能量传输速率 */
     public static final int MAX_TRANSFER_RATE = 1000;
     
-    /** 存储槽位数量 */
-    public static final int STORAGE_SLOTS = 9;
-    /** 升级槽位数量 */
-    public static final int UPGRADE_SLOTS = 2;
-    /** 插件槽位数量 */
-    public static final int PLUGIN_SLOTS = 3;
+    /** 弹药槽位数量（全等级一致） */
+    public static final int AMMO_SLOTS = 9;
+    /** 功能插件槽位数量（全基座唯一、仅允许 1 个） */
+    public static final int BASE_PLUGIN_SLOTS = 1;
+    /** 每个面的最大升级槽位数量（为未来 T5 预留） */
+    public static final int MAX_UPGRADE_SLOTS_PER_FACE = 3;
     
     // ========== 炮塔类型枚举 ==========
     
@@ -88,9 +86,6 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     // ========== 字段 ==========
-    
-    private TurretType installedTurret = TurretType.NONE;
-    private int turretLevel = 1;
     
     // ========== 插件配置 ==========
     
@@ -105,126 +100,128 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     // ========== 能量存储 ==========
     
-    private final EnergyStorage energyStorage = new EnergyStorage(MAX_ENERGIES[0], MAX_TRANSFER_RATE, MAX_TRANSFER_RATE) {
-        @Override
-        public int receiveEnergy(int maxReceive, boolean simulate) {
-            int received = super.receiveEnergy(maxReceive, simulate);
-            if (received > 0 && !simulate) {
-                setChanged();
-            }
-            return received;
-        }
-        
-        @Override
-        public int extractEnergy(int maxExtract, boolean simulate) {
-            int extracted = super.extractEnergy(maxExtract, simulate);
-            if (extracted > 0 && !simulate) {
-                setChanged();
-            }
-            return extracted;
-        }
-        
-        @Override
-        public boolean canExtract() {
-            return true;
-        }
-        
-        @Override
-        public boolean canReceive() {
-            return getEnergyStored() < getMaxEnergyStored();
-        }
-    };
+    private BaseEnergyStorage energyStorage = createEnergyStorage(getMaxEnergyForTier());
     
     private final LazyOptional<IEnergyStorage> energyCapability = LazyOptional.of(() -> energyStorage);
     
     // ========== 物品存储 ==========
     
-    private final ItemStackHandler storageInventory = new ItemStackHandler(STORAGE_SLOTS) {
+    private final ItemStackHandler ammoInventory = new ItemStackHandler(AMMO_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            syncToClient();
         }
     };
     
-    private final ItemStackHandler upgradeSlots = new ItemStackHandler(UPGRADE_SLOTS) {
+    private final ItemStackHandler basePluginSlot = new ItemStackHandler(BASE_PLUGIN_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
-        }
-    };
-    
-    private final ItemStackHandler pluginSlot = new ItemStackHandler(PLUGIN_SLOTS) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            setChanged();
-            // 插件改变时检查创造能量组件
             checkCreativePowerComponent();
+            syncToClient();
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return 1;
         }
 
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            return stack.getItem() instanceof com.tian_nu.AdvancedTurret.items.SmartChipItem || 
-                   stack.is(ModItems.CREATIVE_POWER_COMPONENT.get());
-        }
-        
-        @Override
-        public void deserializeNBT(CompoundTag nbt) {
-            super.deserializeNBT(nbt);
-            // 如果加载后槽位数量小于当前设定的数量 (例如旧存档只有1个槽)，强制扩容并保留原有物品
-            if (this.getSlots() < PLUGIN_SLOTS) {
-                NonNullList<ItemStack> oldStacks = NonNullList.create();
-                for (int i = 0; i < this.getSlots(); i++) {
-                    oldStacks.add(this.getStackInSlot(i));
-                }
-                
-                this.setSize(PLUGIN_SLOTS);
-                
-                for (int i = 0; i < oldStacks.size(); i++) {
-                    this.setStackInSlot(i, oldStacks.get(i));
-                }
-            }
+            return hasPluginSlot() && isPluginItem(stack);
         }
     };
+
+    private final ItemStackHandler[] faceUpgradeSlots = new ItemStackHandler[] {
+            createFaceUpgradeHandler(Direction.DOWN),
+            createFaceUpgradeHandler(Direction.UP),
+            createFaceUpgradeHandler(Direction.NORTH),
+            createFaceUpgradeHandler(Direction.SOUTH),
+            createFaceUpgradeHandler(Direction.WEST),
+            createFaceUpgradeHandler(Direction.EAST)
+    };
+
+    private ItemStackHandler createFaceUpgradeHandler(Direction face) {
+        return new ItemStackHandler(MAX_UPGRADE_SLOTS_PER_FACE) {
+            @Override
+            protected void onContentsChanged(int slot) {
+                setChanged();
+                syncToClient();
+            }
+
+            @Override
+            public int getSlotLimit(int slot) {
+                return 4;
+            }
+
+            @Override
+            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+                if (slot >= getUpgradeSlotsPerFace()) return false;
+                return isUpgradeComponent(stack);
+            }
+        };
+    }
     
     private final IItemHandler combinedInventory = new IItemHandler() {
         @Override
         public int getSlots() {
-            return STORAGE_SLOTS + UPGRADE_SLOTS + PLUGIN_SLOTS;
+            return AMMO_SLOTS + BASE_PLUGIN_SLOTS + (6 * MAX_UPGRADE_SLOTS_PER_FACE);
         }
         
         @Override
         public @NotNull ItemStack getStackInSlot(int slot) {
-            if (slot < STORAGE_SLOTS) return storageInventory.getStackInSlot(slot);
-            if (slot < STORAGE_SLOTS + UPGRADE_SLOTS) return upgradeSlots.getStackInSlot(slot - STORAGE_SLOTS);
-            return pluginSlot.getStackInSlot(slot - STORAGE_SLOTS - UPGRADE_SLOTS);
+            if (slot < AMMO_SLOTS) return ammoInventory.getStackInSlot(slot);
+            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.getStackInSlot(slot - AMMO_SLOTS);
+            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
+            int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
+            if (faceIndex < 0 || faceIndex >= 6) return ItemStack.EMPTY;
+            return faceUpgradeSlots[faceIndex].getStackInSlot(upgradeIndex);
         }
         
         @Override
         public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-            if (slot < STORAGE_SLOTS) return storageInventory.insertItem(slot, stack, simulate);
-            if (slot < STORAGE_SLOTS + UPGRADE_SLOTS) return upgradeSlots.insertItem(slot - STORAGE_SLOTS, stack, simulate);
-            return pluginSlot.insertItem(slot - STORAGE_SLOTS - UPGRADE_SLOTS, stack, simulate);
+            if (slot < AMMO_SLOTS) return ammoInventory.insertItem(slot, stack, simulate);
+            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.insertItem(slot - AMMO_SLOTS, stack, simulate);
+            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
+            int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
+            if (faceIndex < 0 || faceIndex >= 6) return stack;
+            return faceUpgradeSlots[faceIndex].insertItem(upgradeIndex, stack, simulate);
         }
         
         @Override
         public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-            if (slot < STORAGE_SLOTS) return storageInventory.extractItem(slot, amount, simulate);
-            if (slot < STORAGE_SLOTS + UPGRADE_SLOTS) return upgradeSlots.extractItem(slot - STORAGE_SLOTS, amount, simulate);
-            return pluginSlot.extractItem(slot - STORAGE_SLOTS - UPGRADE_SLOTS, amount, simulate);
+            if (slot < AMMO_SLOTS) return ammoInventory.extractItem(slot, amount, simulate);
+            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.extractItem(slot - AMMO_SLOTS, amount, simulate);
+            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
+            int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
+            if (faceIndex < 0 || faceIndex >= 6) return ItemStack.EMPTY;
+            return faceUpgradeSlots[faceIndex].extractItem(upgradeIndex, amount, simulate);
         }
         
         @Override
         public int getSlotLimit(int slot) {
-            if (slot < STORAGE_SLOTS) return storageInventory.getSlotLimit(slot);
-            if (slot < STORAGE_SLOTS + UPGRADE_SLOTS) return upgradeSlots.getSlotLimit(slot - STORAGE_SLOTS);
-            return pluginSlot.getSlotLimit(slot - STORAGE_SLOTS - UPGRADE_SLOTS);
+            if (slot < AMMO_SLOTS) return ammoInventory.getSlotLimit(slot);
+            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.getSlotLimit(slot - AMMO_SLOTS);
+            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
+            int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
+            if (faceIndex < 0 || faceIndex >= 6) return 0;
+            return faceUpgradeSlots[faceIndex].getSlotLimit(upgradeIndex);
         }
         
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            if (slot < STORAGE_SLOTS) return storageInventory.isItemValid(slot, stack);
-            if (slot < STORAGE_SLOTS + UPGRADE_SLOTS) return upgradeSlots.isItemValid(slot - STORAGE_SLOTS, stack);
-            return pluginSlot.isItemValid(slot - STORAGE_SLOTS - UPGRADE_SLOTS, stack);
+            if (slot < AMMO_SLOTS) return ammoInventory.isItemValid(slot, stack);
+            if (slot < AMMO_SLOTS + BASE_PLUGIN_SLOTS) return basePluginSlot.isItemValid(slot - AMMO_SLOTS, stack);
+            int faceSlot = slot - AMMO_SLOTS - BASE_PLUGIN_SLOTS;
+            int faceIndex = faceSlot / MAX_UPGRADE_SLOTS_PER_FACE;
+            int upgradeIndex = faceSlot % MAX_UPGRADE_SLOTS_PER_FACE;
+            if (faceIndex < 0 || faceIndex >= 6) return false;
+            return faceUpgradeSlots[faceIndex].isItemValid(upgradeIndex, stack);
         }
     };
     
@@ -238,25 +235,60 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     // ========== 公共方法 ==========
     
-    public IItemHandler getStorageInventory() {
-        return storageInventory;
+    public int getTier() {
+        BlockState state = getBlockState();
+        if (state.is(ModBlocks.TURRET_BASE_T5.get())) return 5;
+        if (state.is(ModBlocks.TURRET_BASE_T4.get())) return 4;
+        if (state.is(ModBlocks.TURRET_BASE_T3.get())) return 3;
+        if (state.is(ModBlocks.TURRET_BASE_T2.get())) return 2;
+        if (state.is(ModBlocks.TURRET_BASE_T1.get())) return 1;
+        return 1;
     }
-    
-    public IItemHandler getUpgradeSlots() {
-        return upgradeSlots;
+
+    private int getMaxEnergyForTier() {
+        int tier = getTier();
+        int idx = Math.max(0, Math.min(MAX_ENERGIES.length - 1, tier - 1));
+        return MAX_ENERGIES[idx];
     }
-    
-    public IItemHandler getPluginSlot() {
-        return pluginSlot;
+
+    private BaseEnergyStorage createEnergyStorage(int capacity) {
+        return new BaseEnergyStorage(capacity, MAX_TRANSFER_RATE, MAX_TRANSFER_RATE);
     }
-    
-    public TurretType getInstalledTurret() {
-        return installedTurret;
+
+    private void ensureEnergyCapacity() {
+        int desired = getMaxEnergyForTier();
+        if (energyStorage.getMaxEnergyStored() == desired) return;
+        int stored = energyStorage.getEnergyStored();
+        BaseEnergyStorage next = createEnergyStorage(desired);
+        next.setEnergyStored(Math.min(stored, desired));
+        energyStorage = next;
     }
-    
-    public void setInstalledTurret(TurretType type) {
-        this.installedTurret = type;
-        setChanged();
+
+    public int getUpgradeSlotsPerFace() {
+        return switch (getTier()) {
+            case 1 -> 0;
+            case 2 -> 1;
+            case 3 -> 2;
+            case 4 -> 2;
+            case 5 -> 3;
+            default -> 0;
+        };
+    }
+
+    public boolean hasPluginSlot() {
+        return getTier() >= 2;
+    }
+
+    public IItemHandler getAmmoInventory() {
+        return ammoInventory;
+    }
+
+    public IItemHandler getBasePluginSlot() {
+        return basePluginSlot;
+    }
+
+    public IItemHandler getFaceUpgradeSlots(Direction face) {
+        return faceUpgradeSlots[face.get3DDataValue()];
     }
     
     public IEnergyStorage getEnergyStorage() {
@@ -274,10 +306,12 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
      * 获取最大能量存储
      */
     public int getMaxEnergyStored() {
+        ensureEnergyCapacity();
         return energyStorage.getMaxEnergyStored();
     }
     
     public void consumeEnergy(int amount) {
+        ensureEnergyCapacity();
         int extracted = energyStorage.extractEnergy(amount, false);
         if (extracted > 0) {
             setChanged();
@@ -285,22 +319,10 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
     
-    public int getTurretLevel() {
-        return turretLevel;
-    }
-    
-    public void setTurretLevel(int level) {
-        this.turretLevel = Math.max(1, Math.min(3, level));
-        setChanged();
-    }
-
     public ItemStack getPluginStack() {
-        // 返回第一个有效的智能芯片
-        for (int i = 0; i < pluginSlot.getSlots(); i++) {
-            ItemStack stack = pluginSlot.getStackInSlot(i);
-            if (!stack.isEmpty() && stack.getItem() instanceof com.tian_nu.AdvancedTurret.items.SmartChipItem) {
-                return stack;
-            }
+        ItemStack stack = basePluginSlot.getStackInSlot(0);
+        if (!stack.isEmpty() && stack.getItem() instanceof com.tian_nu.AdvancedTurret.items.SmartChipItem) {
+            return stack;
         }
         return ItemStack.EMPTY;
     }
@@ -341,7 +363,24 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     public boolean isFaceEnabled(Direction face) {
+        if (!hasTurretOnFace(face)) return false;
         return (getEnabledFacesMask() & (1 << face.get3DDataValue())) != 0;
+    }
+
+    public boolean hasTurretOnFace(Direction face) {
+        Level level = getLevel();
+        if (level == null) return false;
+        BlockPos turretPos = getBlockPos().relative(face);
+        BlockEntity be = level.getBlockEntity(turretPos);
+        if (be instanceof MachineGunTurretBlockEntity turret) {
+            TurretBaseBlockEntity base = turret.getBaseEntity();
+            return base != null && base.getBlockPos().equals(getBlockPos());
+        }
+        if (be instanceof RailgunTurretBlockEntity turret) {
+            TurretBaseBlockEntity base = turret.getBaseEntity();
+            return base != null && base.getBlockPos().equals(getBlockPos());
+        }
+        return false;
     }
     
     // Setters now update the ItemStack (Update the FIRST found chip)
@@ -403,6 +442,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     public static void tick(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity blockEntity) {
         if (level.isClientSide) return;
+
+        blockEntity.ensureEnergyCapacity();
         
         boolean changed = false;
         
@@ -426,13 +467,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     private boolean hasCreativePowerComponent() {
-        for (int i = 0; i < PLUGIN_SLOTS; i++) {
-            ItemStack plugin = pluginSlot.getStackInSlot(i);
-            if (!plugin.isEmpty() && plugin.is(ModItems.CREATIVE_POWER_COMPONENT.get())) {
-                return true;
-            }
-        }
-        return false;
+        ItemStack stack = basePluginSlot.getStackInSlot(0);
+        return !stack.isEmpty() && stack.is(ModItems.CREATIVE_POWER_COMPONENT.get());
     }
     
     private void checkCreativePowerComponent() {
@@ -465,6 +501,36 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         energyCapability.invalidate();
         itemCapability.invalidate();
     }
+
+    private final class BaseEnergyStorage extends net.minecraftforge.energy.EnergyStorage {
+        private BaseEnergyStorage(int capacity, int maxReceive, int maxExtract) {
+            super(capacity, maxReceive, maxExtract);
+        }
+
+        private void setEnergyStored(int energy) {
+            this.energy = Math.max(0, Math.min(energy, getMaxEnergyStored()));
+        }
+
+        @Override
+        public int receiveEnergy(int maxReceive, boolean simulate) {
+            int received = super.receiveEnergy(maxReceive, simulate);
+            if (received > 0 && !simulate) {
+                setChanged();
+                syncToClient();
+            }
+            return received;
+        }
+
+        @Override
+        public int extractEnergy(int maxExtract, boolean simulate) {
+            int extracted = super.extractEnergy(maxExtract, simulate);
+            if (extracted > 0 && !simulate) {
+                setChanged();
+                syncToClient();
+            }
+            return extracted;
+        }
+    }
     
     // ========== 数据持久化 ==========
     
@@ -472,12 +538,15 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         
-        tag.putInt("TurretLevel", turretLevel);
-        tag.putString("InstalledTurret", installedTurret.name());
         tag.put("Energy", energyStorage.serializeNBT());
-        tag.put("StorageInventory", storageInventory.serializeNBT());
-        tag.put("UpgradeSlots", upgradeSlots.serializeNBT());
-        tag.put("PluginSlot", pluginSlot.serializeNBT());
+        tag.put("AmmoInventory", ammoInventory.serializeNBT());
+        tag.put("BasePluginSlot", basePluginSlot.serializeNBT());
+
+        CompoundTag faces = new CompoundTag();
+        for (Direction face : new Direction[] {Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST}) {
+            faces.put(face.getName(), ((ItemStackHandler) getFaceUpgradeSlots(face)).serializeNBT());
+        }
+        tag.put("FaceUpgradeSlots", faces);
         
         // 插件配置现在存储在 PluginSlot 的物品 NBT 中，不需要单独保存
         
@@ -489,31 +558,51 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        
-        if (tag.contains("TurretLevel")) {
-            turretLevel = tag.getInt("TurretLevel");
-        }
-        
-        if (tag.contains("InstalledTurret")) {
-            try {
-                installedTurret = TurretType.valueOf(tag.getString("InstalledTurret"));
-            } catch (IllegalArgumentException e) {
-                installedTurret = TurretType.NONE;
-            }
-        }
+
+        ensureEnergyCapacity();
         
         if (tag.contains("Energy")) {
             energyStorage.deserializeNBT(tag.get("Energy"));
         }
         
-        if (tag.contains("StorageInventory")) {
-            storageInventory.deserializeNBT(tag.getCompound("StorageInventory"));
+        if (tag.contains("AmmoInventory")) {
+            ammoInventory.deserializeNBT(tag.getCompound("AmmoInventory"));
+        } else if (tag.contains("StorageInventory")) {
+            ammoInventory.deserializeNBT(tag.getCompound("StorageInventory"));
         }
-        if (tag.contains("UpgradeSlots")) {
-            upgradeSlots.deserializeNBT(tag.getCompound("UpgradeSlots"));
+
+        if (tag.contains("BasePluginSlot")) {
+            basePluginSlot.deserializeNBT(tag.getCompound("BasePluginSlot"));
+        } else if (tag.contains("PluginSlot")) {
+            ItemStackHandler legacy = new ItemStackHandler(3);
+            legacy.deserializeNBT(tag.getCompound("PluginSlot"));
+            if (basePluginSlot.getStackInSlot(0).isEmpty()) {
+                for (int i = 0; i < legacy.getSlots(); i++) {
+                    ItemStack s = legacy.getStackInSlot(i);
+                    if (!s.isEmpty()) {
+                        basePluginSlot.setStackInSlot(0, s);
+                        break;
+                    }
+                }
+            }
         }
-        if (tag.contains("PluginSlot")) {
-            pluginSlot.deserializeNBT(tag.getCompound("PluginSlot"));
+
+        if (tag.contains("FaceUpgradeSlots")) {
+            CompoundTag faces = tag.getCompound("FaceUpgradeSlots");
+            for (Direction face : new Direction[] {Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST}) {
+                if (faces.contains(face.getName())) {
+                    ((ItemStackHandler) getFaceUpgradeSlots(face)).deserializeNBT(faces.getCompound(face.getName()));
+                }
+            }
+        } else if (tag.contains("UpgradeSlots")) {
+            ItemStackHandler legacy = new ItemStackHandler(2);
+            legacy.deserializeNBT(tag.getCompound("UpgradeSlots"));
+            ItemStackHandler down = (ItemStackHandler) getFaceUpgradeSlots(Direction.DOWN);
+            for (int i = 0; i < Math.min(legacy.getSlots(), down.getSlots()); i++) {
+                if (down.getStackInSlot(i).isEmpty() && !legacy.getStackInSlot(i).isEmpty()) {
+                    down.setStackInSlot(i, legacy.getStackInSlot(i));
+                }
+            }
         }
         
         // 插件配置现在存储在 PluginSlot 的物品 NBT 中，不需要单独读取
@@ -521,6 +610,57 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         if (tag.contains("Owner")) {
             owner = tag.getUUID("Owner");
         }
+    }
+
+    private boolean isUpgradeComponent(ItemStack stack) {
+        return stack.is(ModItems.ATTACK_BOOST_COMPONENT.get())
+                || stack.is(ModItems.ENERGY_EFFICIENCY_COMPONENT.get())
+                || stack.is(ModItems.RANGE_COMPONENT.get())
+                || stack.is(ModItems.ACCURACY_COMPONENT.get())
+                || stack.is(ModItems.FIRE_RATE_COMPONENT.get());
+    }
+
+    private boolean isPluginItem(ItemStack stack) {
+        return stack.is(ModItems.CREATIVE_POWER_COMPONENT.get())
+                || stack.is(ModItems.SMART_CHIP.get())
+                || stack.is(ModItems.SOLAR_PLUGIN.get())
+                || stack.is(ModItems.AMMO_RECYCLING_PLUGIN.get())
+                || stack.is(ModItems.REDSTONE_CONVERSION_PLUGIN.get());
+    }
+
+    public float getDamageForFace(Direction face, float baseDamage) {
+        int count = countUpgradeItems(face, ModItems.ATTACK_BOOST_COMPONENT.get());
+        double multiplier = Math.min(3.0, 1.0 + (count * 0.10));
+        return (float) (baseDamage * multiplier);
+    }
+
+    public double getSearchRadiusForFace(Direction face, double baseRadius) {
+        int count = countUpgradeItems(face, ModItems.RANGE_COMPONENT.get());
+        return Math.min(32.0, baseRadius + count);
+    }
+
+    public int getFireRateForFace(Direction face, int baseFireRate) {
+        int count = countUpgradeItems(face, ModItems.FIRE_RATE_COMPONENT.get());
+        double factor = Math.max(0.20, 1.0 - (count * 0.05));
+        return Math.max(1, (int) Math.round(baseFireRate * factor));
+    }
+
+    public int getEnergyCostForFace(Direction face, int baseEnergyCost) {
+        int count = countUpgradeItems(face, ModItems.ENERGY_EFFICIENCY_COMPONENT.get());
+        double factor = Math.max(0.20, 1.0 - (count * 0.05));
+        return Math.max(1, (int) Math.ceil(baseEnergyCost * factor));
+    }
+
+    private int countUpgradeItems(Direction face, net.minecraft.world.item.Item item) {
+        ItemStackHandler handler = (ItemStackHandler) getFaceUpgradeSlots(face);
+        int total = 0;
+        for (int i = 0; i < handler.getSlots(); i++) {
+            ItemStack stack = handler.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.is(item)) {
+                total += stack.getCount();
+            }
+        }
+        return total;
     }
     
     // ========== 网络同步 ==========

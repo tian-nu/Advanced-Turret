@@ -23,13 +23,21 @@ public class ModBlockEntities {
                     BlockEntityType.Builder.of(TurretBaseBlockEntity::new,
                             ModBlocks.TURRET_BASE_T1.get(),
                             ModBlocks.TURRET_BASE_T2.get(),
-                            ModBlocks.TURRET_BASE_T3.get()
+                            ModBlocks.TURRET_BASE_T3.get(),
+                            ModBlocks.TURRET_BASE_T4.get(),
+                            ModBlocks.TURRET_BASE_T5.get()
                     ).build(null));
 
     public static final RegistryObject<BlockEntityType<MachineGunTurretBlockEntity>> MACHINE_GUN_TURRET =
             BLOCK_ENTITIES.register("machine_gun_turret", () ->
                     BlockEntityType.Builder.of(MachineGunTurretBlockEntity::new,
                             ModBlocks.MACHINE_GUN_TURRET.get()
+                    ).build(null));
+
+    public static final RegistryObject<BlockEntityType<RailgunTurretBlockEntity>> RAILGUN_TURRET =
+            BLOCK_ENTITIES.register("railgun_turret", () ->
+                    BlockEntityType.Builder.of(RailgunTurretBlockEntity::new,
+                            ModBlocks.RAILGUN_TURRET.get()
                     ).build(null));
 
     public static void register(IEventBus eventBus) {
