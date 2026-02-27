@@ -17,7 +17,11 @@ public class ModItems {
     // 炮塔类型物品
     // 机枪炮塔物品在ModBlocks中注册为BlockItem
     
-    // 创造能量组件
+    // 弹药物品
+    public static final RegistryObject<Item> MACHINE_GUN_BULLET =
+            ITEMS.register("machine_gun_bullet", () -> new Item(new Item.Properties().stacksTo(64)));
+    
+    // 插件物品
     public static final RegistryObject<Item> CREATIVE_POWER_COMPONENT =
             ITEMS.register("creative_power_component", () -> new Item(new Item.Properties().stacksTo(64)));
 
@@ -27,6 +31,8 @@ public class ModItems {
             ITEMS.register("ammo_recycling_plugin", () -> new Item(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> REDSTONE_CONVERSION_PLUGIN =
             ITEMS.register("redstone_conversion_plugin", () -> new Item(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> DESTRUCTION_PLUGIN =
+            ITEMS.register("destruction_plugin", () -> new Item(new Item.Properties().stacksTo(1)));
 
     // 智能芯片插件
     public static final RegistryObject<Item> SMART_CHIP =

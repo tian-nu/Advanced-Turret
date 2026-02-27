@@ -42,6 +42,19 @@ public class Config {
             .comment("磁轨炮炮塔每次射击能量消耗")
             .defineInRange("railgunEnergyCost", 1000, 100, 10000);
     
+    // 插件配置
+    public static final ForgeConfigSpec.IntValue SOLAR_ENERGY_GENERATION = BUILDER
+            .comment("太阳能插件发电量 (FE/tick)")
+            .defineInRange("solarEnergyGeneration", 10, 1, 500);
+    
+    public static final ForgeConfigSpec.DoubleValue AMMO_RECYCLE_CHANCE = BUILDER
+            .comment("弹药回收插件：不消耗弹药的概率 (0.0-1.0)")
+            .defineInRange("ammoRecycleChance", 0.2, 0.0, 1.0);
+    
+    public static final ForgeConfigSpec.IntValue REDSTONE_TO_ENERGY_RATIO = BUILDER
+            .comment("红石转化插件：每个红石转化能量 (FE/个)")
+            .defineInRange("redstoneToEnergyRatio", 2000, 100, 10000);
+    
     static final ForgeConfigSpec SPEC = BUILDER.build();
     
     // 运行时配置值
@@ -51,6 +64,9 @@ public class Config {
     public static int maxTransferRate;
     public static int machineGunEnergyCost;
     public static int railgunEnergyCost;
+    public static int solarEnergyGeneration;
+    public static double ammoRecycleChance;
+    public static int redstoneToEnergyRatio;
     
     @SubscribeEvent
     static void onLoad(ModConfigEvent event) {
@@ -60,5 +76,8 @@ public class Config {
         maxTransferRate = MAX_TRANSFER_RATE.get();
         machineGunEnergyCost = MACHINE_GUN_ENERGY_COST.get();
         railgunEnergyCost = RAILGUN_ENERGY_COST.get();
+        solarEnergyGeneration = SOLAR_ENERGY_GENERATION.get();
+        ammoRecycleChance = AMMO_RECYCLE_CHANCE.get();
+        redstoneToEnergyRatio = REDSTONE_TO_ENERGY_RATIO.get();
     }
 }

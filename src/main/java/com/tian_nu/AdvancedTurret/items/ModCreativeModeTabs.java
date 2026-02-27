@@ -29,6 +29,9 @@ public class ModCreativeModeTabs {
                         // 基础物品
                         output.accept(ModItems.TURRET.get());
                         
+                        // 弹药
+                        output.accept(ModItems.MACHINE_GUN_BULLET.get());
+                        
                         // 炮塔类型
                         output.accept(ModBlocks.MACHINE_GUN_TURRET.get());
                         output.accept(ModBlocks.RAILGUN_TURRET.get());
@@ -39,6 +42,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.SOLAR_PLUGIN.get());
                         output.accept(ModItems.AMMO_RECYCLING_PLUGIN.get());
                         output.accept(ModItems.REDSTONE_CONVERSION_PLUGIN.get());
+                        output.accept(ModItems.DESTRUCTION_PLUGIN.get());
                         output.accept(ModItems.ATTACK_BOOST_COMPONENT.get());
                         output.accept(ModItems.ENERGY_EFFICIENCY_COMPONENT.get());
                         output.accept(ModItems.RANGE_COMPONENT.get());

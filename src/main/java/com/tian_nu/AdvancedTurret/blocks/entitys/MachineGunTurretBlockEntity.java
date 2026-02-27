@@ -3,6 +3,7 @@ package com.tian_nu.AdvancedTurret.blocks.entitys;
 import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.MachineGunTurretBlock;
 import com.tian_nu.AdvancedTurret.entity.TurretBulletEntity;
+import com.tian_nu.AdvancedTurret.items.ModItems;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem.TargetMode;
 import com.mojang.logging.LogUtils;
@@ -197,7 +198,40 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         if (!(state.getBlock() instanceof MachineGunTurretBlock)) return false;
         Direction facing = state.getValue(MachineGunTurretBlock.FACING);
         int energyCost = base.getEnergyCostForFace(facing, Config.machineGunEnergyCost);
-        return base.getEnergyStored() >= energyCost;
+        
+        // 检查能量
+        if (base.getEnergyStored() < energyCost) return false;
+        
+        // 检查弹药
+        return hasAmmo(base);
+    }
+    
+    /**
+     * 检查弹药槽是否有子弹
+     */
+    private boolean hasAmmo(TurretBaseBlockEntity base) {
+        net.minecraftforge.items.IItemHandler ammoInv = base.getAmmoInventory();
+        for (int i = 0; i < ammoInv.getSlots(); i++) {
+            ItemStack stack = ammoInv.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.is(ModItems.MACHINE_GUN_BULLET.get())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 消耗一颗子弹
+     */
+    private void consumeAmmo(TurretBaseBlockEntity base) {
+        net.minecraftforge.items.IItemHandler ammoInv = base.getAmmoInventory();
+        for (int i = 0; i < ammoInv.getSlots(); i++) {
+            ItemStack stack = ammoInv.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.is(ModItems.MACHINE_GUN_BULLET.get())) {
+                stack.shrink(1);
+                return;
+            }
+        }
     }
 
     /**
@@ -208,6 +242,9 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         Direction facing = state.getValue(MachineGunTurretBlock.FACING);
         int energyCost = base.getEnergyCostForFace(facing, Config.machineGunEnergyCost);
         if (base.getEnergyStored() < energyCost) return;
+        
+        // 检查弹药
+        if (!hasAmmo(base)) return;
 
         if (!(level instanceof ServerLevel serverLevel)) return;
 
@@ -224,8 +261,18 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 
         Vec3 direction = targetPos.subtract(muzzlePos).normalize();
 
-        // Consume energy
+        // 消耗能量
         base.consumeEnergy(energyCost);
+        
+        // 消耗弹药（弹药回收插件：20%概率不消耗）
+        if (base.hasAmmoRecyclingPlugin()) {
+            if (base.getLevel().random.nextFloat() >= com.tian_nu.AdvancedTurret.Config.ammoRecycleChance) {
+                consumeAmmo(base);
+            }
+            // 20%概率不消耗弹药
+        } else {
+            consumeAmmo(base);
+        }
 
         // 播放射击音效
         float damage = base.getDamageForFace(facing, BULLET_DAMAGE);

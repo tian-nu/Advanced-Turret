@@ -490,9 +490,59 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         if (blockEntity.hasCreativePowerComponent()) {
             int maxEnergy = blockEntity.energyStorage.getMaxEnergyStored();
             if (blockEntity.energyStorage.getEnergyStored() < maxEnergy) {
-                // 直接填满能量
-                blockEntity.energyStorage.receiveEnergy(maxEnergy, false);
+                // 直接设置满电（绕过receiveEnergy的maxReceive限制）
+                blockEntity.setEnergyFull();
                 changed = true;
+            }
+        } else {
+            // 太阳能插件发电
+            // 条件：白天 且 炮塔位置上方可以看到天空
+            if (blockEntity.hasSolarPlugin()) {
+                boolean isDaytime = level.getDayTime() % 24000 < 12000; // 0-12000是白天
+                // 检查基座上方一格是否能看到天空（因为基座上方可能有炮塔）
+                boolean canSeeSky = level.canSeeSky(pos.above());
+                if (isDaytime && canSeeSky) {
+                    int generated = com.tian_nu.AdvancedTurret.Config.solarEnergyGeneration;
+                    int added = blockEntity.addEnergyDirectly(generated);
+                    if (added > 0) {
+                        changed = true;
+                    }
+                }
+            }
+            
+            // 红石转化插件：从弹药槽消耗红石/红石块转换为能量
+            if (blockEntity.hasRedstoneConversionPlugin()) {
+                int energyPerRedstone = com.tian_nu.AdvancedTurret.Config.redstoneToEnergyRatio;
+                int energyPerRedstoneBlock = 18000; // 红石块转化能量
+                int maxEnergy = blockEntity.energyStorage.getMaxEnergyStored();
+                int currentEnergy = blockEntity.energyStorage.getEnergyStored();
+                int space = maxEnergy - currentEnergy;
+                
+                // 优先消耗红石块（能量更多）
+                if (space >= energyPerRedstoneBlock) {
+                    for (int i = 0; i < blockEntity.ammoInventory.getSlots(); i++) {
+                        net.minecraft.world.item.ItemStack stack = blockEntity.ammoInventory.getStackInSlot(i);
+                        if (!stack.isEmpty() && stack.getItem() == net.minecraft.world.item.Items.REDSTONE_BLOCK) {
+                            stack.shrink(1);
+                            blockEntity.addEnergyDirectly(energyPerRedstoneBlock);
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // 再消耗红石粉
+                if (!changed && space >= energyPerRedstone) {
+                    for (int i = 0; i < blockEntity.ammoInventory.getSlots(); i++) {
+                        net.minecraft.world.item.ItemStack stack = blockEntity.ammoInventory.getStackInSlot(i);
+                        if (!stack.isEmpty() && stack.getItem() == net.minecraft.world.item.Items.REDSTONE) {
+                            stack.shrink(1);
+                            blockEntity.addEnergyDirectly(energyPerRedstone);
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
         
@@ -505,9 +555,9 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
     
+    // ========== 插件检查方法 ==========
+    
     private boolean hasCreativePowerComponent() {
-        // 检查所有插件槽是否有创造能量组件
-        // 使用实际槽数量而不是理论槽数量，以兼容旧存档
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
         for (int i = 0; i < slotCount; i++) {
             ItemStack stack = basePluginSlot.getStackInSlot(i);
@@ -518,15 +568,95 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         return false;
     }
     
-    private void checkCreativePowerComponent() {
-        if (hasCreativePowerComponent() && level != null && !level.isClientSide) {
-            int maxEnergy = energyStorage.getMaxEnergyStored();
-            if (energyStorage.getEnergyStored() < maxEnergy) {
-                energyStorage.receiveEnergy(maxEnergy, false);
-                setChanged();
-                syncToClient();
+    /**
+     * 检查是否有太阳能插件
+     */
+    public boolean hasSolarPlugin() {
+        int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
+        for (int i = 0; i < slotCount; i++) {
+            ItemStack stack = basePluginSlot.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.is(ModItems.SOLAR_PLUGIN.get())) {
+                return true;
             }
         }
+        return false;
+    }
+    
+    /**
+     * 检查是否有弹药回收插件
+     */
+    public boolean hasAmmoRecyclingPlugin() {
+        int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
+        for (int i = 0; i < slotCount; i++) {
+            ItemStack stack = basePluginSlot.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.is(ModItems.AMMO_RECYCLING_PLUGIN.get())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 检查是否有红石转化插件
+     */
+    public boolean hasRedstoneConversionPlugin() {
+        int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
+        for (int i = 0; i < slotCount; i++) {
+            ItemStack stack = basePluginSlot.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.is(ModItems.REDSTONE_CONVERSION_PLUGIN.get())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 检查是否有破坏插件
+     */
+    public boolean hasDestructionPlugin() {
+        int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
+        for (int i = 0; i < slotCount; i++) {
+            ItemStack stack = basePluginSlot.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.is(ModItems.DESTRUCTION_PLUGIN.get())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private void checkCreativePowerComponent() {
+        if (hasCreativePowerComponent() && level != null && !level.isClientSide) {
+            setEnergyFull();
+        }
+    }
+    
+    /**
+     * 直接设置满电（用于创造能量组件）
+     */
+    private void setEnergyFull() {
+        if (energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
+            energyStorage.setEnergyStored(energyStorage.getMaxEnergyStored());
+            setChanged();
+            syncToClient();
+        }
+    }
+    
+    /**
+     * 直接增加能量（绕过maxReceive限制）
+     * @param amount 增加的能量值
+     * @return 实际增加的能量
+     */
+    private int addEnergyDirectly(int amount) {
+        int maxEnergy = energyStorage.getMaxEnergyStored();
+        int currentEnergy = energyStorage.getEnergyStored();
+        int space = maxEnergy - currentEnergy;
+        int toAdd = Math.min(amount, space);
+        if (toAdd > 0) {
+            energyStorage.setEnergyStored(currentEnergy + toAdd);
+            setChanged();
+            syncToClient();
+        }
+        return toAdd;
     }
     
     // ========== 能力系统 ==========
@@ -672,7 +802,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
                 || stack.is(ModItems.SMART_CHIP.get())
                 || stack.is(ModItems.SOLAR_PLUGIN.get())
                 || stack.is(ModItems.AMMO_RECYCLING_PLUGIN.get())
-                || stack.is(ModItems.REDSTONE_CONVERSION_PLUGIN.get());
+                || stack.is(ModItems.REDSTONE_CONVERSION_PLUGIN.get())
+                || stack.is(ModItems.DESTRUCTION_PLUGIN.get());
     }
 
     public float getDamageForFace(Direction face, float baseDamage) {

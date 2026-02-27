@@ -192,6 +192,49 @@ BlockHitResult blockHit = level.clip(new ClipContext(...));
 ```
 **关键**: 所有子弹子类都必须覆盖 tick() 方法，使用分离碰撞检测
 
+### 11. EnergyStorage.receiveEnergy 的 maxReceive 限制
+**问题**: 太阳能/红石转化插件只能充1000FE，无法充更多
+**原因**: 
+- `EnergyStorage.receiveEnergy(maxReceive, simulate)` 返回值受内部 `this.maxReceive` 限制
+- 构造 `EnergyStorage(capacity, maxReceive, maxExtract)` 时设置的 `maxReceive=1000`
+- 即使调用 `receiveEnergy(18000, false)`，实际也只能充入1000
+**解决**: 使用内部方法直接设置能量值，绕过限制
+```java
+// 错误写法：受maxReceive限制
+energyStorage.receiveEnergy(18000, false);  // 只能充入1000！
+
+// 正确写法：直接设置能量
+private int addEnergyDirectly(int amount) {
+    int maxEnergy = energyStorage.getMaxEnergyStored();
+    int currentEnergy = energyStorage.getEnergyStored();
+    int space = maxEnergy - currentEnergy;
+    int toAdd = Math.min(amount, space);
+    if (toAdd > 0) {
+        energyStorage.setEnergyStored(currentEnergy + toAdd);  // 内部方法
+        setChanged();
+        syncToClient();
+    }
+    return toAdd;
+}
+```
+**影响**: 
+- 太阳能发电
+- 红石转化（红石2000FE，红石块18000FE）
+- 创造能量组件（直接满电）
+- 任何需要单次充入大量能量的场景
+
+### 12. canSeeSky 检测位置问题
+**问题**: 太阳能插件在基座上方有炮塔时无法发电
+**原因**: `level.canSeeSky(pos)` 检查的是基座位置，但基座上方可能有炮塔遮挡
+**解决**: 检查基座上方一格是否能看到天空
+```java
+// 错误写法：检查基座位置
+boolean canSeeSky = level.canSeeSky(pos);  // 炮塔在上方时永远false
+
+// 正确写法：检查上方一格
+boolean canSeeSky = level.canSeeSky(pos.above());  // 炮塔高度以上可以看到天空
+```
+
 ---
 
 ## 📐 子弹系统设计
@@ -322,22 +365,92 @@ public boolean isFriendlyFire() {
 
 ---
 
+## 🔌 插件系统
+
+### 插件列表
+| 插件 | 注册名 | 功能 | 配置项 |
+|------|--------|------|--------|
+| 创造能量组件 | CREATIVE_POWER_COMPONENT | 直接满电（非1000/t充电） | - |
+| 太阳能插件 | SOLAR_PLUGIN | 白天露天发电 | `solarEnergyGeneration` (10 FE/t) |
+| 弹药回收插件 | AMMO_RECYCLING_PLUGIN | 攻击时20%概率不消耗弹药 | `ammoRecycleChance` (20%) |
+| 红石转化插件 | REDSTONE_CONVERSION_PLUGIN | 弹药槽红石/红石块转能量 | 红石2000FE/个，红石块18000FE/个 |
+| 破坏插件 | DESTRUCTION_PLUGIN | 爆炸破坏方块 | - |
+| 智能芯片 | SMART_CHIP | 目标配置、友伤保护、预判瞄准 | NBT存储 |
+
+### 插件检查方法
+```java
+// TurretBaseBlockEntity 中提供的方法
+public boolean hasSolarPlugin();           // 太阳能插件
+public boolean hasAmmoRecyclingPlugin();   // 弹药回收插件
+public boolean hasRedstoneConversionPlugin(); // 红石转化插件
+public boolean hasDestructionPlugin();     // 破坏插件
+public boolean hasCreativePowerComponent(); // 创造能量组件
+```
+
+### 插件功能实现位置
+- **创造能量组件**: `TurretBaseBlockEntity.setEnergyFull()` 直接设置满电
+- **太阳能插件**: 白天（0-12000 tick）+ 露天（`canSeeSky`）
+- **弹药回收**: `MachineGunTurretBlockEntity.shoot()` 中，攻击前检查，20%概率跳过弹药消耗
+- **红石转化**: 弹药槽消耗，优先红石块(18000FE)，再红石粉(2000FE)
+- **破坏插件**: 预留给爆炸类子弹使用（火箭/导弹等）
+
+---
+
+## 🔫 弹药系统
+
+### 机枪子弹
+- **物品**: `ModItems.MACHINE_GUN_BULLET`
+- **贴图**: 复用 `turret_bullet.png`
+- **堆叠**: 64个/组
+- **消耗**: 机枪每次射击消耗1个子弹
+
+### 机枪发射流程
+```java
+// 1. 检查弹药
+if (!hasAmmo(base)) return;
+
+// 2. 消耗弹药
+consumeAmmo(base);
+
+// 3. 消耗能量
+base.consumeEnergy(energyCost);
+
+// 4. 生成子弹实体
+level.addFreshEntity(bullet);
+```
+
+### 弹药检查方法
+```java
+// MachineGunTurretBlockEntity 中
+private boolean hasAmmo(TurretBaseBlockEntity base) {
+    IItemHandler ammoInv = base.getAmmoInventory();
+    for (int i = 0; i < ammoInv.getSlots(); i++) {
+        ItemStack stack = ammoInv.getStackInSlot(i);
+        if (!stack.isEmpty() && stack.is(ModItems.MACHINE_GUN_BULLET.get())) {
+            return true;
+        }
+    }
+    return false;
+}
+```
+
+---
+
 ## 🎯 待实现功能优先级
 
 1. **高优先级**
-   - T4/T5双功能槽支持
-   - 无电量低头动画
-   - 各类型子弹实体
+   - ✅ T4/T5双功能槽支持
+   - ✅ 无电量低头动画
+   - ✅ 插件功能完整实现
+   - 各类型子弹实体（火箭/导弹/榴弹等）
 
 2. **中优先级**
    - 激光/火箭/导弹/榴弹炮塔
-   - 破坏插件
    - 垃圾炮塔
 
 3. **低优先级**
    - 立场炮塔（相位/谐振）
-   - 太阳能/弹药回收/红石插件
-   - 精度组件
+   - 精度组件效果
 
 ---
 

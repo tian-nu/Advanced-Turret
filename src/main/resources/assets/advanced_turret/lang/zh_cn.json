@@ -5,6 +5,8 @@
   "item.advanced_turret.solar_plugin": "太阳能插件",
   "item.advanced_turret.ammo_recycling_plugin": "弹药循环插件",
   "item.advanced_turret.redstone_conversion_plugin": "红石转化插件",
+  "item.advanced_turret.destruction_plugin": "破坏插件",
+  "item.advanced_turret.machine_gun_bullet": "机枪子弹",
   "item.advanced_turret.attack_boost_component": "攻击增强组件",
   "item.advanced_turret.energy_efficiency_component": "能量效率组件",
   "item.advanced_turret.range_component": "射击范围组件",

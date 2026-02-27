@@ -5,6 +5,8 @@
   "item.advanced_turret.solar_plugin": "Solar Plugin",
   "item.advanced_turret.ammo_recycling_plugin": "Ammo Recycling Plugin",
   "item.advanced_turret.redstone_conversion_plugin": "Redstone Conversion Plugin",
+  "item.advanced_turret.destruction_plugin": "Destruction Plugin",
+  "item.advanced_turret.machine_gun_bullet": "Machine Gun Bullet",
   "item.advanced_turret.attack_boost_component": "Attack Boost Component",
   "item.advanced_turret.energy_efficiency_component": "Energy Efficiency Component",
   "item.advanced_turret.range_component": "Range Component",
