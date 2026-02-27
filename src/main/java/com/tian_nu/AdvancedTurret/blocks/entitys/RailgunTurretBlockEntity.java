@@ -43,10 +43,11 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final int FIRE_RATE = 30;
-    public static final double SEARCH_RADIUS = 24.0;
+    public static final int FIRE_RATE = 100;
+    public static final double SEARCH_RADIUS = 64.0;
     public static final double BULLET_SPEED = 6.0;
-    public static final float BULLET_DAMAGE = 12.0F;
+    public static final float BULLET_DAMAGE = 60.0F;
+    public static final int ENERGY_COST = 10000;
 
     public static SerializableDataTicket<Boolean> HAS_TARGET;
     public static SerializableDataTicket<Double> TARGET_POS_X;

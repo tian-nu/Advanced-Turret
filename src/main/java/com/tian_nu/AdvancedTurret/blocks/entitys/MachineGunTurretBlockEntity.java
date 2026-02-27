@@ -61,7 +61,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
     /** 射击间隔 (tick) */
     public static final int FIRE_RATE = 5;
     /** 搜索范围 */
-    public static final double SEARCH_RADIUS = 16.0;
+    public static final double SEARCH_RADIUS = 32.0;
     /** 子弹速度 */
     public static final double BULLET_SPEED = 3.0;
     /** 子弹伤害 */

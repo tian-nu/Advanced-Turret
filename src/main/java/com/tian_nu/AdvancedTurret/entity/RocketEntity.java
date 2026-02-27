@@ -44,6 +44,9 @@ public class RocketEntity extends TurretProjectileEntity {
     /** 是否破坏方块（由破坏插件控制） */
     private boolean destroyBlocks = false;
     
+    /** 加速度 (越飞越快) */
+    private double acceleration = 0.05;
+    
     // ==================== 构造函数 ====================
     
     public RocketEntity(EntityType<? extends RocketEntity> type, Level level) {
@@ -75,6 +78,9 @@ public class RocketEntity extends TurretProjectileEntity {
     
     public void setDestroyBlocks(boolean destroy) { this.destroyBlocks = destroy; }
     public boolean shouldDestroyBlocks() { return this.destroyBlocks; }
+    
+    public void setAcceleration(double accel) { this.acceleration = accel; }
+    public double getAcceleration() { return this.acceleration; }
     
     // ==================== 击中处理 ====================
     
@@ -156,9 +162,15 @@ public class RocketEntity extends TurretProjectileEntity {
             return;
         }
 
-        Vec3 currentPos = this.position();
+        // 越飞越快：加速度
         Vec3 movement = this.getDeltaMovement();
-        Vec3 nextPos = currentPos.add(movement);
+        double currentSpeed = movement.length();
+        double newSpeed = currentSpeed + acceleration;
+        Vec3 direction = movement.normalize();
+        this.setDeltaMovement(direction.scale(newSpeed));
+
+        Vec3 currentPos = this.position();
+        Vec3 nextPos = currentPos.add(this.getDeltaMovement());
 
         if (!this.level().isClientSide) {
             // 1. 检测实体碰撞（优先）
@@ -247,6 +259,7 @@ public class RocketEntity extends TurretProjectileEntity {
         tag.putFloat("ExplosionDamage", this.explosionDamage);
         tag.putFloat("ExplosionRadius", this.explosionRadius);
         tag.putBoolean("DestroyBlocks", this.destroyBlocks);
+        tag.putDouble("Acceleration", this.acceleration);
     }
     
     @Override
@@ -263,6 +276,9 @@ public class RocketEntity extends TurretProjectileEntity {
         }
         if (tag.contains("DestroyBlocks")) {
             this.destroyBlocks = tag.getBoolean("DestroyBlocks");
+        }
+        if (tag.contains("Acceleration")) {
+            this.acceleration = tag.getDouble("Acceleration");
         }
     }
 }

@@ -40,7 +40,7 @@ public class Config {
     
     public static final ForgeConfigSpec.IntValue RAILGUN_ENERGY_COST = BUILDER
             .comment("磁轨炮炮塔每次射击能量消耗")
-            .defineInRange("railgunEnergyCost", 1000, 100, 10000);
+            .defineInRange("railgunEnergyCost", 10000, 100, 100000);
     
     // 插件配置
     public static final ForgeConfigSpec.IntValue SOLAR_ENERGY_GENERATION = BUILDER

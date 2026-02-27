@@ -65,8 +65,10 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
     public static final int FIRE_RATE = 100;
     /** 搜索范围 */
     public static final double SEARCH_RADIUS = 48.0;
-    /** 子弹速度 */
+    /** 子弹初始速度 */
     public static final double BULLET_SPEED = 2.0;
+    /** 加速度 (越飞越快) */
+    public static final double ACCELERATION = 0.05;
     /** 直击伤害 */
     public static final float DIRECT_DAMAGE = 10.0F;
     /** 爆炸伤害 */
@@ -292,6 +294,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         rocket.setBasePos(pos.relative(facing.getOpposite()));
         rocket.setExplosionDamage(explosionDamage);
         rocket.setExplosionRadius(EXPLOSION_RADIUS);
+        rocket.setAcceleration(ACCELERATION); // 越飞越快
         
         // 破坏插件：决定是否破坏方块
         rocket.setDestroyBlocks(base.hasDestructionPlugin());
