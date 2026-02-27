@@ -3,6 +3,7 @@ package com.tian_nu.AdvancedTurret.blocks.entitys;
 import com.mojang.logging.LogUtils;
 import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.RailgunTurretBlock;
+import com.tian_nu.AdvancedTurret.entity.RailgunBulletEntity;
 import com.tian_nu.AdvancedTurret.entity.TurretBulletEntity;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem;
 import net.minecraft.world.entity.ambient.AmbientCreature;
@@ -166,9 +167,11 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         base.consumeEnergy(energyCost);
 
         float damage = base.getDamageForFace(facing, BULLET_DAMAGE);
-        TurretBulletEntity bullet = new TurretBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
+        RailgunBulletEntity bullet = new RailgunBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
         bullet.setOwner(null);
         bullet.setSourcePos(pos);
+        bullet.setBasePos(pos.relative(facing.getOpposite())); // 设置基座位置
+        bullet.setPenetrationCount(3); // 穿透3个目标
         bullet.shoot(direction, (float) BULLET_SPEED);
 
         boolean spawned = level.addFreshEntity(bullet);
@@ -180,10 +183,34 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 
     }
 
+    /**
+     * 计算炮口位置
+     * pos是炮塔方块位置
+     * 炮塔模型高度约0.5方块，需要根据朝向计算正确位置
+     */
     private Vec3 calculateMuzzlePosition(BlockPos pos, Direction facing) {
-        Vec3 center = pos.getCenter();
-        Vec3 outward = new Vec3(facing.getStepX(), facing.getStepY(), facing.getStepZ()).scale(0.6);
-        return center.add(outward);
+        double outwardOffset = 0; // 向外延伸距离（设置为0避免炮口位置偏差）
+        
+        Vec3 center = new Vec3(
+            pos.getX() + 0.5,
+            pos.getY() + 0.5,
+            pos.getZ() + 0.5
+        );
+        
+        // 对于上下朝向，需要调整Y坐标到模型实际位置
+        if (facing == Direction.UP) {
+            // 朝上：模型在方块下半部(0-0.5)，炮口在顶部向外延伸
+            center = new Vec3(center.x, center.y + outwardOffset, center.z);
+        } else if (facing == Direction.DOWN) {
+            // 朝下：模型在方块上半部(0.5-1.0)，炮口在底部向外延伸
+            center = new Vec3(center.x, center.y - outwardOffset, center.z);
+        } else {
+            // 水平朝向：模型中心在y=0.5，向面向方向延伸
+            Vec3 outward = new Vec3(facing.getStepX(), 0, facing.getStepZ()).scale(outwardOffset);
+            center = center.add(outward);
+        }
+        
+        return center;
     }
 
     private LivingEntity findTarget(Level level, BlockPos pos, double searchRadius) {
@@ -318,7 +345,8 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 
     private boolean canSeePoint(Level level, BlockPos pos, Vec3 start, Vec3 end) {
         Vec3 outward = end.subtract(start).normalize();
-        Vec3 adjustedStart = start.add(outward.scale(0.2));
+        // 从炮塔外部开始检测，避免击中炮塔自身
+        Vec3 adjustedStart = start.add(outward.scale(0.6));
 
         var hitResult = level.clip(new net.minecraft.world.level.ClipContext(
                 adjustedStart, end,
@@ -330,7 +358,18 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         if (hitResult.getType() == net.minecraft.world.phys.HitResult.Type.MISS) {
             return true;
         }
-        return hitResult.getBlockPos().equals(pos);
+        
+        BlockPos hitPos = hitResult.getBlockPos();
+        
+        // 如果被基座阻挡，返回 false（不能看到目标）
+        Direction facing = getBlockState().getValue(RailgunTurretBlock.FACING);
+        BlockPos basePos = pos.relative(facing.getOpposite());
+        if (hitPos.equals(basePos)) {
+            return false;
+        }
+        
+        // 如果击中的是其他方块（非炮塔、非基座），也不能看到
+        return false;
     }
 
     @Override

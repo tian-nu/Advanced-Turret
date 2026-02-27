@@ -82,7 +82,27 @@ if (tag.contains("UpgradeSlots")) {
 }
 ```
 
-### 7. ItemStackHandler槽位越界
+### 7. 炮塔发射位置偏移
+**问题**: 子弹发射位置比炮塔实际位置偏高
+**原因**:
+- `pos` 已经是炮塔方块位置（炮塔可放置在基座6个面上）
+- 原代码用 `pos.getCenter()` 再加 `facing方向*0.6`
+- 对于朝上的炮塔：`y+0.5 + 0.6 = y+1.1`，比模型顶部（y+0.5）高出0.6
+**解决**: 根据朝向分别计算炮口位置
+```java
+// 对于上下朝向：炮口在模型边缘向外延伸
+if (facing == Direction.UP) {
+    center = new Vec3(center.x, pos.getY() + 0.5 + outwardOffset, center.z);
+} else if (facing == Direction.DOWN) {
+    center = new Vec3(center.x, pos.getY() + 0.5 - outwardOffset, center.z);
+} else {
+    // 水平朝向：正常向面向方向延伸
+    Vec3 outward = new Vec3(facing.getStepX(), 0, facing.getStepZ()).scale(outwardOffset);
+    center = center.add(outward);
+}
+```
+
+### 8. ItemStackHandler槽位越界
 **问题**: 修改 `ItemStackHandler` 的大小后，旧存档中的handler仍是旧大小，访问新槽位时崩溃
 ```
 java.lang.RuntimeException: Slot 1 not in valid range - [0,1)
@@ -106,6 +126,152 @@ for (int i = 0; i < slotCount; i++) {
 - `TurretBaseBlockEntity`: `hasCreativePowerComponent()`, `getPluginStack()`, `getAllPluginStacks()`
 - `TurretMenu`: 构造函数, `addPluginSlots()`, `quickMoveStack()`
 - `TurretScreen`: 渲染方法
+
+### 9. 子弹碰撞基座方块问题
+**问题**: 特定角度下子弹穿过基座攻击目标
+**原因**: 
+- 视线检测起点在炮塔内部，可能击中炮塔自身后返回 true，忽略了后面的基座阻挡
+- 子弹前几tick忽略碰撞，可能穿过基座
+**解决**: 
+1. 视线检测从炮塔外部开始（偏移0.6），避免击中炮塔自身
+2. 如果击中基座，返回 false
+```java
+// canSeePoint 方法
+Vec3 adjustedStart = start.add(outward.scale(0.6)); // 从炮塔外部开始
+
+if (hitResult.getType() == HitResult.Type.MISS) return true;
+
+BlockPos hitPos = hitResult.getBlockPos();
+BlockPos basePos = pos.relative(facing.getOpposite());
+if (hitPos.equals(basePos)) return false; // 被基座阻挡
+
+return false; // 被其他方块阻挡
+```
+3. 子弹碰撞检测：基座不跳过
+```java
+// 只有炮塔自身方块可以跳过，基座方块必须触发碰撞
+if (ignoreSourceBlockTicks > 0 && hitBlockPos.equals(sourcePos)) {
+    // 检查是否是基座，基座不跳过
+    if (basePos != null && hitBlockPos.equals(basePos)) {
+        this.onHit(hitResult); // 击中基座，销毁
+        return;
+    }
+    ignoreSourceBlockTicks--;
+    return; // 跳过炮塔自身
+}
+```
+**关键**: 
+- `sourcePos` = 炮塔方块位置
+- `basePos` = 炮塔位置 + 炮塔朝向的反方向 = 基座位置
+
+### 10. 高速子弹碰撞检测问题
+**问题**: 磁轨炮子弹（速度6.0）在特定角度下没有伤害
+**原因**: 
+- `ProjectileUtil.getHitResultOnMoveVector` 只返回一个碰撞结果
+- 高速子弹在发射初期，边缘可能先碰到附近的方块边缘
+- 方块碰撞优先级高于实体碰撞，导致子弹被方块销毁而错过实体
+**解决**: 分离碰撞检测，优先检测实体
+```java
+// 1. 先用 ProjectileUtil.getEntityHitResult 检测实体碰撞
+EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
+    level, this, currentPos, nextPos, 
+    boundingBox.expandTowards(movement).inflate(1.0),
+    this::canHitEntity
+);
+
+// 2. 如果击中实体，处理实体碰撞
+if (entityHit != null && entityHit.getType() == HitResult.Type.ENTITY) {
+    this.onHit(entityHit);
+    return;
+}
+
+// 3. 再用 level.clip 检测方块碰撞
+BlockHitResult blockHit = level.clip(new ClipContext(...));
+
+// 4. 特殊处理：基座销毁、炮塔自身跳过、高速子弹前几tick忽略方块
+```
+**关键**: 所有子弹子类都必须覆盖 tick() 方法，使用分离碰撞检测
+
+---
+
+## 📐 子弹系统设计
+
+### 架构概览
+```
+TurretProjectileEntity (抽象基类)
+├── TurretBulletEntity (机枪子弹 - 击中即销毁)
+└── RailgunBulletEntity (磁轨炮子弹 - 穿透多目标)
+```
+
+### 基类属性 (TurretProjectileEntity)
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| damage | float | 子弹伤害（通过EntityData同步） |
+| lifetime | int | 生命周期(tick)，默认100 |
+| sourcePos | BlockPos | 炮塔方块位置（用于跳过自身碰撞） |
+| basePos | BlockPos | 基座方块位置（基座必须销毁子弹） |
+| ignoreSourceBlockTicks | int | 跳过炮塔自身碰撞的tick数，默认2 |
+
+### 机枪子弹 (TurretBulletEntity)
+- **行为**: 击中实体后销毁，击中方块后销毁
+- **碰撞检测**: 分离检测，实体优先
+- **特殊处理**: 基座销毁，炮塔自身跳过
+
+### 磁轨炮子弹 (RailgunBulletEntity)
+- **行为**: 穿透多个目标，击中方块后销毁
+- **穿透次数**: 默认3次 (penetrationCount)
+- **额外属性**:
+  - `hitEntities`: Set<Integer> 已击中的实体ID，防止重复伤害
+  - `ignoreBlockCollisionTicks`: int 前3tick忽略方块碰撞，避免高速子弹边缘碰撞问题
+- **碰撞检测**: 分离检测，实体优先，穿透后继续飞行
+
+### 炮塔参数对照表
+| 参数 | 机枪炮塔 | 磁轨炮塔 |
+|------|----------|----------|
+| FIRE_RATE | 5 tick | 30 tick |
+| SEARCH_RADIUS | 16.0 | 24.0 |
+| BULLET_SPEED | 3.0 | 6.0 |
+| BULLET_DAMAGE | 4.0F | 12.0F |
+| 子弹类型 | TurretBulletEntity | RailgunBulletEntity |
+| 穿透次数 | - | 3 |
+
+### 发射流程
+```java
+// 1. 计算炮口位置（方块中心）
+Vec3 muzzlePos = calculateMuzzlePosition(pos, facing); // 返回 pos.getCenter()
+
+// 2. 计算目标位置（实体中心偏上）
+Vec3 targetPos = target.position().add(0, target.getEyeHeight() * 0.5, 0);
+
+// 3. 预判瞄准（如果启用）
+if (base.isPredictiveAiming()) {
+    double time = muzzlePos.distanceTo(targetPos) / BULLET_SPEED;
+    targetPos = targetPos.add(target.getDeltaMovement().scale(time));
+}
+
+// 4. 创建子弹
+BulletEntity bullet = new BulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
+bullet.setOwner(null);
+bullet.setSourcePos(pos);                              // 炮塔位置
+bullet.setBasePos(pos.relative(facing.getOpposite())); // 基座位置
+bullet.shoot(direction, (float) BULLET_SPEED);
+
+// 5. 生成子弹
+level.addFreshEntity(bullet);
+```
+
+### 视线检测 (canSeePoint)
+```java
+// 1. 从炮塔外部开始检测（偏移0.6），避免击中炮塔自身
+Vec3 adjustedStart = start.add(outward.scale(0.6));
+
+// 2. 如果被基座阻挡，返回false（不锁定目标）
+BlockPos basePos = pos.relative(facing.getOpposite());
+if (hitPos.equals(basePos)) return false;
+
+// 3. 如果击中其他方块，返回false
+return false;
+```
 
 ---
 

@@ -1,43 +1,42 @@
 package com.tian_nu.AdvancedTurret.entity;
 
-import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
-import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
-import com.tian_nu.AdvancedTurret.items.SmartChipItem;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.List;
+/**
+ * 机枪炮塔子弹
+ * 
+ * <p>基础子弹类型，特点：</p>
+ * <ul>
+ *   <li>击中实体后销毁</li>
+ *   <li>击中方块后销毁</li>
+ *   <li>使用分离碰撞检测，实体优先</li>
+ * </ul>
+ * 
+ * <h3>碰撞检测流程：</h3>
+ * <ol>
+ *   <li>生命周期检查</li>
+ *   <li>检测实体碰撞 → 击中则销毁</li>
+ *   <li>检测方块碰撞</li>
+ *   <li>基座方块 → 销毁子弹</li>
+ *   <li>炮塔自身 → 跳过（前2tick）</li>
+ *   <li>其他方块 → 销毁子弹</li>
+ * </ol>
+ * 
+ * @author tian_nu
+ * @see TurretProjectileEntity 父类
+ */
+public class TurretBulletEntity extends TurretProjectileEntity {
 
-public class TurretBulletEntity extends Projectile {
-
-    private static final EntityDataAccessor<Float> DAMAGE = SynchedEntityData.defineId(TurretBulletEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Integer> SOURCE_POS = SynchedEntityData.defineId(TurretBulletEntity.class, EntityDataSerializers.INT);
-    
-    private int lifetime = 100;
-    private BlockPos sourcePos = null;
-    private int ignoreSourceBlockTicks = 2;
-    
     public TurretBulletEntity(EntityType<? extends TurretBulletEntity> type, Level level) {
         super(type, level);
-        this.setNoGravity(true);
     }
     
     public TurretBulletEntity(Level level, double x, double y, double z, float damage) {
@@ -47,168 +46,89 @@ public class TurretBulletEntity extends Projectile {
         this.yo = y;
         this.zo = z;
         this.setDamage(damage);
-        this.setNoGravity(true);
     }
     
-    public void setSourcePos(BlockPos pos) {
-        this.sourcePos = pos;
-    }
-    
-    public void setDamage(float damage) {
-        this.entityData.set(DAMAGE, damage);
-    }
-    
-    public float getDamage() {
-        return this.entityData.get(DAMAGE);
-    }
-    
-    @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DAMAGE, 4.0F);
-        this.entityData.define(SOURCE_POS, 0);
-    }
-    
-    @Override
-    public void tick() {
-        super.tick();
-        
-        if (this.lifetime-- <= 0) {
-            this.discard();
-            return;
-        }
-
-        Vec3 movement = this.getDeltaMovement();
-        Vec3 nextPos = this.position().add(movement);
-
-        if (!this.level().isClientSide) {
-            HitResult hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitLivingEntity);
-            if (hitResult.getType() != HitResult.Type.MISS) {
-                if (hitResult instanceof net.minecraft.world.phys.BlockHitResult blockHit
-                        && sourcePos != null
-                        && blockHit.getBlockPos().equals(sourcePos)
-                        && ignoreSourceBlockTicks > 0) {
-                    ignoreSourceBlockTicks--;
-                    this.setPos(nextPos);
-                    return;
-                }
-                this.onHit(hitResult);
-                return;
-            }
-        }
-
-        this.setPos(nextPos);
-    }
-
-    private boolean canHitLivingEntity(Entity entity) {
-        return entity instanceof LivingEntity living
-                && living.isAlive()
-                && !entity.equals(this.getOwner());
-    }
-    
-    protected EntityHitResult findHitEntity(Vec3 start, Vec3 end) {
-        return ProjectileUtil.getEntityHitResult(
-            this.level(),
-            this,
-            start,
-            end,
-            this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0),
-            entity -> entity instanceof LivingEntity
-                    && entity.isAlive()
-                    && !entity.equals(this.getOwner())
-        );
-    }
+    // ==================== 击中处理 ====================
     
     @Override
     protected void onHitEntity(EntityHitResult result) {
-        Entity entity = result.getEntity();
-        if (entity instanceof LivingEntity livingEntity) {
-            
-            // 检查白名单免伤
+        if (result.getEntity() instanceof LivingEntity livingEntity) {
+            // 白名单检查：击中白名单实体则销毁但不造成伤害
             if (shouldIgnoreDamage(livingEntity)) {
                 this.discard();
                 return;
             }
             
-            Entity owner = this.getOwner();
-            livingEntity.invulnerableTime = 0;
-            livingEntity.hurtTime = 0;
-            if (owner instanceof LivingEntity livingOwner) {
-                livingEntity.hurt(this.damageSources().mobProjectile(this, livingOwner), this.getDamage());
-            } else {
-                livingEntity.hurt(this.damageSources().mobProjectile(this, null), this.getDamage());
-            }
+            // 造成伤害（基类方法会清除无敌帧）
+            dealDamage(livingEntity, this.getDamage());
         }
+        
+        // 击中后销毁
         this.discard();
     }
     
-    private boolean shouldIgnoreDamage(LivingEntity entity) {
-        if (sourcePos == null) return false;
-        
-        BlockEntity be = this.level().getBlockEntity(sourcePos);
-        TurretBaseBlockEntity base = null;
-        
-        if (be instanceof TurretBaseBlockEntity) {
-            base = (TurretBaseBlockEntity) be;
-        } else if (be instanceof MachineGunTurretBlockEntity turret) {
-            base = turret.getBaseEntity();
-        } else if (be instanceof com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity turret) {
-            base = turret.getBaseEntity();
-        }
-        
-        if (base != null) {
-            ItemStack pluginStack = base.getPluginStack();
-            if (!pluginStack.isEmpty() && pluginStack.getItem() instanceof SmartChipItem) {
-                String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
-                List<String> whitelist = SmartChipItem.getWhitelist(pluginStack);
-                if (whitelist.contains(entityId)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+    // ==================== 碰撞检测 ====================
     
+    /**
+     * 自定义碰撞检测：分离检测实体和方块，实体优先
+     */
     @Override
-    protected void onHitBlock(net.minecraft.world.phys.BlockHitResult result) {
-        this.discard();
-    }
-    
-    public void shoot(Vec3 direction, float speed) {
-        this.setDeltaMovement(direction.normalize().scale(speed));
-    }
-    
-    @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.putFloat("Damage", this.getDamage());
-        tag.putInt("Lifetime", this.lifetime);
-        if (sourcePos != null) {
-            tag.putInt("SourceX", sourcePos.getX());
-            tag.putInt("SourceY", sourcePos.getY());
-            tag.putInt("SourceZ", sourcePos.getZ());
+    public void tick() {
+        // 生命周期检查
+        if (this.lifetime-- <= 0) {
+            this.discard();
+            return;
         }
-    }
-    
-    @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        if (tag.contains("Damage")) {
-            this.setDamage(tag.getFloat("Damage"));
-        }
-        if (tag.contains("Lifetime")) {
-            this.lifetime = tag.getInt("Lifetime");
-        }
-        if (tag.contains("SourceX")) {
-            sourcePos = new BlockPos(
-                tag.getInt("SourceX"),
-                tag.getInt("SourceY"),
-                tag.getInt("SourceZ")
+
+        Vec3 currentPos = this.position();
+        Vec3 movement = this.getDeltaMovement();
+        Vec3 nextPos = currentPos.add(movement);
+
+        if (!this.level().isClientSide) {
+            // 1. 检测实体碰撞（优先）
+            EntityHitResult entityHit = net.minecraft.world.entity.projectile.ProjectileUtil.getEntityHitResult(
+                this.level(), this, currentPos, nextPos, 
+                this.getBoundingBox().expandTowards(movement).inflate(1.0),
+                this::canHitEntity
             );
+            
+            if (entityHit != null && entityHit.getType() == HitResult.Type.ENTITY) {
+                this.onHit(entityHit);
+                return;
+            }
+            
+            // 2. 检测方块碰撞
+            ClipContext context = new ClipContext(
+                currentPos, nextPos,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                this
+            );
+            BlockHitResult blockHit = this.level().clip(context);
+            
+            if (blockHit.getType() == HitResult.Type.BLOCK) {
+                BlockPos hitBlockPos = blockHit.getBlockPos();
+                
+                // 基座方块：必须销毁
+                if (basePos != null && hitBlockPos.equals(basePos)) {
+                    this.onHit(blockHit);
+                    return;
+                }
+                
+                // 炮塔自身：前几tick跳过
+                if (ignoreSourceBlockTicks > 0 && sourcePos != null && hitBlockPos.equals(sourcePos)) {
+                    ignoreSourceBlockTicks--;
+                    this.setPos(nextPos);
+                    return;
+                }
+                
+                // 其他方块：销毁
+                this.onHit(blockHit);
+                return;
+            }
         }
-    }
-    
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+
+        // 无碰撞，继续移动
+        this.setPos(nextPos);
     }
 }
