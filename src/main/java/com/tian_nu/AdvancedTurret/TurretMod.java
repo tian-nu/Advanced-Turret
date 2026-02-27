@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
 import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.RocketTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
@@ -84,6 +85,15 @@ public class TurretMod {
             SerializableDataTicket.ofDouble(location("railgun_target_pos_y")));
         RailgunTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
             SerializableDataTicket.ofDouble(location("railgun_target_pos_z")));
+
+        RocketTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofBoolean(location("rocket_has_target")));
+        RocketTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("rocket_target_pos_x")));
+        RocketTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("rocket_target_pos_y")));
+        RocketTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("rocket_target_pos_z")));
     }
     
     private void commonSetup(final FMLCommonSetupEvent event) {

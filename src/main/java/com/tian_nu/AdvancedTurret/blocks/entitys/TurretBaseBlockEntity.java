@@ -419,6 +419,10 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
             TurretBaseBlockEntity base = turret.getBaseEntity();
             return base != null && base.getBlockPos().equals(getBlockPos());
         }
+        if (be instanceof RocketTurretBlockEntity turret) {
+            TurretBaseBlockEntity base = turret.getBaseEntity();
+            return base != null && base.getBlockPos().equals(getBlockPos());
+        }
         return false;
     }
     

@@ -39,6 +39,19 @@ public class ModEntities {
             .build(TurretMod.location("railgun_bullet").toString())
     );
 
+    public static final RegistryObject<EntityType<RocketEntity>> ROCKET = ENTITIES.register(
+            "rocket",
+            () -> EntityType.Builder.<RocketEntity>of(
+                    RocketEntity::new,
+                    MobCategory.MISC
+            )
+            .sized(0.5F, 0.5F)  // 火箭弹尺寸
+            .clientTrackingRange(64)
+            .updateInterval(1)
+            .fireImmune()
+            .build(TurretMod.location("rocket").toString())
+    );
+
     public static void register(IEventBus eventBus) {
         ENTITIES.register(eventBus);
     }

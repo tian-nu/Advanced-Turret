@@ -67,6 +67,13 @@ public class ModBlocks {
                     .noOcclusion()
                     .strength(1.0f, 6.0f)));
 
+    // 火箭炮塔
+    public static final RegistryObject<Block> ROCKET_TURRET =
+            registerBlock("rocket_turret", () -> new RocketTurretBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .noOcclusion()
+                    .strength(1.0f, 6.0f)));
+
     private static <T extends Block> void registerBlockItems(String name, RegistryObject<T> block) {
         ModItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
     }

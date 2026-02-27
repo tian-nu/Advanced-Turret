@@ -3,6 +3,7 @@ package com.tian_nu.AdvancedTurret.client;
 import com.tian_nu.AdvancedTurret.TurretMod;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.client.renderer.RailgunBulletRenderer;
+import com.tian_nu.AdvancedTurret.client.renderer.RocketRenderer;
 import com.tian_nu.AdvancedTurret.client.renderer.TurretBulletRenderer;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
@@ -49,6 +50,10 @@ public class ClientEvents {
             ModBlockEntities.RAILGUN_TURRET.get(),
             RailgunTurretGeoRenderer::new
         );
+        event.registerBlockEntityRenderer(
+            ModBlockEntities.ROCKET_TURRET.get(),
+            RocketTurretGeoRenderer::new
+        );
     }
     
     /**
@@ -58,5 +63,6 @@ public class ClientEvents {
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.TURRET_BULLET.get(), TurretBulletRenderer::new);
         event.registerEntityRenderer(ModEntities.RAILGUN_BULLET.get(), RailgunBulletRenderer::new);
+        event.registerEntityRenderer(ModEntities.ROCKET.get(), RocketRenderer::new);
     }
 }

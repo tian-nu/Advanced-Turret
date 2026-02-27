@@ -180,7 +180,8 @@ public class TurretMenu extends AbstractContainerMenu {
                 || stack.is(ModItems.CREATIVE_POWER_COMPONENT.get())
                 || stack.is(ModItems.SOLAR_PLUGIN.get())
                 || stack.is(ModItems.AMMO_RECYCLING_PLUGIN.get())
-                || stack.is(ModItems.REDSTONE_CONVERSION_PLUGIN.get());
+                || stack.is(ModItems.REDSTONE_CONVERSION_PLUGIN.get())
+                || stack.is(ModItems.DESTRUCTION_PLUGIN.get());
     }
 
     @Override

@@ -31,10 +31,12 @@ public class ModCreativeModeTabs {
                         
                         // 弹药
                         output.accept(ModItems.MACHINE_GUN_BULLET.get());
+                        output.accept(ModItems.ROCKET.get());
                         
                         // 炮塔类型
                         output.accept(ModBlocks.MACHINE_GUN_TURRET.get());
                         output.accept(ModBlocks.RAILGUN_TURRET.get());
+                        output.accept(ModBlocks.ROCKET_TURRET.get());
                         
                         // 特殊组件
                         output.accept(ModItems.CREATIVE_POWER_COMPONENT.get());

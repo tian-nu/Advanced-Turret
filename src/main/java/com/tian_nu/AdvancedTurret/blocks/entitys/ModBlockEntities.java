@@ -40,6 +40,12 @@ public class ModBlockEntities {
                             ModBlocks.RAILGUN_TURRET.get()
                     ).build(null));
 
+    public static final RegistryObject<BlockEntityType<RocketTurretBlockEntity>> ROCKET_TURRET =
+            BLOCK_ENTITIES.register("rocket_turret", () ->
+                    BlockEntityType.Builder.of(RocketTurretBlockEntity::new,
+                            ModBlocks.ROCKET_TURRET.get()
+                    ).build(null));
+
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);
     }
