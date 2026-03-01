@@ -44,8 +44,8 @@ public class RocketEntity extends TurretProjectileEntity {
     /** 是否破坏方块（由破坏插件控制） */
     private boolean destroyBlocks = false;
     
-    /** 加速度 (初始2速，20tick后达到5速) */
-    private double acceleration = 0.15;
+    /** 加速度系数 (指数增长: 初始2速，20tick后达到5速，k=(5/2)^(1/20)-1≈0.047) */
+    private double acceleration = 0.047;
     
     // ==================== 构造函数 ====================
     
@@ -162,12 +162,14 @@ public class RocketEntity extends TurretProjectileEntity {
             return;
         }
 
-        // 越飞越快：加速度
+        // 越飞越快：指数增长 (newSpeed = currentSpeed * (1 + k))
         Vec3 movement = this.getDeltaMovement();
         double currentSpeed = movement.length();
-        double newSpeed = currentSpeed + acceleration;
-        Vec3 direction = movement.normalize();
-        this.setDeltaMovement(direction.scale(newSpeed));
+        if (currentSpeed > 0.001) {
+            double newSpeed = currentSpeed * (1.0 + acceleration);
+            Vec3 direction = movement.normalize();
+            this.setDeltaMovement(direction.scale(newSpeed));
+        }
 
         Vec3 currentPos = this.position();
         Vec3 nextPos = currentPos.add(this.getDeltaMovement());
