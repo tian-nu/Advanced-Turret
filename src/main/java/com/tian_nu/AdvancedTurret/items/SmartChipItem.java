@@ -174,8 +174,9 @@ public class SmartChipItem extends Item {
 
     public static List<String> getBlacklist(ItemStack stack) {
         List<String> list = new ArrayList<>();
-        if (stack.hasTag() && stack.getTag().contains(KEY_BLACKLIST)) {
-            ListTag tagList = stack.getTag().getList(KEY_BLACKLIST, Tag.TAG_STRING);
+        CompoundTag tag = stack.getOrCreateTag();
+        if (tag.contains(KEY_BLACKLIST)) {
+            ListTag tagList = tag.getList(KEY_BLACKLIST, Tag.TAG_STRING);
             for (int i = 0; i < tagList.size(); i++) {
                 list.add(tagList.getString(i));
             }
@@ -201,8 +202,9 @@ public class SmartChipItem extends Item {
 
     public static List<String> getWhitelist(ItemStack stack) {
         List<String> list = new ArrayList<>();
-        if (stack.hasTag() && stack.getTag().contains(KEY_WHITELIST)) {
-            ListTag tagList = stack.getTag().getList(KEY_WHITELIST, Tag.TAG_STRING);
+        CompoundTag tag = stack.getOrCreateTag();
+        if (tag.contains(KEY_WHITELIST)) {
+            ListTag tagList = tag.getList(KEY_WHITELIST, Tag.TAG_STRING);
             for (int i = 0; i < tagList.size(); i++) {
                 list.add(tagList.getString(i));
             }
