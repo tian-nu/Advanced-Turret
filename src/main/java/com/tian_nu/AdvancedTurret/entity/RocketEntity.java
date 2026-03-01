@@ -44,8 +44,8 @@ public class RocketEntity extends TurretProjectileEntity {
     /** 是否破坏方块（由破坏插件控制） */
     private boolean destroyBlocks = false;
     
-    /** 加速度 (越飞越快) */
-    private double acceleration = 0.05;
+    /** 加速度 (初始2速，20tick后达到5速) */
+    private double acceleration = 0.15;
     
     // ==================== 构造函数 ====================
     

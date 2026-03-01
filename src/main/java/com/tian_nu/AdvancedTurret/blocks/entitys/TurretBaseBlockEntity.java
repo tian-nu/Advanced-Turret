@@ -818,7 +818,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
 
     public double getSearchRadiusForFace(Direction face, double baseRadius) {
         int count = countUpgradeItems(face, ModItems.RANGE_COMPONENT.get());
-        return Math.min(32.0, baseRadius + count);
+        // 每个范围组件增加8格，上限为基础范围+32格
+        return Math.min(baseRadius + 32.0, baseRadius + count * 8);
     }
 
     public int getFireRateForFace(Direction face, int baseFireRate) {

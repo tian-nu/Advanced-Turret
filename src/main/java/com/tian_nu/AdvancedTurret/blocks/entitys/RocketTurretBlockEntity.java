@@ -67,8 +67,8 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
     public static final double SEARCH_RADIUS = 48.0;
     /** 子弹初始速度 */
     public static final double BULLET_SPEED = 2.0;
-    /** 加速度 (越飞越快) */
-    public static final double ACCELERATION = 0.05;
+    /** 加速度 (初始2速，20tick后达到5速: (5-2)/20=0.15) */
+    public static final double ACCELERATION = 0.15;
     /** 直击伤害 */
     public static final float DIRECT_DAMAGE = 10.0F;
     /** 爆炸伤害 */

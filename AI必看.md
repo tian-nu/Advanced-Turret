@@ -486,6 +486,26 @@ public boolean hasTurretOnFace(Direction face) {
 2. 炮塔tick中检查面启用状态失败，跳过攻击逻辑
 3. 基座GUI不显示该面的升级槽
 
+### 20. getSearchRadiusForFace 硬编码范围限制
+**问题**: 火箭炮塔索敌范围定义48格，实际只有32格
+**原因**: `TurretBaseBlockEntity.getSearchRadiusForFace()` 中硬编码了 `Math.min(32.0, ...)` 限制
+**根因分析**:
+```java
+public double getSearchRadiusForFace(Direction face, double baseRadius) {
+    int count = countUpgradeItems(face, ModItems.RANGE_COMPONENT.get());
+    return Math.min(32.0, baseRadius + count);  // 最大只能32格！
+}
+```
+**解决**: 修改范围限制逻辑，允许更大范围
+```java
+public double getSearchRadiusForFace(Direction face, double baseRadius) {
+    int count = countUpgradeItems(face, ModItems.RANGE_COMPONENT.get());
+    // 每个范围组件增加8格，上限为基础范围+32格
+    return Math.min(baseRadius + 32.0, baseRadius + count * 8);
+}
+```
+**注意**: 范围组件的加成应该与基础范围挂钩，不能硬编码固定上限
+
 ---
 
 ## 📐 子弹系统设计
