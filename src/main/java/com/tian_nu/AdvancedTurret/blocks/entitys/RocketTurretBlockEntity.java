@@ -88,14 +88,16 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     // ========== 字段 ==========
-
+    
     private int cooldown = 0;
     private LivingEntity target = null;
     private int targetLostTicks = 0;
-
-    /** 当前yaw角度（弧度） */
+    /** 当前目标的可见瞄准点（用于射击实际可见部位） */
+    private Vec3 visibleTargetPoint = null;
+    
+    /** 当前 yaw 角度（弧度） */
     public float yRot0 = 0.0f;
-    /** 当前pitch角度（弧度） */
+    /** 当前 pitch 角度（弧度） */
     public float xRot0 = 0.0f;
 
     public RocketTurretBlockEntity(BlockPos pos, BlockState state) {
@@ -181,19 +183,32 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
             target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
             targetLostTicks = 0;
         } else {
+            // 检查是否超出范围
             if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
                 targetLostTicks++;
                 if (targetLostTicks > 20) {
                     target = null;
+                    visibleTargetPoint = null;
                     setAnimData(HAS_TARGET, false);
                 }
             } else {
-                targetLostTicks = 0;
-                if (target != null) {
-                    Vec3 targetPos = target.position().add(0, target.getEyeHeight() * 0.5, 0);
-                    setAnimData(TARGET_POS_X, targetPos.x);
-                    setAnimData(TARGET_POS_Y, targetPos.y);
-                    setAnimData(TARGET_POS_Z, targetPos.z);
+                // 目标有效且在范围内，重新计算可见瞄准点并更新动画
+                Vec3 visiblePoint = getVisibleTargetPoint(target, level, pos);
+                if (visiblePoint == null) {
+                    // 目标变得不可见，丢失计数
+                    targetLostTicks++;
+                    if (targetLostTicks > 20) {
+                        target = null;
+                        visibleTargetPoint = null;
+                        setAnimData(HAS_TARGET, false);
+                    }
+                } else {
+                    targetLostTicks = 0;
+                    visibleTargetPoint = visiblePoint;
+                    // 更新动画瞄准位置
+                    setAnimData(TARGET_POS_X, visiblePoint.x);
+                    setAnimData(TARGET_POS_Y, visiblePoint.y);
+                    setAnimData(TARGET_POS_Z, visiblePoint.z);
                     setAnimData(HAS_TARGET, true);
                 }
             }
@@ -259,7 +274,10 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
 
         Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
 
-        Vec3 targetPos = target.position().add(0, target.getEyeHeight() * 0.5, 0);
+        // 使用可见瞄准点（如果有的话），否则回退到目标中心
+        Vec3 targetPos = (visibleTargetPoint != null) 
+            ? visibleTargetPoint 
+            : target.position().add(0, target.getEyeHeight() * 0.5, 0);
 
         // 预判瞄准
         if (base.isPredictiveAiming()) {
@@ -360,11 +378,18 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
                 .orElse(null);
 
         if (closest != null) {
-            Vec3 targetPos = closest.position().add(0, closest.getEyeHeight() * 0.5, 0);
-            setAnimData(TARGET_POS_X, targetPos.x);
-            setAnimData(TARGET_POS_Y, targetPos.y);
-            setAnimData(TARGET_POS_Z, targetPos.z);
-            setAnimData(HAS_TARGET, true);
+            // 计算可见瞄准点
+            Vec3 visiblePoint = getVisibleTargetPoint(closest, level, pos);
+            if (visiblePoint != null) {
+                visibleTargetPoint = visiblePoint;
+                setAnimData(TARGET_POS_X, visiblePoint.x);
+                setAnimData(TARGET_POS_Y, visiblePoint.y);
+                setAnimData(TARGET_POS_Z, visiblePoint.z);
+                setAnimData(HAS_TARGET, true);
+            } else {
+                // 理论上不会发生（isValidTarget 已经检查过）
+                setAnimData(HAS_TARGET, false);
+            }
         }
 
         return closest;
@@ -431,7 +456,13 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         double searchRadius = base.getSearchRadiusForFace(facing, SEARCH_RADIUS);
         if (!isTargetInRange(entity, pos, searchRadius)) return false;
 
-        if (!hasLineOfSight(entity, level, pos)) return false;
+        // 获取可见瞄准点（优先：头部 > 身体 > 脚部）
+        Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
+        if (visiblePoint == null) {
+            return false; // 完全不可见
+        }
+        // 存储可见点供射击使用
+        visibleTargetPoint = visiblePoint;
 
         return true;
     }
@@ -445,23 +476,28 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
     }
 
     /**
-     * 检查是否有视线
+     * 获取目标的可见瞄准点
+     * 检测目标头部、身体和脚部，返回第一个可见点的位置
+     * 优先顺序：头部 > 身体 > 脚部（头部更致命）
+     * @return 可见点位置，如果完全不可见返回 null
      */
-    private boolean hasLineOfSight(LivingEntity entity, Level level, BlockPos pos) {
+    private Vec3 getVisibleTargetPoint(LivingEntity entity, Level level, BlockPos pos) {
         Direction facing = getBlockState().getValue(RocketTurretBlock.FACING);
         Vec3 start = calculateMuzzlePosition(pos, facing);
 
-        Vec3[] targetPoints = new Vec3[] {
-            entity.position().add(0, entity.getEyeHeight(), 0),
-            entity.position().add(0, entity.getBbHeight() * 0.5, 0),
-            entity.position()
-        };
+        // 目标检测点：眼睛、中心、脚部（优先头部）
+        Vec3 headPoint = entity.position().add(0, entity.getEyeHeight(), 0);
+        Vec3 bodyPoint = entity.position().add(0, entity.getBbHeight() * 0.5, 0);
+        Vec3 feetPoint = entity.position();
 
-        for (Vec3 end : targetPoints) {
-            if (canSeePoint(level, pos, start, end)) return true;
-        }
+        // 优先检测头部（更致命）
+        if (canSeePoint(level, pos, start, headPoint)) return headPoint;
+        // 其次身体
+        if (canSeePoint(level, pos, start, bodyPoint)) return bodyPoint;
+        // 最后脚部
+        if (canSeePoint(level, pos, start, feetPoint)) return feetPoint;
 
-        return false;
+        return null; // 完全不可见
     }
 
     private boolean canSeePoint(Level level, BlockPos pos, Vec3 start, Vec3 end) {
