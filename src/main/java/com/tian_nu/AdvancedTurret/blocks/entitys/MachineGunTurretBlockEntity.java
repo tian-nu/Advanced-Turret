@@ -5,18 +5,15 @@ import com.tian_nu.AdvancedTurret.blocks.MachineGunTurretBlock;
 import com.tian_nu.AdvancedTurret.entity.TurretBulletEntity;
 import com.tian_nu.AdvancedTurret.items.ModItems;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem;
-import com.tian_nu.AdvancedTurret.items.SmartChipItem.TargetMode;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ambient.AmbientCreature;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.WaterAnimal;
@@ -30,13 +27,11 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.network.SerializableDataTicket;
 import software.bernie.geckolib.util.GeckoLibUtil;
@@ -246,7 +241,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         // 检查弹药
         if (!hasAmmo(base)) return;
 
-        if (!(level instanceof ServerLevel serverLevel)) return;
+        if (!(level instanceof ServerLevel)) return;
 
         Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
 
@@ -265,8 +260,9 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         base.consumeEnergy(energyCost);
         
         // 消耗弹药（弹药回收插件：20%概率不消耗）
-        if (base.hasAmmoRecyclingPlugin()) {
-            if (base.getLevel().random.nextFloat() >= com.tian_nu.AdvancedTurret.Config.ammoRecycleChance) {
+        Level baseLevel = base.getLevel();
+        if (baseLevel != null && base.hasAmmoRecyclingPlugin()) {
+            if (baseLevel.random.nextFloat() >= com.tian_nu.AdvancedTurret.Config.ammoRecycleChance) {
                 consumeAmmo(base);
             }
             // 20%概率不消耗弹药

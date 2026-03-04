@@ -2,8 +2,6 @@ package com.tian_nu.AdvancedTurret.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.tian_nu.AdvancedTurret.ConfigManager;
-import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
-import com.tian_nu.AdvancedTurret.items.ModItems;
 import com.tian_nu.AdvancedTurret.network.ModNetwork;
 import com.tian_nu.AdvancedTurret.network.TurretOpenFaceConfigPacket;
 import net.minecraft.client.Minecraft;

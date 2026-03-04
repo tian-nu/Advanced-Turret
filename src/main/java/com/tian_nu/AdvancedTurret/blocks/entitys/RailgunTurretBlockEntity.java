@@ -4,12 +4,10 @@ import com.mojang.logging.LogUtils;
 import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.RailgunTurretBlock;
 import com.tian_nu.AdvancedTurret.entity.RailgunBulletEntity;
-import com.tian_nu.AdvancedTurret.entity.TurretBulletEntity;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem;
 import net.minecraft.world.entity.ambient.AmbientCreature;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -26,7 +24,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -152,7 +149,7 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
     private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base, Direction facing) {
         int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
         if (base.getEnergyStored() < energyCost) return;
-        if (!(level instanceof ServerLevel serverLevel)) return;
+        if (!(level instanceof ServerLevel)) return;
 
         Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
         Vec3 targetPos = target.position().add(0, target.getEyeHeight() * 0.5, 0);
