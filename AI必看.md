@@ -791,4 +791,146 @@ for (Vec3 point : points) {
 
 ---
 
-**最后更新**: 2026-02-27
+### 20. 磁轨炮子弹穿透次数硬编码
+**问题**: 磁轨炮无法配置穿透次数
+**原因**: `RailgunBulletEntity` 中 `PENETRATION_COUNT` 硬编码为 3
+**解决**: 可以通过升级组件控制，或保持硬编码
+
+---
+
+### 21. 导弹制导机制实现 🔥新增
+**用途**: 导弹炮塔需要实时追踪目标移动
+**关键参数**:
+- `turnRate`: 转向速率 (0.3) - 控制导弹转向的平滑度
+- `acceleration`: 加速度 (0.03) - 每tick速度增加
+- `targetEntity`: 追踪的目标实体
+
+**实现逻辑**:
+```java
+// 在 MissileEntity.tick() 中
+@Override
+public void tick() {
+    super.tick();
+    
+    // 生命周期检查
+    if (this.lifetime-- <= 0) {
+        this.discard();
+        return;
+    }
+    
+    // 越飞越快
+    Vec3 movement = this.getDeltaMovement();
+    double currentSpeed = movement.length();
+    if (currentSpeed > 0.001) {
+        double newSpeed = currentSpeed * (1.0 + acceleration);
+        // 或线性加速: newSpeed = currentSpeed + acceleration;
+        Vec3 direction = movement.normalize();
+        this.setDeltaMovement(direction.scale(newSpeed));
+    }
+    
+    // 制导追踪（每tick调整朝向）
+    if (targetEntity != null && targetEntity.isAlive()) {
+        Vec3 currentDir = this.getDeltaMovement().normalize();
+        Vec3 toTarget = targetEntity.position().subtract(this.position()).normalize();
+        
+        // 转向插值：新方向 = 当前方向 + (目标方向 - 当前方向) * 转向速率
+        Vec3 newDir = currentDir.add(toTarget.subtract(currentDir).scale(turnRate)).normalize();
+        
+        // 应用新方向（保持当前速度）
+        this.setDeltaMovement(newDir.scale(currentSpeed));
+    }
+    
+    // 碰撞检测（分离检测，实体优先）
+    // ... 参考 RocketEntity.tick()
+}
+```
+
+**制导原理**:
+1. 每tick计算导弹当前位置到目标位置的方向向量 `toTarget`
+2. 使用插值公式 `newDir = currentDir + (toTarget - currentDir) * turnRate` 计算新方向
+3. 转向速率 `turnRate` 控制转向灵敏度：
+   - `turnRate = 0.01` → 转向很慢，几乎不追踪
+   - `turnRate = 0.3` → 适中转向，能追踪移动目标
+   - `turnRate = 1.0` → 瞬间转向，激光般追踪
+
+**目标设置**:
+```java
+// 在 MissileTurretBlockEntity.shoot() 中创建导弹时
+MissileEntity missile = new MissileEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, directDamage);
+missile.setTargetEntity(target); // 设置追踪目标
+missile.setTurnRate(TURN_RATE);
+missile.setAcceleration(ACCELERATION);
+// ...
+```
+
+**注意事项**:
+- 目标死亡后（targetEntity.isAlive() == false）继续朝最后方向飞行
+- 目标超出追踪范围继续飞行直到碰撞或生命周期结束
+- 转向速率过高可能导致导弹绕圈子（方向计算问题）
+- 分离碰撞检测必须先检测实体，再检测方块（避免目标被方块遮挡时无法追踪）
+
+---
+
+### 22. 导弹越飞越快机制 🔥新增
+**用途**: 导弹发射后加速，增加打击距离和威力
+**实现方式**（两种）:
+```java
+// 方式1：指数增长（推荐，火箭炮塔使用）
+double newSpeed = currentSpeed * (1.0 + acceleration);
+// acceleration = 0.047 → 20tick后速度从2.0增长到5.0
+
+// 方式2：线性增长（更简单）
+double newSpeed = currentSpeed + acceleration;
+// acceleration = 0.1 → 每tick增加0.1速度
+```
+
+**参数选择**:
+- `acceleration = 0.03` (指数) → 适合远距离制导
+- 指数增长初期慢后期快，模拟真实导弹加速
+- 线性增长恒定加速，更容易控制
+
+---
+
+### 23. 导弹炮塔开发完成 🚀新增
+**完成日期**: 2026-03-05
+
+**特点：**
+- 制导追踪：导弹自动追踪目标移动（turnRate=0.3）
+- 越飞越快：每tick速度线性增长（acceleration=0.03）
+- 爆炸伤害：直击10 + 爆炸15（半径4格）
+- 远程攻击：64格搜索范围
+- 高能耗：10000 FE/发
+- 低射速：6.7秒/发
+
+**已创建文件：**
+- Java文件（6个）：`MissileTurretBlock.java`, `MissileTurretBlockEntity.java`, `MissileEntity.java`, `MissileTurretGeoModel.java`, `MissileTurretGeoRenderer.java`, `MissileRenderer.java`
+- 资源文件（9个）：模型、动画、贴图
+- 修改文件（9个）：注册、翻译
+
+**关键实现：**
+```java
+// 制导追踪（MissileEntity.tick()）
+Vec3 currentDir = movement.normalize();
+Vec3 toTarget = targetEntity.position().subtract(this.position()).normalize();
+Vec3 newDir = currentDir.add(toTarget.subtract(currentDir).scale(turnRate)).normalize();
+this.setDeltaMovement(newDir.scale(currentSpeed));
+
+// 越飞越快
+double newSpeed = currentSpeed + acceleration;
+this.setDeltaMovement(movement.normalize().scale(newSpeed));
+```
+
+**与火箭炮塔对比：**
+- 制导功能（独有）
+- 线性加速度 vs 火箭的指数加速度
+- 搜索范围 64 vs 48
+- 爆炸伤害 15 vs 10
+- 能量消耗 10000 vs 5000
+
+**编译状态**: ✅ BUILD SUCCESSFUL
+
+**详细文档**: 见 `导弹炮塔开发完成总结.md` 和 `导弹炮塔对比文档.md`
+
+---
+
+**最后更新**: 2026-03-05

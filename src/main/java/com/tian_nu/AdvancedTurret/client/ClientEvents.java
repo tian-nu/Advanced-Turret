@@ -5,10 +5,20 @@ import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.client.renderer.RailgunBulletRenderer;
 import com.tian_nu.AdvancedTurret.client.renderer.RocketRenderer;
 import com.tian_nu.AdvancedTurret.client.renderer.TurretBulletRenderer;
+import com.tian_nu.AdvancedTurret.client.renderer.MissileRenderer;
+import com.tian_nu.AdvancedTurret.client.models.MachineGunTurretGeoModel;
+import com.tian_nu.AdvancedTurret.client.models.RailgunTurretGeoModel;
+import com.tian_nu.AdvancedTurret.client.models.RocketTurretGeoModel;
+import com.tian_nu.AdvancedTurret.client.models.MissileTurretGeoModel;
+import com.tian_nu.AdvancedTurret.client.MachineGunTurretGeoRenderer;
+import com.tian_nu.AdvancedTurret.client.RailgunTurretGeoRenderer;
+import com.tian_nu.AdvancedTurret.client.RocketTurretGeoRenderer;
+import com.tian_nu.AdvancedTurret.client.MissileTurretGeoRenderer;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
 import com.tian_nu.AdvancedTurret.gui.TurretFaceConfigScreen;
 import com.tian_nu.AdvancedTurret.gui.TurretScreen;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -43,7 +53,7 @@ public class ClientEvents {
     @SubscribeEvent
     public static void registerBlockEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(
-            ModBlockEntities.MACHINE_GUN_TURRET.get(), 
+            ModBlockEntities.MACHINE_GUN_TURRET.get(),
             MachineGunTurretGeoRenderer::new
         );
         event.registerBlockEntityRenderer(
@@ -53,6 +63,10 @@ public class ClientEvents {
         event.registerBlockEntityRenderer(
             ModBlockEntities.ROCKET_TURRET.get(),
             RocketTurretGeoRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+            ModBlockEntities.MISSILE_TURRET.get(),
+            MissileTurretGeoRenderer::new
         );
     }
     
@@ -64,5 +78,6 @@ public class ClientEvents {
         event.registerEntityRenderer(ModEntities.TURRET_BULLET.get(), TurretBulletRenderer::new);
         event.registerEntityRenderer(ModEntities.RAILGUN_BULLET.get(), RailgunBulletRenderer::new);
         event.registerEntityRenderer(ModEntities.ROCKET.get(), RocketRenderer::new);
+        event.registerEntityRenderer(ModEntities.MISSILE.get(), MissileRenderer::new);
     }
 }

@@ -8,6 +8,7 @@
   "item.advanced_turret.destruction_plugin": "Destruction Plugin",
   "item.advanced_turret.machine_gun_bullet": "Machine Gun Bullet",
   "item.advanced_turret.rocket": "Rocket",
+  "item.advanced_turret.missile": "Missile",
   "item.advanced_turret.attack_boost_component": "Attack Boost Component",
   "item.advanced_turret.energy_efficiency_component": "Energy Efficiency Component",
   "item.advanced_turret.range_component": "Range Component",
@@ -38,9 +39,13 @@
   "block.advanced_turret.machine_gun_turret": "Machine Gun Turret",
   "block.advanced_turret.railgun_turret": "Railgun Turret",
   "block.advanced_turret.rocket_turret": "Rocket Turret",
+  "block.advanced_turret.missile_turret": "Missile Turret",
+  "item.advanced_turret.missile": "Missile",
 
   "item.advanced_turret.rocket_turret": "Rocket Turret",
+  "item.advanced_turret.missile_turret": "Missile Turret",
   "tooltip.advanced_turret.rocket_turret.stats": "Direct %.1f | Explosion %.1f (R%.1f) | Range %.0f | Rate %.1fs/shot | Cost %d FE/shot",
+  "tooltip.advanced_turret.missile_turret.stats": "Direct %.1f | Explosion %.1f (R%.1f) | Range %.0f | Rate %.1fs/shot | Cost %d FE/shot",
 
   "itemGroup.turret_tab": "Turret Mod",
 

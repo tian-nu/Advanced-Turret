@@ -2,6 +2,7 @@ package com.tian_nu.AdvancedTurret.blocks.entitys;
 
 import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
 import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.items.ModItems;
 import com.tian_nu.AdvancedTurret.gui.TurretMenu;
 import net.minecraft.core.BlockPos;
@@ -420,6 +421,10 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
             return base != null && base.getBlockPos().equals(getBlockPos());
         }
         if (be instanceof RocketTurretBlockEntity turret) {
+            TurretBaseBlockEntity base = turret.getBaseEntity();
+            return base != null && base.getBlockPos().equals(getBlockPos());
+        }
+        if (be instanceof MissileTurretBlockEntity turret) {
             TurretBaseBlockEntity base = turret.getBaseEntity();
             return base != null && base.getBlockPos().equals(getBlockPos());
         }

@@ -24,7 +24,11 @@ public class ModItems {
     // 火箭弹物品
     public static final RegistryObject<Item> ROCKET =
             ITEMS.register("rocket", () -> new Item(new Item.Properties().stacksTo(64)));
-    
+
+    // 导弹物品
+    public static final RegistryObject<Item> MISSILE =
+            ITEMS.register("missile", () -> new Item(new Item.Properties().stacksTo(64)));
+
     // 插件物品
     public static final RegistryObject<Item> CREATIVE_POWER_COMPONENT =
             ITEMS.register("creative_power_component", () -> new Item(new Item.Properties().stacksTo(64)));

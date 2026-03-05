@@ -8,6 +8,7 @@
   "item.advanced_turret.destruction_plugin": "破坏插件",
   "item.advanced_turret.machine_gun_bullet": "机枪子弹",
   "item.advanced_turret.rocket": "火箭弹",
+  "item.advanced_turret.missile": "导弹",
   "item.advanced_turret.attack_boost_component": "攻击增强组件",
   "item.advanced_turret.energy_efficiency_component": "能量效率组件",
   "item.advanced_turret.range_component": "射击范围组件",
@@ -38,9 +39,13 @@
   "block.advanced_turret.machine_gun_turret": "机枪炮塔",
   "block.advanced_turret.railgun_turret": "磁轨炮炮塔",
   "block.advanced_turret.rocket_turret": "火箭炮塔",
+  "block.advanced_turret.missile_turret": "导弹炮塔",
+  "item.advanced_turret.missile": "导弹",
 
   "item.advanced_turret.rocket_turret": "火箭炮塔",
+  "item.advanced_turret.missile_turret": "导弹炮塔",
   "tooltip.advanced_turret.rocket_turret.stats": "直击 %.1f | 爆炸 %.1f (半径%.1f) | 射程 %.0f | 射速 %.1f秒/发 | 能耗 %d FE/发",
+  "tooltip.advanced_turret.missile_turret.stats": "直击 %.1f | 爆炸 %.1f (半径%.1f) | 射程 %.0f | 射速 %.1f秒/发 | 能耗 %d FE/发",
 
   "itemGroup.turret_tab": "炮塔模组",
 
