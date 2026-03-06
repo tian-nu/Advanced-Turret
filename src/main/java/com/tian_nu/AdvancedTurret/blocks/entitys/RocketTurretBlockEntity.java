@@ -175,45 +175,63 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         return null;
     }
 
-    /**
-     * 更新目标
-     */
-    private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base, Direction facing) {
-        if (target == null || !isValidTarget(target, level, pos)) {
-            target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
-            targetLostTicks = 0;
-        } else {
-            // 检查是否超出范围
-            if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
-                targetLostTicks++;
-                if (targetLostTicks > 20) {
-                    target = null;
-                    visibleTargetPoint = null;
-                    setAnimData(HAS_TARGET, false);
-                }
-            } else {
-                // 目标有效且在范围内，重新计算可见瞄准点并更新动画
-                Vec3 visiblePoint = getVisibleTargetPoint(target, level, pos);
-                if (visiblePoint == null) {
-                    // 目标变得不可见，丢失计数
-                    targetLostTicks++;
-                    if (targetLostTicks > 20) {
-                        target = null;
-                        visibleTargetPoint = null;
-                        setAnimData(HAS_TARGET, false);
-                    }
-                } else {
-                    targetLostTicks = 0;
-                    visibleTargetPoint = visiblePoint;
-                    // 更新动画瞄准位置
-                    setAnimData(TARGET_POS_X, visiblePoint.x);
-                    setAnimData(TARGET_POS_Y, visiblePoint.y);
-                    setAnimData(TARGET_POS_Z, visiblePoint.z);
-                    setAnimData(HAS_TARGET, true);
-                }
-            }
-        }
-    }
+/** 
+	 * 更新目标
+	 */
+	private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base, Direction facing) {
+		if (target == null || !isValidTarget(target, level, pos)) {
+			// 取消旧目标的预约（如果有）
+			if (target != null && base.isThriftyMode()) {
+				base.cancelReservation(target.getId());
+			}
+			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
+			targetLostTicks = 0;
+			
+			// 新目标锁定时预约伤害
+			if (target != null && base.isThriftyMode()) {
+				float expectedDamage = getExpectedDamage(base);
+				base.reserveDamage(target.getId(), expectedDamage, target.getHealth(), level.getGameTime());
+			}
+		} else {
+			// 检查是否超出范围
+			if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
+				targetLostTicks++;
+				if (targetLostTicks > 20) {
+					// 目标丢失，取消预约
+					if (base.isThriftyMode()) {
+						base.cancelReservation(target.getId());
+					}
+					target = null;
+					visibleTargetPoint = null;
+					setAnimData(HAS_TARGET, false);
+				}
+			} else {
+				// 目标有效且在范围内，重新计算可见瞄准点并更新动画
+				Vec3 visiblePoint = getVisibleTargetPoint(target, level, pos);
+				if (visiblePoint == null) {
+					// 目标变得不可见，丢失计数
+					targetLostTicks++;
+					if (targetLostTicks > 20) {
+						// 目标丢失，取消预约
+						if (base.isThriftyMode()) {
+							base.cancelReservation(target.getId());
+						}
+						target = null;
+						visibleTargetPoint = null;
+						setAnimData(HAS_TARGET, false);
+					}
+				} else {
+					targetLostTicks = 0;
+					visibleTargetPoint = visiblePoint;
+					// 更新动画瞄准位置
+					setAnimData(TARGET_POS_X, visiblePoint.x);
+					setAnimData(TARGET_POS_Y, visiblePoint.y);
+					setAnimData(TARGET_POS_Z, visiblePoint.z);
+					setAnimData(HAS_TARGET, true);
+				}
+			}
+		}
+	}
 
     /**
      * 检查是否可以射击
@@ -259,20 +277,20 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         }
     }
 
-    /**
-     * 执行射击
-     */
-    private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base) {
-        Direction facing = state.getValue(RocketTurretBlock.FACING);
-        int energyCost = base.getEnergyCostForFace(facing, ENERGY_COST);
-        if (base.getEnergyStored() < energyCost) return;
-        
-        // 检查弹药
-        if (!hasAmmo(base)) return;
+/**
+	 * 执行射击
+	 */
+	private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base) {
+		Direction facing = state.getValue(RocketTurretBlock.FACING);
+		int energyCost = base.getEnergyCostForFace(facing, ENERGY_COST);
+		if (base.getEnergyStored() < energyCost) return;
 
-        if (!(level instanceof ServerLevel serverLevel)) return;
+		// 检查弹药
+		if (!hasAmmo(base)) return;
 
-        Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
+		if (!(level instanceof ServerLevel serverLevel)) return;
+
+		Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
 
         // 使用可见瞄准点（如果有的话），否则回退到目标中心
         Vec3 targetPos = (visibleTargetPoint != null) 
@@ -324,9 +342,20 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
             LOGGER.warn("Failed to spawn rocket at {}", muzzlePos);
         }
 
-        // 播放射击音效
-        level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 0.5F, 1.0F);
-    }
+// 播放射击音效
+		level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 0.5F, 1.0F);
+	}
+
+	/**
+	 * 获取预期伤害（用于厉行节约）- 直击 + 爆炸
+	 */
+	public float getExpectedDamage(TurretBaseBlockEntity base) {
+		BlockState state = getBlockState();
+		if (!(state.getBlock() instanceof RocketTurretBlock)) return DIRECT_DAMAGE + EXPLOSION_DAMAGE;
+		Direction facing = state.getValue(RocketTurretBlock.FACING);
+		float directDamage = base.getDamageForFace(facing, DIRECT_DAMAGE);
+		return directDamage + EXPLOSION_DAMAGE;
+	}
 
     /**
      * 计算炮口位置
@@ -456,16 +485,25 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         double searchRadius = base.getSearchRadiusForFace(facing, SEARCH_RADIUS);
         if (!isTargetInRange(entity, pos, searchRadius)) return false;
 
-        // 获取可见瞄准点（优先：头部 > 身体 > 脚部）
-        Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
-        if (visiblePoint == null) {
-            return false; // 完全不可见
-        }
-        // 存储可见点供射击使用
-        visibleTargetPoint = visiblePoint;
+// 获取可见瞄准点（优先：头部 > 身体 > 脚部）
+		Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
+		if (visiblePoint == null) {
+			return false; // 完全不可见
+		}
+		// 存储可见点供射击使用
+		visibleTargetPoint = visiblePoint;
 
-        return true;
-    }
+		// 5. 厉行节约检查：目标是否值得攻击
+		if (base.isThriftyMode()) {
+			float reservedDamage = base.getReservedDamage(entity.getId());
+			float remainingHealth = entity.getHealth() - reservedDamage;
+			if (remainingHealth <= 0) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
     /**
      * 检查目标是否在范围内

@@ -160,34 +160,52 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         return null;
     }
 
-    /**
-     * 更新目标
-     */
-    private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base, Direction facing) {
-        if (target == null || !isValidTarget(target, level, pos)) {
-            target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
-            targetLostTicks = 0;
-        } else {
-            // 检查是否超出范围
-            if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
-                targetLostTicks++;
-                if (targetLostTicks > 20) {
-                    target = null;
-                    visibleTargetPoint = null;
-                    setAnimData(HAS_TARGET, false);
-                }
-            } else {
-                // 目标有效且在范围内，重新计算可见瞄准点并更新动画
-                Vec3 visiblePoint = getVisibleTargetPoint(target, level, pos);
-                if (visiblePoint == null) {
-                    // 目标变得不可见，丢失计数
-                    targetLostTicks++;
-                    if (targetLostTicks > 20) {
-                        target = null;
-                        visibleTargetPoint = null;
-                        setAnimData(HAS_TARGET, false);
-                    }
-                } else {
+/**
+	 * 更新目标
+	 */
+	private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base, Direction facing) {
+		if (target == null || !isValidTarget(target, level, pos)) {
+			// 取消旧目标的预约（如果有）
+			if (target != null && base.isThriftyMode()) {
+				base.cancelReservation(target.getId());
+			}
+			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
+			targetLostTicks = 0;
+			
+			// 新目标锁定时预约伤害
+			if (target != null && base.isThriftyMode()) {
+				float expectedDamage = getExpectedDamage(base);
+				base.reserveDamage(target.getId(), expectedDamage, target.getHealth(), level.getGameTime());
+			}
+		} else {
+// 检查是否超出范围
+		if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
+			targetLostTicks++;
+			if (targetLostTicks > 20) {
+				// 目标丢失，取消预约
+				if (base.isThriftyMode()) {
+					base.cancelReservation(target.getId());
+				}
+				target = null;
+				visibleTargetPoint = null;
+				setAnimData(HAS_TARGET, false);
+			}
+		} else {
+			// 目标有效且在范围内，重新计算可见瞄准点并更新动画
+			Vec3 visiblePoint = getVisibleTargetPoint(target, level, pos);
+			if (visiblePoint == null) {
+				// 目标变得不可见，丢失计数
+				targetLostTicks++;
+				if (targetLostTicks > 20) {
+					// 目标丢失，取消预约
+					if (base.isThriftyMode()) {
+						base.cancelReservation(target.getId());
+					}
+					target = null;
+					visibleTargetPoint = null;
+					setAnimData(HAS_TARGET, false);
+				}
+			} else {
                     targetLostTicks = 0;
                     visibleTargetPoint = visiblePoint;
                     // 更新动画瞄准位置
@@ -244,66 +262,76 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         }
     }
 
-    /**
-     * 执行射击
-     */
-    private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base) {
-        // Double check energy cost before shooting logic (redundant but safe)
-        Direction facing = state.getValue(MachineGunTurretBlock.FACING);
-        int energyCost = base.getEnergyCostForFace(facing, Config.machineGunEnergyCost);
-        if (base.getEnergyStored() < energyCost) return;
-        
-        // 检查弹药
-        if (!hasAmmo(base)) return;
+/**
+	 * 执行射击
+	 */
+	private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base) {
+		// Double check energy cost before shooting logic (redundant but safe)
+		Direction facing = state.getValue(MachineGunTurretBlock.FACING);
+		int energyCost = base.getEnergyCostForFace(facing, Config.machineGunEnergyCost);
+		if (base.getEnergyStored() < energyCost) return;
 
-        if (!(level instanceof ServerLevel)) return;
+		// 检查弹药
+		if (!hasAmmo(base)) return;
 
-        Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
+		if (!(level instanceof ServerLevel)) return;
 
-        // 使用可见瞄准点（如果有的话），否则回退到目标中心
-        Vec3 targetPos = (visibleTargetPoint != null) 
-            ? visibleTargetPoint 
-            : target.position().add(0, target.getEyeHeight() * 0.5, 0);
+		Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
 
-        // 预判瞄准
-        if (base.isPredictiveAiming()) {
-            double dist = muzzlePos.distanceTo(targetPos);
-            double time = dist / BULLET_SPEED;
-            targetPos = targetPos.add(target.getDeltaMovement().scale(time));
-        }
+		// 使用可见瞄准点（如果有的话），否则回退到目标中心
+		Vec3 targetPos = (visibleTargetPoint != null)
+			? visibleTargetPoint
+			: target.position().add(0, target.getEyeHeight() * 0.5, 0);
 
-        Vec3 direction = targetPos.subtract(muzzlePos).normalize();
+		// 预判瞄准
+		if (base.isPredictiveAiming()) {
+			double dist = muzzlePos.distanceTo(targetPos);
+			double time = dist / BULLET_SPEED;
+			targetPos = targetPos.add(target.getDeltaMovement().scale(time));
+		}
 
-        // 消耗能量
-        base.consumeEnergy(energyCost);
-        
-        // 消耗弹药（弹药回收插件：20%概率不消耗）
-        Level baseLevel = base.getLevel();
-        if (baseLevel != null && base.hasAmmoRecyclingPlugin()) {
-            if (baseLevel.random.nextFloat() >= com.tian_nu.AdvancedTurret.Config.ammoRecycleChance) {
-                consumeAmmo(base);
-            }
-            // 20%概率不消耗弹药
-        } else {
-            consumeAmmo(base);
-        }
+		Vec3 direction = targetPos.subtract(muzzlePos).normalize();
 
-        // 播放射击音效
-        float damage = base.getDamageForFace(facing, BULLET_DAMAGE);
-        TurretBulletEntity bullet = new TurretBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
-        bullet.setOwner(null);
-        bullet.setSourcePos(pos);
-        bullet.setBasePos(pos.relative(facing.getOpposite())); // 设置基座位置
-        bullet.shoot(direction, (float) BULLET_SPEED);
+		// 消耗能量
+		base.consumeEnergy(energyCost);
 
-        boolean spawned = level.addFreshEntity(bullet);
-        if (!spawned) {
-            LOGGER.warn("Failed to spawn turret bullet at {}", muzzlePos);
-        }
+		// 消耗弹药（弹药回收插件：20%概率不消耗）
+		Level baseLevel = base.getLevel();
+		if (baseLevel != null && base.hasAmmoRecyclingPlugin()) {
+			if (baseLevel.random.nextFloat() >= com.tian_nu.AdvancedTurret.Config.ammoRecycleChance) {
+				consumeAmmo(base);
+			}
+			// 20%概率不消耗弹药
+		} else {
+			consumeAmmo(base);
+		}
 
-        level.playSound(null, pos, SoundEvents.ARROW_SHOOT, SoundSource.BLOCKS, 1.0F, 1.5F);
+		// 计算伤害并创建子弹
+		float damage = base.getDamageForFace(facing, BULLET_DAMAGE);
+		TurretBulletEntity bullet = new TurretBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
+		bullet.setOwner(null);
+		bullet.setSourcePos(pos);
+		bullet.setBasePos(pos.relative(facing.getOpposite())); // 设置基座位置
+		bullet.shoot(direction, (float) BULLET_SPEED);
 
-    }
+		boolean spawned = level.addFreshEntity(bullet);
+		if (!spawned) {
+			LOGGER.warn("Failed to spawn turret bullet at {}", muzzlePos);
+		}
+
+		level.playSound(null, pos, SoundEvents.ARROW_SHOOT, SoundSource.BLOCKS, 1.0F, 1.5F);
+
+	}
+
+	/**
+	 * 获取预期伤害（用于厉行节约）
+	 */
+	public float getExpectedDamage(TurretBaseBlockEntity base) {
+		BlockState state = getBlockState();
+		if (!(state.getBlock() instanceof MachineGunTurretBlock)) return BULLET_DAMAGE;
+		Direction facing = state.getValue(MachineGunTurretBlock.FACING);
+		return base.getDamageForFace(facing, BULLET_DAMAGE);
+	}
 
     /**
      * 计算炮口位置
@@ -471,16 +499,29 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
             return false;
         }
 
-        // 获取可见瞄准点（优先：头部 > 身体 > 脚部）
-        Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
-        if (visiblePoint == null) {
-            return false; // 完全不可见
-        }
-        // 存储可见点供射击使用
-        visibleTargetPoint = visiblePoint;
+// 获取可见瞄准点（优先：头部 > 身体 > 脚部）
+		Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
+		if (visiblePoint == null) {
+			return false; // 完全不可见
+		}
+		// 存储可见点供射击使用
+		visibleTargetPoint = visiblePoint;
 
-        return true;
-    }
+		// 5. 厉行节约检查：目标是否值得攻击
+		if (base.isThriftyMode()) {
+			float expectedDamage = getExpectedDamage(base);
+			float currentHealth = entity.getHealth();
+			float reservedDamage = base.getReservedDamage(entity.getId());
+			float remainingHealth = currentHealth - reservedDamage;
+			
+			// 如果剩余生命值 <= 0，说明目标已被其他炮塔预约击杀，跳过
+			if (remainingHealth <= 0) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
     /**
      * 检查目标是否在范围内

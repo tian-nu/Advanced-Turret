@@ -121,54 +121,72 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         return null;
     }
 
-    private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base, Direction facing) {
-        if (target == null || !isValidTarget(target, level, pos)) {
-            target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
-            targetLostTicks = 0;
-        } else {
-            // 检查是否超出范围
-            if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
-                targetLostTicks++;
-                if (targetLostTicks > 20) {
-                    target = null;
-                    visibleTargetPoint = null;
-                    setAnimData(HAS_TARGET, false);
-                }
-            } else {
-                // 目标有效且在范围内，重新计算可见瞄准点并更新动画
-                Vec3 visiblePoint = getVisibleTargetPoint(target, level, pos);
-                if (visiblePoint == null) {
-                    // 目标变得不可见，丢失计数
-                    targetLostTicks++;
-                    if (targetLostTicks > 20) {
-                        target = null;
-                        visibleTargetPoint = null;
-                        setAnimData(HAS_TARGET, false);
-                    }
-                } else {
-                    targetLostTicks = 0;
-                    visibleTargetPoint = visiblePoint;
-                    // 更新动画瞄准位置
-                    setAnimData(TARGET_POS_X, visiblePoint.x);
-                    setAnimData(TARGET_POS_Y, visiblePoint.y);
-                    setAnimData(TARGET_POS_Z, visiblePoint.z);
-                    setAnimData(HAS_TARGET, true);
-                }
-            }
-        }
-    }
+private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base, Direction facing) {
+		if (target == null || !isValidTarget(target, level, pos)) {
+			// 取消旧目标的预约（如果有）
+			if (target != null && base.isThriftyMode()) {
+				base.cancelReservation(target.getId());
+			}
+			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
+			targetLostTicks = 0;
+			
+			// 新目标锁定时预约伤害
+			if (target != null && base.isThriftyMode()) {
+				float expectedDamage = getExpectedDamage(base);
+				base.reserveDamage(target.getId(), expectedDamage, target.getHealth(), level.getGameTime());
+			}
+		} else {
+			// 检查是否超出范围
+			if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
+				targetLostTicks++;
+				if (targetLostTicks > 20) {
+					// 目标丢失，取消预约
+					if (base.isThriftyMode()) {
+						base.cancelReservation(target.getId());
+					}
+					target = null;
+					visibleTargetPoint = null;
+					setAnimData(HAS_TARGET, false);
+				}
+			} else {
+				// 目标有效且在范围内，重新计算可见瞄准点并更新动画
+				Vec3 visiblePoint = getVisibleTargetPoint(target, level, pos);
+				if (visiblePoint == null) {
+					// 目标变得不可见，丢失计数
+					targetLostTicks++;
+					if (targetLostTicks > 20) {
+						// 目标丢失，取消预约
+						if (base.isThriftyMode()) {
+							base.cancelReservation(target.getId());
+						}
+						target = null;
+						visibleTargetPoint = null;
+						setAnimData(HAS_TARGET, false);
+					}
+				} else {
+					targetLostTicks = 0;
+					visibleTargetPoint = visiblePoint;
+					// 更新动画瞄准位置
+					setAnimData(TARGET_POS_X, visiblePoint.x);
+					setAnimData(TARGET_POS_Y, visiblePoint.y);
+					setAnimData(TARGET_POS_Z, visiblePoint.z);
+					setAnimData(HAS_TARGET, true);
+				}
+			}
+		}
+	}
 
-    private boolean canShoot(TurretBaseBlockEntity base, Direction facing) {
-        int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
-        return base.getEnergyStored() >= energyCost;
-    }
+	private boolean canShoot(TurretBaseBlockEntity base, Direction facing) {
+		int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
+		return base.getEnergyStored() >= energyCost;
+	}
 
-    private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base, Direction facing) {
-        int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
-        if (base.getEnergyStored() < energyCost) return;
-        if (!(level instanceof ServerLevel)) return;
+	private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base, Direction facing) {
+		int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
+		if (base.getEnergyStored() < energyCost) return;
+		if (!(level instanceof ServerLevel)) return;
 
-        Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
+		Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
 
         // 使用可见瞄准点（如果有的话），否则回退到目标中心
         Vec3 targetPos = (visibleTargetPoint != null) 
@@ -183,10 +201,12 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 
         Vec3 direction = targetPos.subtract(muzzlePos).normalize();
 
-        base.consumeEnergy(energyCost);
+		// 消耗能量
+		base.consumeEnergy(energyCost);
 
-        float damage = base.getDamageForFace(facing, BULLET_DAMAGE);
-        RailgunBulletEntity bullet = new RailgunBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
+		// 计算伤害并创建子弹
+		float damage = base.getDamageForFace(facing, BULLET_DAMAGE);
+		RailgunBulletEntity bullet = new RailgunBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
         bullet.setOwner(null);
         bullet.setSourcePos(pos);
         bullet.setBasePos(pos.relative(facing.getOpposite())); // 设置基座位置
@@ -198,9 +218,19 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
             LOGGER.warn("Failed to spawn railgun bullet at {}", muzzlePos);
         }
 
-        level.playSound(null, pos, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1.0F, 1.0F);
+level.playSound(null, pos, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1.0F, 1.0F);
 
-    }
+	}
+
+	/**
+	 * 获取预期伤害（用于厉行节约）
+	 */
+	public float getExpectedDamage(TurretBaseBlockEntity base) {
+		BlockState state = getBlockState();
+		if (!(state.getBlock() instanceof RailgunTurretBlock)) return BULLET_DAMAGE;
+		Direction facing = state.getValue(RailgunTurretBlock.FACING);
+		return base.getDamageForFace(facing, BULLET_DAMAGE);
+	}
 
     /**
      * 计算炮口位置
@@ -341,16 +371,25 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
             return false;
         }
 
-        // 获取可见瞄准点（优先：头部 > 身体 > 脚部）
-        Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
-        if (visiblePoint == null) {
-            return false; // 完全不可见
-        }
-        // 存储可见点供射击使用
-        visibleTargetPoint = visiblePoint;
+// 获取可见瞄准点（优先：头部 > 身体 > 脚部）
+		Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
+		if (visiblePoint == null) {
+			return false; // 完全不可见
+		}
+		// 存储可见点供射击使用
+		visibleTargetPoint = visiblePoint;
 
-        return true;
-    }
+		// 厉行节约检查：目标是否值得攻击
+		if (base.isThriftyMode()) {
+			float reservedDamage = base.getReservedDamage(entity.getId());
+			float remainingHealth = entity.getHealth() - reservedDamage;
+			if (remainingHealth <= 0) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
     private boolean isTargetInRange(LivingEntity entity, BlockPos pos, double searchRadius) {
         Vec3 turretPos = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);

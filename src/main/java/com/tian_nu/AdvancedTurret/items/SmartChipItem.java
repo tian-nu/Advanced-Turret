@@ -26,13 +26,14 @@ import java.util.List;
 
 public class SmartChipItem extends Item {
     
-    // NBT Keys
-    public static final String KEY_TARGET_MODE = "TargetMode";
-    public static final String KEY_FRIENDLY_FIRE = "FriendlyFire";
-    public static final String KEY_PREDICTIVE_AIMING = "PredictiveAiming";
-    public static final String KEY_ENABLED_FACES = "EnabledFaces";
-    public static final String KEY_BLACKLIST = "Blacklist";
-    public static final String KEY_WHITELIST = "Whitelist";
+// NBT Keys
+	public static final String KEY_TARGET_MODE = "TargetMode";
+	public static final String KEY_FRIENDLY_FIRE = "FriendlyFire";
+	public static final String KEY_PREDICTIVE_AIMING = "PredictiveAiming";
+	public static final String KEY_ENABLED_FACES = "EnabledFaces";
+	public static final String KEY_BLACKLIST = "Blacklist";
+	public static final String KEY_WHITELIST = "Whitelist";
+	public static final String KEY_THRIFTY_MODE = "ThriftyMode"; // 厉行节约模式
 
     public enum TargetMode {
         HOSTILE,        // 仅敌对
@@ -200,15 +201,35 @@ public class SmartChipItem extends Item {
         tag.put(KEY_BLACKLIST, list);
     }
 
-    public static List<String> getWhitelist(ItemStack stack) {
-        List<String> list = new ArrayList<>();
-        CompoundTag tag = stack.getOrCreateTag();
-        if (tag.contains(KEY_WHITELIST)) {
-            ListTag tagList = tag.getList(KEY_WHITELIST, Tag.TAG_STRING);
-            for (int i = 0; i < tagList.size(); i++) {
-                list.add(tagList.getString(i));
-            }
-        }
-        return list;
-    }
+public static List<String> getWhitelist(ItemStack stack) {
+		List<String> list = new ArrayList<>();
+		CompoundTag tag = stack.getOrCreateTag();
+		if (tag.contains(KEY_WHITELIST)) {
+			ListTag tagList = tag.getList(KEY_WHITELIST, Tag.TAG_STRING);
+			for (int i = 0; i < tagList.size(); i++) {
+				list.add(tagList.getString(i));
+			}
+		}
+		return list;
+	}
+
+	// ========== 厉行节约模式 ==========
+
+	/**
+	 * 设置厉行节约模式
+	 * @param stack 智能芯片物品
+	 * @param enabled 是否启用
+	 */
+	public static void setThriftyMode(ItemStack stack, boolean enabled) {
+		stack.getOrCreateTag().putBoolean(KEY_THRIFTY_MODE, enabled);
+	}
+
+	/**
+	 * 检查是否启用了厉行节约模式
+	 * @param stack 智能芯片物品
+	 * @return 是否启用厉行节约
+	 */
+	public static boolean isThriftyMode(ItemStack stack) {
+		return stack.getOrCreateTag().getBoolean(KEY_THRIFTY_MODE);
+	}
 }

@@ -24,16 +24,18 @@ public class SmartChipConfigScreen extends Screen {
     private final ItemStack stack;
     private final BlockPos pos; // Null if handheld
 
-    private int targetFlags;
-    private boolean friendlyFire;
-    private boolean predictiveAiming;
-    private byte enabledFacesMask;
-    
-    private EditBox blacklistInput;
-    private EditBox whitelistInput;
-    
-    private Checkbox friendlyFireCheckbox;
-    private Checkbox predictiveAimingCheckbox;
+private int targetFlags;
+	private boolean friendlyFire;
+	private boolean predictiveAiming;
+	private boolean thriftyMode;
+	private byte enabledFacesMask;
+
+	private EditBox blacklistInput;
+	private EditBox whitelistInput;
+
+	private Checkbox friendlyFireCheckbox;
+	private Checkbox predictiveAimingCheckbox;
+	private Checkbox thriftyModeCheckbox;
     
     // Flag Toggles
     private Checkbox hostileCheckbox;
@@ -48,12 +50,13 @@ public class SmartChipConfigScreen extends Screen {
         this.stack = stack;
         this.pos = pos;
         
-        // Load initial values
-        this.targetFlags = SmartChipItem.getTargetFlags(stack);
-        this.friendlyFire = SmartChipItem.isFriendlyFire(stack);
-        this.predictiveAiming = SmartChipItem.isPredictiveAiming(stack);
-        this.enabledFacesMask = SmartChipItem.getEnabledFaces(stack);
-    }
+// Load initial values
+		this.targetFlags = SmartChipItem.getTargetFlags(stack);
+		this.friendlyFire = SmartChipItem.isFriendlyFire(stack);
+		this.predictiveAiming = SmartChipItem.isPredictiveAiming(stack);
+		this.thriftyMode = SmartChipItem.isThriftyMode(stack);
+		this.enabledFacesMask = SmartChipItem.getEnabledFaces(stack);
+	}
 
     @Override
     protected void init() {
@@ -84,11 +87,17 @@ public class SmartChipConfigScreen extends Screen {
                 Component.translatable("gui.advanced_turret.friendly_fire"), friendlyFire);
         addRenderableWidget(friendlyFireCheckbox);
         
-        this.predictiveAimingCheckbox = new Checkbox(centerX + 10, startY, 100, 20, 
-                Component.translatable("gui.advanced_turret.predictive_aiming"), predictiveAiming);
-        addRenderableWidget(predictiveAimingCheckbox);
-        
-        // Face Selection (3x2 grid)
+this.predictiveAimingCheckbox = new Checkbox(centerX + 10, startY, 100, 20,
+			Component.translatable("gui.advanced_turret.predictive_aiming"), predictiveAiming);
+		addRenderableWidget(predictiveAimingCheckbox);
+
+		// 厉行节约复选框（第二行）
+		startY += 25;
+		this.thriftyModeCheckbox = new Checkbox(centerX - 45, startY, 90, 20,
+			Component.translatable("gui.advanced_turret.thrifty_mode"), thriftyMode);
+		addRenderableWidget(thriftyModeCheckbox);
+
+		// Face Selection (3x2 grid)
         startY += 30;
         int btnSize = 20;
         int faceStartX = centerX - (btnSize * 3) / 2;
@@ -157,16 +166,17 @@ public class SmartChipConfigScreen extends Screen {
         if (friendlyCheckbox.selected()) flags |= SmartChipItem.FLAG_FRIENDLY;
         if (playersCheckbox.selected()) flags |= SmartChipItem.FLAG_PLAYERS;
         
-        ModNetwork.CHANNEL.sendToServer(new SmartChipConfigPacket(
-                pos,
-                TargetMode.HOSTILE, // Deprecated, but keeping for compatibility if packet requires enum
-                friendlyFireCheckbox.selected(),
-                predictiveAimingCheckbox.selected(),
-                enabledFacesMask,
-                blacklist,
-                whitelist,
-                flags
-        ));
+ModNetwork.CHANNEL.sendToServer(new SmartChipConfigPacket(
+			pos,
+			TargetMode.HOSTILE, // Deprecated, but keeping for compatibility if packet requires enum
+			friendlyFireCheckbox.selected(),
+			predictiveAimingCheckbox.selected(),
+			thriftyModeCheckbox.selected(),
+			enabledFacesMask,
+			blacklist,
+			whitelist,
+			flags
+		));
         
         this.onClose();
     }

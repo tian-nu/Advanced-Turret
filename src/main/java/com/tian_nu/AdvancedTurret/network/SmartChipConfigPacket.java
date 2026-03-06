@@ -17,68 +17,79 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class SmartChipConfigPacket {
-    private final BlockPos pos; // Null if handheld
-    private final TargetMode targetMode;
-    private final boolean friendlyFire;
-    private final boolean predictiveAiming;
-    private final byte enabledFacesMask;
-    private final List<String> blacklist;
-    private final List<String> whitelist;
-    private final int targetFlags;
+	private final BlockPos pos; // Null if handheld
+	private final TargetMode targetMode;
+	private final boolean friendlyFire;
+	private final boolean predictiveAiming;
+	private final boolean thriftyMode;
+	private final byte enabledFacesMask;
+	private final List<String> blacklist;
+	private final List<String> whitelist;
+	private final int targetFlags;
 
-    public SmartChipConfigPacket(BlockPos pos, TargetMode targetMode, boolean friendlyFire, boolean predictiveAiming, byte enabledFacesMask, List<String> blacklist, List<String> whitelist, int targetFlags) {
-        this.pos = pos;
-        this.targetMode = targetMode;
-        this.friendlyFire = friendlyFire;
-        this.predictiveAiming = predictiveAiming;
-        this.enabledFacesMask = enabledFacesMask;
-        this.blacklist = blacklist;
-        this.whitelist = whitelist;
-        this.targetFlags = targetFlags;
-    }
-    
-    // Legacy constructor for backward compatibility if needed, though we updated all calls
-    public SmartChipConfigPacket(BlockPos pos, TargetMode targetMode, boolean friendlyFire, boolean predictiveAiming, byte enabledFacesMask, List<String> blacklist, List<String> whitelist) {
-        this(pos, targetMode, friendlyFire, predictiveAiming, enabledFacesMask, blacklist, whitelist, 1); // Default to HOSTILE
-    }
+	public SmartChipConfigPacket(BlockPos pos, TargetMode targetMode, boolean friendlyFire, boolean predictiveAiming, boolean thriftyMode, byte enabledFacesMask, List<String> blacklist, List<String> whitelist, int targetFlags) {
+		this.pos = pos;
+		this.targetMode = targetMode;
+		this.friendlyFire = friendlyFire;
+		this.predictiveAiming = predictiveAiming;
+		this.thriftyMode = thriftyMode;
+		this.enabledFacesMask = enabledFacesMask;
+		this.blacklist = blacklist;
+		this.whitelist = whitelist;
+		this.targetFlags = targetFlags;
+	}
 
-    public static void encode(SmartChipConfigPacket packet, FriendlyByteBuf buf) {
-        buf.writeBoolean(packet.pos != null);
-        if (packet.pos != null) {
-            buf.writeBlockPos(packet.pos);
-        }
-        buf.writeEnum(packet.targetMode);
-        buf.writeBoolean(packet.friendlyFire);
-        buf.writeBoolean(packet.predictiveAiming);
-        buf.writeByte(packet.enabledFacesMask);
-        
-        buf.writeCollection(packet.blacklist, FriendlyByteBuf::writeUtf);
-        buf.writeCollection(packet.whitelist, FriendlyByteBuf::writeUtf);
-        
-        buf.writeInt(packet.targetFlags);
-    }
+	// Legacy constructor for backward compatibility
+	public SmartChipConfigPacket(BlockPos pos, TargetMode targetMode, boolean friendlyFire, boolean predictiveAiming, byte enabledFacesMask, List<String> blacklist, List<String> whitelist, int targetFlags) {
+		this(pos, targetMode, friendlyFire, predictiveAiming, false, enabledFacesMask, blacklist, whitelist, targetFlags);
+	}
 
-    public static SmartChipConfigPacket decode(FriendlyByteBuf buf) {
-        BlockPos pos = buf.readBoolean() ? buf.readBlockPos() : null;
-        TargetMode mode = buf.readEnum(TargetMode.class);
-        boolean ff = buf.readBoolean();
-        boolean pa = buf.readBoolean();
-        byte faces = buf.readByte();
-        
-        List<String> blacklist = buf.readCollection(ArrayList::new, FriendlyByteBuf::readUtf);
-        List<String> whitelist = buf.readCollection(ArrayList::new, FriendlyByteBuf::readUtf);
-        
-        int flags = 1; // Default
-        try {
-            if (buf.isReadable()) {
-                flags = buf.readInt();
-            }
-        } catch (Exception e) {
-            // End of stream if old packet
-        }
-        
-        return new SmartChipConfigPacket(pos, mode, ff, pa, faces, blacklist, whitelist, flags);
-    }
+	public static void encode(SmartChipConfigPacket packet, FriendlyByteBuf buf) {
+		buf.writeBoolean(packet.pos != null);
+		if (packet.pos != null) {
+			buf.writeBlockPos(packet.pos);
+		}
+		buf.writeEnum(packet.targetMode);
+		buf.writeBoolean(packet.friendlyFire);
+		buf.writeBoolean(packet.predictiveAiming);
+		buf.writeBoolean(packet.thriftyMode);
+		buf.writeByte(packet.enabledFacesMask);
+
+		buf.writeCollection(packet.blacklist, FriendlyByteBuf::writeUtf);
+		buf.writeCollection(packet.whitelist, FriendlyByteBuf::writeUtf);
+
+		buf.writeInt(packet.targetFlags);
+	}
+
+	public static SmartChipConfigPacket decode(FriendlyByteBuf buf) {
+		BlockPos pos = buf.readBoolean() ? buf.readBlockPos() : null;
+		TargetMode mode = buf.readEnum(TargetMode.class);
+		boolean ff = buf.readBoolean();
+		boolean pa = buf.readBoolean();
+		boolean tm = false; // Default for old packets
+		try {
+			if (buf.isReadable()) {
+				tm = buf.readBoolean();
+			}
+		} catch (Exception e) {
+			// Old packet without thriftyMode
+		}
+		byte faces = buf.readByte();
+
+		List<String> blacklist = buf.readCollection(ArrayList::new, FriendlyByteBuf::readUtf);
+		List<String> whitelist = buf.readCollection(ArrayList::new, FriendlyByteBuf::readUtf);
+
+		int flags = 1; // Default
+		try {
+			if (buf.isReadable()) {
+				flags = buf.readInt();
+			}
+		} catch (Exception e) {
+			// End of stream if old packet
+		}
+
+		return new SmartChipConfigPacket(pos, mode, ff, pa, tm, faces, blacklist, whitelist, flags);
+	}
 
     public static void handle(SmartChipConfigPacket packet, Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
@@ -106,12 +117,13 @@ public class SmartChipConfigPacket {
                 }
             }
             
-            if (!stackToUpdate.isEmpty() && stackToUpdate.getItem() instanceof SmartChipItem) {
-                // SmartChipItem.setTargetMode(stackToUpdate, packet.targetMode); // Deprecated
-                SmartChipItem.setTargetFlags(stackToUpdate, packet.targetFlags);
-                SmartChipItem.setFriendlyFire(stackToUpdate, packet.friendlyFire);
-                SmartChipItem.setPredictiveAiming(stackToUpdate, packet.predictiveAiming);
-                SmartChipItem.setEnabledFaces(stackToUpdate, packet.enabledFacesMask);
+if (!stackToUpdate.isEmpty() && stackToUpdate.getItem() instanceof SmartChipItem) {
+			// SmartChipItem.setTargetMode(stackToUpdate, packet.targetMode); // Deprecated
+			SmartChipItem.setTargetFlags(stackToUpdate, packet.targetFlags);
+			SmartChipItem.setFriendlyFire(stackToUpdate, packet.friendlyFire);
+			SmartChipItem.setPredictiveAiming(stackToUpdate, packet.predictiveAiming);
+			SmartChipItem.setThriftyMode(stackToUpdate, packet.thriftyMode);
+			SmartChipItem.setEnabledFaces(stackToUpdate, packet.enabledFacesMask);
                 
                 // Update Lists
                 stackToUpdate.getOrCreateTag().remove(SmartChipItem.KEY_BLACKLIST);

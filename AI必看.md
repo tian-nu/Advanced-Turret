@@ -933,4 +933,159 @@ this.setDeltaMovement(movement.normalize().scale(newSpeed));
 
 ---
 
-**最后更新**: 2026-03-05
+### 24. 厉行节约功能BUG：预约伤害覆盖问题 🔥修复
+**问题**: 多炮塔攻击同一高血量目标时全部停火
+**修复日期**: 2026-03-06
+
+**原因**: 
+`TurretBaseBlockEntity.reserveDamage()` 方法直接覆盖预约值，而不是累积
+```java
+// 错误写法（覆盖）
+reservedDamage.put(entityId, damage);
+
+// 正确写法（累积）
+float existing = reservedDamage.getOrDefault(entityId, 0.0f);
+float totalReserved = existing + damage;
+reservedDamage.put(entityId, totalReserved);
+```
+
+**问题场景**:
+假设100血僵尸，3个机枪炮塔（每个伤害4）：
+1. 炮塔A锁定 → 预约4
+2. 炮塔B锁定 → **覆盖为4**（错误！应该是累积为8）
+3. 炮塔C锁定 → **又覆盖为4**（错误！应该是累积为12）
+4. 所有炮塔检查目标 → 发现预约值被改 → **全部停火**
+
+**修复**: 
+修改 `reserveDamage()` 方法为累积预约值，支持多炮塔同时瞄准同一目标
+
+**编译状态**: ✅ BUILD SUCCESSFUL
+
+---
+
+### 25. 火箭炮塔贴图路径错误 🔥修复
+**问题**: 火箭炮塔方块模型贴图路径错误
+**修复日期**: 2026-03-06
+
+**原因**: 
+`rocket_turret.json` 中贴图路径使用了错误的命名空间
+```json
+// 错误写法
+"0": "Blockbench:block/rocket_turret"
+
+// 正确写法
+"0": "advanced_turret:block/rocket_turret"
+```
+
+**修复**: 
+修改 `models/block/rocket_turret.json` 中的贴图路径为正确的命名空间
+
+**编译状态**: ✅ BUILD SUCCESSFUL
+
+---
+
+### 26. 厉行节约功能BUG：发射后立即清除预约 🔥修复
+**问题**: 炮塔发射后立即清除预约，导致其他炮塔瞬间发射，实际效果大打折扣
+**修复日期**: 2026-03-06
+
+**原因**: 
+所有炮塔的 `shoot()` 方法中都错误地调用了 `cancelReservation()`
+```java
+// 错误逻辑（发射后立即清除预约）
+if (base.isThriftyMode() && target != null) {
+    base.cancelReservation(target.getId());  // ← 导致其他炮塔误判
+}
+```
+
+**问题场景**:
+1. 炮塔A锁定目标，预约伤害4
+2. 炮塔B也锁定目标，累积预约为8
+3. 炮塔A发射，**立即清除预约**（错误！）
+4. 炮塔B发现预约值为0，认为目标未被攻击，**立即发射**
+5. 所有炮塔瞬间发射，厉行节约失效
+
+**修复**: 
+删除所有炮塔 `shoot()` 方法中的 `cancelReservation()` 调用。预约应该：
+- 在目标锁定时累积
+- 在目标丢失/死亡时清除（在 `updateTarget` 中）
+- 在10秒后自动超时清除（在 `clearExpiredReservations` 中）
+
+**影响文件**:
+- `MachineGunTurretBlockEntity.java`
+- `RailgunTurretBlockEntity.java`
+- `RocketTurretBlockEntity.java`
+- `MissileTurretBlockEntity.java`
+
+**编译状态**: ✅ BUILD SUCCESSFUL
+
+---
+
+### 27. 方块模型格式版本不兼容 🔥修复
+**问题**: 火箭炮塔和磁轨炮塔的物品模型/方块形态显示错误
+**修复日期**: 2026-03-06
+
+**原因**: 
+Blockbench 导出的新版 JSON 模型格式不被 Minecraft 1.20.1 支持
+```json
+// 错误格式（Blockbench 新版）
+"format_version": "1.21.11"
+
+// 正确格式（Minecraft 1.20.1 支持）
+无 format_version 字段，或使用 "format_version": "1.9.0"
+```
+
+**问题影响**:
+- `models/block/rocket_turret.json` 格式错误 → 物品模型显示错误
+- `models/block/railgun_turret.json` 格式错误 → 物品模型显示错误
+- `models/block/missile_turret.json` 格式正确 ✅
+- `models/block/machine_gun_turret.json` 格式正确 ✅
+
+**修复方案**:
+移除 `format_version` 字段，保留 `texture_size` 字段
+
+**修复文件**:
+- `models/block/rocket_turret.json`
+- `models/block/railgun_turret.json`
+
+**编译状态**: ✅ BUILD SUCCESSFUL
+
+---
+
+### 28. 模型贴图键名不一致导致贴图错误 🔥修复
+**问题**: 火箭炮塔的物品/方块形态贴图显示错误
+**修复日期**: 2026-03-06
+
+**原因**: 
+火箭炮塔模型使用了 `"0"` 作为贴图键名，而其他炮塔都用 `"1"`
+```json
+// 错误写法
+"textures": {
+    "0": "advanced_turret:block/rocket_turret",  // ❌ 键名是 "0"
+    ...
+}
+"faces": {
+    "north": {"uv": [...], "texture": "#0"},  // ❌ 引用 #0
+    ...
+}
+
+// 正确写法（与其他炮塔一致）
+"textures": {
+    "1": "advanced_turret:block/rocket_turret",  // ✅ 键名是 "1"
+    ...
+}
+"faces": {
+    "north": {"uv": [...], "texture": "#1"},  // ✅ 引用 #1
+    ...
+}
+```
+
+**修复**: 
+统一火箭炮塔模型的贴图键名为 `"1"`，所有 `"texture": "#0"` 改为 `"texture": "#1"`
+
+**影响文件**: `models/block/rocket_turret.json`
+
+**编译状态**: ✅ BUILD SUCCESSFUL
+
+---
+
+**最后更新**: 2026-03-06

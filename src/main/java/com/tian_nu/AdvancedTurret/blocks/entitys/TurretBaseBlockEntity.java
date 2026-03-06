@@ -30,6 +30,9 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.inventory.ContainerData;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * 炮塔基座方块实体
@@ -97,9 +100,18 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     // 但是，如果没有插件，默认行为是什么？
     // 假设没有插件时，默认全开。
     
-    private java.util.UUID owner;
-    
-    // ========== 能量存储 ==========
+private java.util.UUID owner;
+
+	// ========== 厉行节约 - 目标伤害预约系统 ==========
+	
+	/** 目标实体ID -> 已预约伤害值 */
+	private final Map<Integer, Float> reservedDamage = new HashMap<>();
+	/** 目标实体ID -> 预约时间戳（用于过期清理） */
+	private final Map<Integer, Long> reservationTime = new HashMap<>();
+	/** 预约超时时间（tick），超过此时间未攻击则自动释放预约 */
+	private static final long RESERVATION_TIMEOUT = 200; // 10秒
+
+	// ========== 能量存储 ==========
     
     private BaseEnergyStorage energyStorage = createEnergyStorage(getMaxEnergyForTier());
     
@@ -555,10 +567,13 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
             }
         }
         
-        // 炮塔逻辑现在由独立的炮塔方块实体处理
-        // 基座只负责提供能量
-        
-        if (changed) {
+// 炮塔逻辑现在由独立的炮塔方块实体处理
+		// 基座只负责提供能量
+
+		// 清理过期的伤害预约
+		blockEntity.clearExpiredReservations(level.getGameTime());
+
+		if (changed) {
             blockEntity.setChanged();
             blockEntity.syncToClient();
         }
@@ -622,18 +637,145 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     /**
      * 检查是否有破坏插件
      */
-    public boolean hasDestructionPlugin() {
-        int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
-        for (int i = 0; i < slotCount; i++) {
-            ItemStack stack = basePluginSlot.getStackInSlot(i);
-            if (!stack.isEmpty() && stack.is(ModItems.DESTRUCTION_PLUGIN.get())) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    private void checkCreativePowerComponent() {
+public boolean hasDestructionPlugin() {
+		int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
+		for (int i = 0; i < slotCount; i++) {
+			ItemStack stack = basePluginSlot.getStackInSlot(i);
+			if (!stack.isEmpty() && stack.is(ModItems.DESTRUCTION_PLUGIN.get())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * 检查是否启用了厉行节约模式
+	 */
+	public boolean isThriftyMode() {
+		ItemStack stack = getPluginStack();
+		if (!stack.isEmpty()) {
+			return com.tian_nu.AdvancedTurret.items.SmartChipItem.isThriftyMode(stack);
+		}
+		return false;
+	}
+
+	// ========== 厉行节约 - 目标伤害预约系统方法 ==========
+
+/**
+	 * 预约目标伤害
+	 * @param entityId 目标实体ID
+	 * @param damage 预计伤害
+	 * @param currentHealth 目标当前生命值
+	 * @param gameTime 当前游戏时间
+	 * @return 预约后目标的剩余有效生命值（负数表示目标已被击杀）
+	 */
+	public float reserveDamage(int entityId, float damage, float currentHealth, long gameTime) {
+		// 累积预约伤害，而不是覆盖（支持多炮塔同时瞄准同一目标）
+		float existing = reservedDamage.getOrDefault(entityId, 0.0f);
+		float totalReserved = existing + damage;
+		
+		reservedDamage.put(entityId, totalReserved);
+		reservationTime.put(entityId, gameTime);
+
+		// 计算预约后的剩余生命值
+		float remainingHealth = currentHealth - totalReserved;
+		return remainingHealth;
+	}
+
+	/**
+	 * 尝试为炮塔预约目标伤害（如果目标已被其他炮塔预约，则返回false）
+	 * @param entityId 目标实体ID
+	 * @param damage 预计伤害
+	 * @param currentHealth 目标当前生命值
+	 * @param gameTime 当前游戏时间
+	 * @return 如果成功预约返回true，如果目标已被其他炮塔预约击杀返回false
+	 */
+	public boolean tryReserveDamage(int entityId, float damage, float currentHealth, long gameTime) {
+		// 检查是否已有预约
+		float existingReservation = reservedDamage.getOrDefault(entityId, 0.0f);
+		float existingRemainingHealth = currentHealth - existingReservation;
+		
+		// 如果已有预约导致目标"死亡"，则不能预约
+		if (existingRemainingHealth <= 0) {
+			return false;
+		}
+		
+		// 预约成功
+		reservedDamage.put(entityId, damage);
+		reservationTime.put(entityId, gameTime);
+		return true;
+	}
+
+	/**
+	 * 获取目标已预约的伤害
+	 * @param entityId 目标实体ID
+	 * @return 已预约的伤害值
+	 */
+	public float getReservedDamage(int entityId) {
+		return reservedDamage.getOrDefault(entityId, 0.0f);
+	}
+
+	/**
+	 * 取消伤害预约（目标丢失或死亡时调用）
+	 * @param entityId 目标实体ID
+	 */
+	public void cancelReservation(int entityId) {
+		reservedDamage.remove(entityId);
+		reservationTime.remove(entityId);
+	}
+
+	/**
+	 * 确认伤害已造成（攻击命中后调用，释放预约）
+	 * @param entityId 目标实体ID
+	 * @param damage 实际造成的伤害
+	 */
+	public void confirmDamage(int entityId, float damage) {
+		float reserved = reservedDamage.getOrDefault(entityId, 0.0f);
+		if (reserved <= damage) {
+			// 预约的伤害已全部造成，清除预约
+			reservedDamage.remove(entityId);
+			reservationTime.remove(entityId);
+		} else {
+			// 部分伤害造成，更新剩余预约
+			reservedDamage.put(entityId, reserved - damage);
+		}
+	}
+
+	/**
+	 * 清理过期的伤害预约
+	 * @param currentTime 当前游戏时间
+	 */
+	private void clearExpiredReservations(long currentTime) {
+		Iterator<Map.Entry<Integer, Long>> iterator = reservationTime.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<Integer, Long> entry = iterator.next();
+			if (currentTime - entry.getValue() > RESERVATION_TIMEOUT) {
+				int entityId = entry.getKey();
+				iterator.remove();
+				reservedDamage.remove(entityId);
+			}
+		}
+	}
+
+	/**
+	 * 检查目标是否值得攻击（厉行节约逻辑）
+	 * @param entityId 目标实体ID
+	 * @param currentHealth 目标当前生命值
+	 * @return 如果目标仍然值得攻击返回true
+	 */
+	public boolean isTargetWorthAttacking(int entityId, float currentHealth) {
+		if (!isThriftyMode()) {
+			return true; // 未启用厉行节约，始终返回true
+		}
+		
+		float reserved = getReservedDamage(entityId);
+		float remainingHealth = currentHealth - reserved;
+		
+		// 剩余生命值大于0才值得攻击
+		return remainingHealth > 0;
+	}
+
+	private void checkCreativePowerComponent() {
         if (hasCreativePowerComponent() && level != null && !level.isClientSide) {
             setEnergyFull();
         }
