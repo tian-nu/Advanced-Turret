@@ -2,6 +2,7 @@ package com.tian_nu.AdvancedTurret.blocks.entitys;
 
 import com.tian_nu.AdvancedTurret.TurretMod;
 import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
+import com.tian_nu.AdvancedTurret.blocks.LaserTurretBlock;
 import com.tian_nu.AdvancedTurret.blocks.MissileTurretBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -51,6 +52,12 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("missile_turret", () ->
                     BlockEntityType.Builder.of(MissileTurretBlockEntity::new,
                             ModBlocks.MISSILE_TURRET.get()
+                    ).build(null));
+
+    public static final RegistryObject<BlockEntityType<LaserTurretBlockEntity>> LASER_TURRET =
+            BLOCK_ENTITIES.register("laser_turret", () ->
+                    BlockEntityType.Builder.of(LaserTurretBlockEntity::new,
+                            ModBlocks.LASER_TURRET.get()
                     ).build(null));
 
     public static void register(IEventBus eventBus) {

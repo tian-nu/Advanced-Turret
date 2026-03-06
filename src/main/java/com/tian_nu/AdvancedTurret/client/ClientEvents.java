@@ -14,6 +14,7 @@ import com.tian_nu.AdvancedTurret.client.MachineGunTurretGeoRenderer;
 import com.tian_nu.AdvancedTurret.client.RailgunTurretGeoRenderer;
 import com.tian_nu.AdvancedTurret.client.RocketTurretGeoRenderer;
 import com.tian_nu.AdvancedTurret.client.MissileTurretGeoRenderer;
+import com.tian_nu.AdvancedTurret.client.LaserTurretGeoRenderer;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
 import com.tian_nu.AdvancedTurret.gui.TurretFaceConfigScreen;
@@ -67,6 +68,10 @@ public class ClientEvents {
         event.registerBlockEntityRenderer(
             ModBlockEntities.MISSILE_TURRET.get(),
             MissileTurretGeoRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+            ModBlockEntities.LASER_TURRET.get(),
+            LaserTurretGeoRenderer::new
         );
     }
     

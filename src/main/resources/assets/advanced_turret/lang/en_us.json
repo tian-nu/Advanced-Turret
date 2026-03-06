@@ -40,12 +40,14 @@
   "block.advanced_turret.railgun_turret": "Railgun Turret",
   "block.advanced_turret.rocket_turret": "Rocket Turret",
   "block.advanced_turret.missile_turret": "Missile Turret",
+  "block.advanced_turret.laser_turret": "Laser Turret",
   "item.advanced_turret.missile": "Missile",
 
   "item.advanced_turret.rocket_turret": "Rocket Turret",
   "item.advanced_turret.missile_turret": "Missile Turret",
   "tooltip.advanced_turret.rocket_turret.stats": "Direct %.1f | Explosion %.1f (R%.1f) | Range %.0f | Rate %.1fs/shot | Cost %d FE/shot",
   "tooltip.advanced_turret.missile_turret.stats": "Direct %.1f | Explosion %.1f (R%.1f) | Range %.0f | Rate %.1fs/shot | Cost %d FE/shot",
+  "tooltip.advanced_turret.laser_turret.stats": "Damage/tick %.1f | Range %.0f | Cost %d FE/tick | No Ammo Required",
 
   "itemGroup.turret_tab": "Turret Mod",
 

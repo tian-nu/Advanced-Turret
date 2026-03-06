@@ -144,7 +144,14 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         
         renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderTooltip(guiGraphics, mouseX, mouseY);
+        // 注意：不在这里调用 renderTooltip，因为 AbstractContainerScreen.render() 已经调用了
+        // 我们在 renderTooltip 方法中处理能量条tooltip
+    }
+    
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        // 先渲染物品tooltip
+        super.renderTooltip(guiGraphics, mouseX, mouseY);
         
         // 渲染能量条 Tooltip
         int guiLeft = (this.width - this.imageWidth) / 2;

@@ -1088,4 +1088,65 @@ Blockbench 导出的新版 JSON 模型格式不被 Minecraft 1.20.1 支持
 
 ---
 
+### 29. 激光炮塔实现 🔥新功能
+**开发日期**: 2026-03-06
+
+**核心特性**:
+- 无弹药消耗，纯能量驱动
+- 每tick持续伤害目标
+- 红色发光半透明激光光束
+- 流动贴图动画效果
+- 点燃效果
+
+**实现方案**:
+采用方案A - BlockEntity内部实现，不创建子弹实体：
+```java
+public static void tick(Level level, BlockPos pos, BlockState state, LaserTurretBlockEntity entity) {
+    // 1. 检查能量
+    // 2. 搜索/锁定目标
+    // 3. 每tick直接造成伤害
+    // 4. 消耗能量
+    // 5. 同步光束位置给客户端
+}
+```
+
+**关键差异**（与其他炮塔对比）:
+| 特性 | 普通炮塔 | 激光炮塔 |
+|------|---------|----------|
+| 攻击方式 | 发射子弹实体 | 直接伤害（无子弹） |
+| 弹药消耗 | 需要弹药物品 | 无弹药，纯能量 |
+| 伤害频率 | 每N tick一次 | 每1 tick一次 |
+| 能量消耗 | 每次射击消耗 | 每tick持续消耗 |
+| 冷却时间 | 有 cooldown | 无冷却 |
+
+**激光渲染**:
+- 使用 `VertexConsumer` 绘制圆柱体几何体
+- `RenderType.entityTranslucentEmissive()` 实现发光半透明效果
+- 通过 `gameTime` 计算流动动画偏移
+- 粗细 = 基础粗细 × (伤害加成系数)
+
+**DamageSource 使用**:
+```java
+// ❌ 错误（旧API）
+target.hurt(DamageSource.MAGIC, damage);
+
+// ✅ 正确（1.20.1）
+target.hurt(level.damageSources().magic(), damage);
+```
+
+**新文件列表**:
+- `blocks/LaserTurretBlock.java`
+- `blocks/entitys/LaserTurretBlockEntity.java`
+- `client/models/LaserTurretGeoModel.java`
+- `geo/block/laser_turret.geo.json`
+- `animations/block/laser_turret.animation.json`
+- `blockstates/laser_turret.json`
+- `models/block/laser_turret.json`
+- `models/item/laser_turret.json`
+- `textures/entity/laser_beam.png.mcmeta`
+
+**编译状态**: ✅ BUILD SUCCESSFUL
+
+---
+
 **最后更新**: 2026-03-06

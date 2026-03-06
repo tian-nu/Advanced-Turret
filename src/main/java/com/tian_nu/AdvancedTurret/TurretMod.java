@@ -6,6 +6,7 @@ import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.RocketTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.LaserTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
@@ -104,6 +105,20 @@ public class TurretMod {
             SerializableDataTicket.ofDouble(location("missile_target_pos_y")));
         MissileTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
             SerializableDataTicket.ofDouble(location("missile_target_pos_z")));
+
+        // 激光炮塔数据票
+        LaserTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofBoolean(location("laser_has_target")));
+        LaserTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("laser_target_pos_x")));
+        LaserTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("laser_target_pos_y")));
+        LaserTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("laser_target_pos_z")));
+        LaserTurretBlockEntity.BEAM_ACTIVE = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofBoolean(location("laser_beam_active")));
+        LaserTurretBlockEntity.FIRE_RATE_COUNT = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofInt(location("laser_fire_rate_count")));
     }
     
     private void commonSetup(final FMLCommonSetupEvent event) {

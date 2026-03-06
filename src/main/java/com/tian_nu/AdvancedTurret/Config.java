@@ -41,6 +41,10 @@ public class Config {
     public static final ForgeConfigSpec.IntValue RAILGUN_ENERGY_COST = BUILDER
             .comment("磁轨炮炮塔每次射击能量消耗")
             .defineInRange("railgunEnergyCost", 10000, 100, 100000);
+
+    public static final ForgeConfigSpec.IntValue LASER_ENERGY_PER_TICK = BUILDER
+            .comment("激光炮塔每tick能量消耗")
+            .defineInRange("laserEnergyPerTick", 500, 1, 10000);
     
     // 插件配置
     public static final ForgeConfigSpec.IntValue SOLAR_ENERGY_GENERATION = BUILDER
@@ -64,6 +68,7 @@ public class Config {
     public static int maxTransferRate;
     public static int machineGunEnergyCost;
     public static int railgunEnergyCost;
+    public static int laserEnergyPerTick;
     public static int solarEnergyGeneration;
     public static double ammoRecycleChance;
     public static int redstoneToEnergyRatio;
@@ -76,6 +81,7 @@ public class Config {
         maxTransferRate = MAX_TRANSFER_RATE.get();
         machineGunEnergyCost = MACHINE_GUN_ENERGY_COST.get();
         railgunEnergyCost = RAILGUN_ENERGY_COST.get();
+        laserEnergyPerTick = LASER_ENERGY_PER_TICK.get();
         solarEnergyGeneration = SOLAR_ENERGY_GENERATION.get();
         ammoRecycleChance = AMMO_RECYCLE_CHANCE.get();
         redstoneToEnergyRatio = REDSTONE_TO_ENERGY_RATIO.get();
