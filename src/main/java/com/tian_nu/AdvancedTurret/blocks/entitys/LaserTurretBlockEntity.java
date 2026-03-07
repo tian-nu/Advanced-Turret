@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.Mth;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -58,6 +59,10 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     public static final double SEARCH_RADIUS = 32.0;
     /** 点燃时间（秒） */
     public static final int FIRE_SECONDS = 2;
+    /** 瞄准角度阈值（弧度），约15度 */
+    public static final float AIM_THRESHOLD = 0.26F;
+    /** 转向速度（弧度/tick），约10度/tick = 200度/秒 */
+    public static final float TURN_SPEED = 0.18F;
 
     // ========== GeckoLib数据同步票 ==========
     public static SerializableDataTicket<Boolean> HAS_TARGET;
@@ -79,6 +84,12 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
 
     public float yRot0 = 0.0f;
     public float xRot0 = 0.0f;
+    
+    /** 目标角度（用于瞄准判断） */
+    private float targetYRot = 0.0f;
+    private float targetXRot = 0.0f;
+    /** 是否已完成瞄准 */
+    private boolean isAimed = false;
 
     public LaserTurretBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.LASER_TURRET.get(), pos, state);
@@ -95,26 +106,43 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
         // 无电量低头动画
         if (base.getEnergyStored() < Config.laserEnergyPerTick) {
             blockEntity.target = null;
+            blockEntity.isAimed = false;
             blockEntity.setAnimData(HAS_TARGET, true);
             blockEntity.setAnimData(TARGET_POS_X, pos.getX() + 0.5);
             blockEntity.setAnimData(TARGET_POS_Y, pos.getY() - 2.0);
             blockEntity.setAnimData(TARGET_POS_Z, pos.getZ() + 0.5);
             blockEntity.setAnimData(BEAM_ACTIVE, false);
+            // 转向归零
+            blockEntity.yRot0 = blockEntity.lerpAngle(blockEntity.yRot0, 0);
+            blockEntity.xRot0 = blockEntity.lerpAngle(blockEntity.xRot0, 0);
             return;
         }
 
         Direction facing = state.getValue(LaserTurretBlock.FACING);
         if (!base.isFaceEnabled(facing)) {
             blockEntity.target = null;
+            blockEntity.isAimed = false;
             blockEntity.setAnimData(HAS_TARGET, false);
             blockEntity.setAnimData(BEAM_ACTIVE, false);
+            // 转向归零
+            blockEntity.yRot0 = blockEntity.lerpAngle(blockEntity.yRot0, 0);
+            blockEntity.xRot0 = blockEntity.lerpAngle(blockEntity.xRot0, 0);
             return;
         }
 
         blockEntity.updateTarget(level, pos, base, facing);
 
         if (blockEntity.target != null && blockEntity.target.isAlive()) {
-            if (blockEntity.canHitTarget(blockEntity.target, level, pos)) {
+            // 更新目标角度
+            blockEntity.updateTargetAngles(pos);
+            
+            // 服务端也更新当前角度（模拟转向过程）
+            blockEntity.updateCurrentAngles();
+            
+            // 检查是否已瞄准
+            blockEntity.updateAimedState();
+            
+            if (blockEntity.isAimed && blockEntity.canHitTarget(blockEntity.target, level, pos)) {
                 // 执行伤害
                 blockEntity.dealDamageToTarget(blockEntity.target, base, level);
 
@@ -128,16 +156,28 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
                 int fireRateCount = blockEntity.countFireRateComponents(base, facing);
                 blockEntity.setAnimData(FIRE_RATE_COUNT, fireRateCount);
             } else {
-                // 目标丢失
-                if (base.isThriftyMode()) {
-                    base.cancelReservation(blockEntity.target.getId());
-                }
-                blockEntity.target = null;
-                blockEntity.visibleTargetPoint = null;
+                // 未瞄准时不显示光束
                 blockEntity.setAnimData(BEAM_ACTIVE, false);
             }
+            
+            // 即使未瞄准也要同步目标位置（让炮塔转向）
+            if (blockEntity.visibleTargetPoint != null) {
+                blockEntity.setAnimData(TARGET_POS_X, blockEntity.visibleTargetPoint.x);
+                blockEntity.setAnimData(TARGET_POS_Y, blockEntity.visibleTargetPoint.y);
+                blockEntity.setAnimData(TARGET_POS_Z, blockEntity.visibleTargetPoint.z);
+                blockEntity.setAnimData(HAS_TARGET, true);
+            }
+            
+            if (!blockEntity.isAimed || !blockEntity.canHitTarget(blockEntity.target, level, pos)) {
+                // 目标丢失（未瞄准但目标不可击中时）
+                // 注意：不取消目标，让炮塔继续转向
+            }
         } else {
+            blockEntity.isAimed = false;
             blockEntity.setAnimData(BEAM_ACTIVE, false);
+            // 没有目标时，转向归零
+            blockEntity.yRot0 = blockEntity.lerpAngle(blockEntity.yRot0, 0);
+            blockEntity.xRot0 = blockEntity.lerpAngle(blockEntity.xRot0, 0);
         }
     }
 
@@ -183,6 +223,8 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
             }
             target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
             targetLostTicks = 0;
+            // 新目标需要重新瞄准
+            isAimed = false;
 
             if (target != null && base.isThriftyMode()) {
                 float expectedDamage = getExpectedDamage(base);
@@ -197,6 +239,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
                     }
                     target = null;
                     visibleTargetPoint = null;
+                    isAimed = false;
                     setAnimData(HAS_TARGET, false);
                     setAnimData(BEAM_ACTIVE, false);
                 }
@@ -210,18 +253,14 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
                         }
                         target = null;
                         visibleTargetPoint = null;
+                        isAimed = false;
                         setAnimData(HAS_TARGET, false);
                         setAnimData(BEAM_ACTIVE, false);
                     }
                 } else {
                     targetLostTicks = 0;
                     visibleTargetPoint = visiblePoint;
-                    setAnimData(TARGET_POS_X, visiblePoint.x);
-                    setAnimData(TARGET_POS_Y, visiblePoint.y);
-                    setAnimData(TARGET_POS_Z, visiblePoint.z);
-                    setAnimData(HAS_TARGET, true);
-                    // 目标可见时激活光束
-                    setAnimData(BEAM_ACTIVE, true);
+                    // 注意：不在这里设置BEAM_ACTIVE，由tick()中的isAimed判断决定
                 }
             }
         }
@@ -294,6 +333,79 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
         Direction facing = state.getValue(LaserTurretBlock.FACING);
         return base.getDamageForFace(facing, DAMAGE_PER_TICK);
     }
+    
+    /**
+     * 更新目标角度（需要转向到的角度）
+     */
+    private void updateTargetAngles(BlockPos pos) {
+        if (visibleTargetPoint == null) return;
+        
+        Direction facing = getBlockState().getValue(LaserTurretBlock.FACING);
+        Vec3 center = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+        Vec3 delta = new Vec3(visibleTargetPoint.x - center.x, visibleTargetPoint.y - center.y, visibleTargetPoint.z - center.z);
+        
+        // 根据朝向转换坐标
+        double dx = delta.x, dy = delta.y, dz = delta.z;
+        switch (facing) {
+            case NORTH -> { dz = -delta.y; dy = -delta.z; }
+            case SOUTH -> { dz = delta.y; dy = delta.z; }
+            case EAST -> { dx = -delta.y; dy = delta.x; }
+            case WEST -> { dx = delta.y; dy = -delta.x; }
+            case DOWN -> { dy = -dy; }
+            case UP -> {}
+        }
+        
+        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
+        targetYRot = (float) -Math.atan2(dx, dz);
+        targetXRot = (float) -Math.atan2(dy, horizontalDist);
+        
+        // UP朝向需要特殊处理
+        if (facing == Direction.UP || facing == Direction.EAST || facing == Direction.WEST) {
+            targetYRot += (float) Math.PI;
+        }
+    }
+    
+    /**
+     * 更新瞄准状态（检查当前角度是否接近目标角度）
+     */
+    private void updateAimedState() {
+        // 计算角度差（使用弧度）
+        float yRotDiff = Math.abs(normalizeAngle(targetYRot - yRot0));
+        float xRotDiff = Math.abs(normalizeAngle(targetXRot - xRot0));
+        
+        // 两个角度都小于阈值才算瞄准完成
+        isAimed = yRotDiff < AIM_THRESHOLD && xRotDiff < AIM_THRESHOLD;
+    }
+    
+    /**
+     * 归一化角度到 [-PI, PI]
+     */
+    private float normalizeAngle(float angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle < -Math.PI) angle += 2 * Math.PI;
+        return angle;
+    }
+    
+    /**
+     * 更新当前角度（服务端模拟转向过程）
+     */
+    private void updateCurrentAngles() {
+        // 使用与 GeoModel 相同的 lerp 逻辑
+        yRot0 = lerpAngle(yRot0, targetYRot);
+        xRot0 = lerpAngle(xRot0, targetXRot);
+    }
+    
+    /**
+     * 角度插值（固定速度转向）
+     * 每tick移动 TURN_SPEED 弧度，接近目标时直接对齐
+     */
+    private float lerpAngle(float current, float target) {
+        float diff = normalizeAngle(target - current);
+        if (Math.abs(diff) < TURN_SPEED) {
+            return target; // 接近目标，直接对齐
+        }
+        return current + Math.signum(diff) * TURN_SPEED;
+    }
 
     /**
      * 计算炮口位置
@@ -332,6 +444,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
         if (enemies.isEmpty()) {
             setAnimData(HAS_TARGET, false);
             setAnimData(BEAM_ACTIVE, false);
+            isAimed = false;
             return null;
         }
 
@@ -348,10 +461,13 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
                 setAnimData(TARGET_POS_Y, visiblePoint.y);
                 setAnimData(TARGET_POS_Z, visiblePoint.z);
                 setAnimData(HAS_TARGET, true);
-                setAnimData(BEAM_ACTIVE, true);
+                // 新目标需要重新瞄准
+                isAimed = false;
+                setAnimData(BEAM_ACTIVE, false);
             } else {
                 setAnimData(HAS_TARGET, false);
                 setAnimData(BEAM_ACTIVE, false);
+                isAimed = false;
             }
         }
 
@@ -470,6 +586,9 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
         super.saveAdditional(tag);
         tag.putFloat("YRot0", yRot0);
         tag.putFloat("XRot0", xRot0);
+        tag.putFloat("TargetYRot", targetYRot);
+        tag.putFloat("TargetXRot", targetXRot);
+        tag.putBoolean("IsAimed", isAimed);
     }
 
     @Override
@@ -477,6 +596,9 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
         super.load(tag);
         if (tag.contains("YRot0")) yRot0 = tag.getFloat("YRot0");
         if (tag.contains("XRot0")) xRot0 = tag.getFloat("XRot0");
+        if (tag.contains("TargetYRot")) targetYRot = tag.getFloat("TargetYRot");
+        if (tag.contains("TargetXRot")) targetXRot = tag.getFloat("TargetXRot");
+        if (tag.contains("IsAimed")) isAimed = tag.getBoolean("IsAimed");
     }
 
     /**

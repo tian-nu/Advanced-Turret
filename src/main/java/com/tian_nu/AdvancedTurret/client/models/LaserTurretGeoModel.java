@@ -27,6 +27,8 @@ public class LaserTurretGeoModel extends GeoModel<LaserTurretBlockEntity> {
 
     /** 激光边长（方柱体边长） */
     private static final float LASER_SIZE = 0.06F;
+    /** 转向速度（弧度/tick，与服务端一致） */
+    private static final float TURN_SPEED = 0.18F;
 
     @Override
     public ResourceLocation getModelResource(LaserTurretBlockEntity animatable) {
@@ -168,8 +170,21 @@ public class LaserTurretGeoModel extends GeoModel<LaserTurretBlockEntity> {
         };
     }
 
-    private float lerp(float start, float end) {
-        return Mth.rotLerp(0.1F, start * Mth.RAD_TO_DEG, end * Mth.RAD_TO_DEG) * Mth.DEG_TO_RAD;
+    private float lerp(float current, float target) {
+        float diff = normalizeAngle(target - current);
+        if (Math.abs(diff) < TURN_SPEED) {
+            return target;
+        }
+        return current + Math.signum(diff) * TURN_SPEED;
+    }
+    
+    /**
+     * 归一化角度到 [-PI, PI]
+     */
+    private float normalizeAngle(float angle) {
+        while (angle > Math.PI) angle -= 2 * (float) Math.PI;
+        while (angle < -Math.PI) angle += 2 * (float) Math.PI;
+        return angle;
     }
 
     private boolean hasTarget(LaserTurretBlockEntity animatable) {
