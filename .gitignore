@@ -44,3 +44,15 @@ forge文档/
 
 # Task files
 *.task
+
+# AI working files
+AI必看.md
+AI工作文档/
+missile_turret_todo.md
+导弹炮塔对比文档.md
+导弹炮塔开发完成总结.md
+
+# Qoder/Codebuddy
+.qoder/
+.codebuddy/
+.github/prompts/
