@@ -24,6 +24,7 @@ import java.util.List;
  *   <li>爆炸伤害：范围内AOE伤害</li>
  *   <li>破坏插件：有破坏插件时破坏方块</li>
  *   <li>烟雾尾迹：飞行时产生烟雾粒子</li>
+ *   <li>免疫击退：不会被爆炸冲击波推偏</li>
  * </ul>
  * 
  * @author tian_nu
@@ -47,11 +48,16 @@ public class RocketEntity extends TurretProjectileEntity {
     /** 加速度系数 (指数增长: 初始2速，20tick后达到5速，k=(5/2)^(1/20)-1≈0.047) */
     private double acceleration = 0.047;
     
+    /** 标记：是否允许修改速度（内部使用） */
+    private boolean allowDeltaMovementChange = false;
+    
     // ==================== 构造函数 ====================
     
     public RocketEntity(EntityType<? extends RocketEntity> type, Level level) {
         super(type, level);
-        this.lifetime = 200; // 较长生命周期
+        this.lifetime = 200;
+        this.setInvulnerable(true);
+        this.allowDeltaMovementChange = true; // 允许初始化
     }
     
     public RocketEntity(Level level, double x, double y, double z, float damage) {
@@ -63,6 +69,29 @@ public class RocketEntity extends TurretProjectileEntity {
         this.setDamage(damage);
         this.directDamage = damage;
         this.lifetime = 200;
+        this.setInvulnerable(true);
+        this.allowDeltaMovementChange = true; // 允许初始化
+    }
+    
+    // ==================== 拦截外部速度修改 ====================
+    
+    /**
+     * 重写 setDeltaMovement，只允许内部修改
+     * 这样可以防止爆炸冲击波修改火箭弹的飞行方向
+     */
+    @Override
+    public void setDeltaMovement(Vec3 motion) {
+        if (allowDeltaMovementChange) {
+            super.setDeltaMovement(motion);
+        }
+        // 否则忽略外部修改（如爆炸冲击波）
+    }
+    
+    @Override
+    public void setDeltaMovement(double x, double y, double z) {
+        if (allowDeltaMovementChange) {
+            super.setDeltaMovement(x, y, z);
+        }
     }
     
     // ==================== 属性访问器 ====================
@@ -162,7 +191,10 @@ public class RocketEntity extends TurretProjectileEntity {
             return;
         }
 
-        // 越飞越快：指数增长 (newSpeed = currentSpeed * (1 + k))
+        // 允许内部修改速度
+        allowDeltaMovementChange = true;
+
+        // 越飞越快：指数增长
         Vec3 movement = this.getDeltaMovement();
         double currentSpeed = movement.length();
         if (currentSpeed > 0.001) {
@@ -178,7 +210,7 @@ public class RocketEntity extends TurretProjectileEntity {
             // 1. 检测实体碰撞（优先）
             EntityHitResult entityHit = net.minecraft.world.entity.projectile.ProjectileUtil.getEntityHitResult(
                 this.level(), this, currentPos, nextPos, 
-                this.getBoundingBox().expandTowards(movement).inflate(1.0),
+                this.getBoundingBox().expandTowards(this.getDeltaMovement()).inflate(1.0),
                 this::canHitEntity
             );
             
@@ -209,6 +241,8 @@ public class RocketEntity extends TurretProjectileEntity {
                 if (ignoreSourceBlockTicks > 0 && sourcePos != null && hitBlockPos.equals(sourcePos)) {
                     ignoreSourceBlockTicks--;
                     this.setPos(nextPos);
+                    // 禁止外部修改
+                    allowDeltaMovementChange = false;
                     return;
                 }
                 
@@ -221,10 +255,47 @@ public class RocketEntity extends TurretProjectileEntity {
         // 无碰撞，继续移动
         this.setPos(nextPos);
         
+        // 禁止外部修改速度
+        allowDeltaMovementChange = false;
+        
         // 客户端：烟雾尾迹粒子
         if (this.level().isClientSide) {
             spawnSmokeTrail();
         }
+    }
+    
+    // ==================== 爆炸免疫 ====================
+    
+    /**
+     * 火箭弹免疫所有伤害
+     */
+    @Override
+    public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
+        return false;
+    }
+    
+    /**
+     * 火箭弹不能被碰撞
+     */
+    @Override
+    public boolean canBeCollidedWith() {
+        return false;
+    }
+    
+    /**
+     * 忽略外部推力
+     */
+    @Override
+    public void push(double x, double y, double z) {
+        // 忽略
+    }
+    
+    /**
+     * 忽略实体碰撞推力
+     */
+    @Override
+    public void push(net.minecraft.world.entity.Entity entity) {
+        // 忽略
     }
     
     /**
@@ -241,7 +312,6 @@ public class RocketEntity extends TurretProjectileEntity {
                 pos.x + offsetX, pos.y + offsetY, pos.z + offsetZ,
                 0, 0.05, 0
             );
-            // 添加大型烟雾
             if (random.nextFloat() < 0.3F) {
                 this.level().addParticle(
                     ParticleTypes.LARGE_SMOKE,
