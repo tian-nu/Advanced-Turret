@@ -20,7 +20,7 @@ public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
 
     @Override
     public ResourceLocation getModelResource(JunkTurretBlockEntity animatable) {
-        return TurretMod.location("geo/block/machine_gun_turret.geo.json");
+        return TurretMod.location("geo/block/junk_turret.geo.json");
     }
 
     @Override

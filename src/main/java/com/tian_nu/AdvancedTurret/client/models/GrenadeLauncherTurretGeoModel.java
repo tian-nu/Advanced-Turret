@@ -20,7 +20,7 @@ public class GrenadeLauncherTurretGeoModel extends GeoModel<GrenadeLauncherTurre
 
     @Override
     public ResourceLocation getModelResource(GrenadeLauncherTurretBlockEntity animatable) {
-        return TurretMod.location("geo/block/machine_gun_turret.geo.json");
+        return TurretMod.location("geo/block/grenade_launcher_turret.geo.json");
     }
 
     @Override

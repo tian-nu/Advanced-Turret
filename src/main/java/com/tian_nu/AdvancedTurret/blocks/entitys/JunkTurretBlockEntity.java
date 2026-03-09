@@ -333,7 +333,11 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
         double vx = diff.x / time;
         double vz = diff.z / time;
         
-        double vy = (heightDiff + 0.5 * GRAVITY * time * time) / time;
+        // 增加额外高度（基于距离的20%），让抛物线弧度更明显
+        double extraHeight = horizontalDist * 0.20;
+        double totalHeightDiff = heightDiff + extraHeight;
+        
+        double vy = (totalHeightDiff + 0.5 * GRAVITY * time * time) / time;
         
         return new Vec3(vx, vy, vz);
     }

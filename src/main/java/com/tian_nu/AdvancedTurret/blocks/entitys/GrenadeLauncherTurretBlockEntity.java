@@ -317,13 +317,14 @@ public class GrenadeLauncherTurretBlockEntity extends BlockEntity implements Geo
 
     /**
      * 计算抛物线初速度
+     * 使用更合理的抛物线计算，增加弧度高度
      */
     private Vec3 calculateParabolicVelocity(Vec3 start, Vec3 end, double speed) {
         Vec3 diff = end.subtract(start);
         double horizontalDist = Math.sqrt(diff.x * diff.x + diff.z * diff.z);
         double heightDiff = diff.y;
         
-        // 计算飞行时间
+        // 计算飞行时间（基于水平距离）
         double time = horizontalDist / speed;
         if (time < 1) time = 1;
         
@@ -331,10 +332,13 @@ public class GrenadeLauncherTurretBlockEntity extends BlockEntity implements Geo
         double vx = diff.x / time;
         double vz = diff.z / time;
         
-        // 计算垂直速度分量（考虑重力）
-        // y = vy*t - 0.5*g*t^2
+        // 计算垂直速度分量
+        // 增加额外高度（基于距离的25%），让抛物线弧度更明显
+        double extraHeight = horizontalDist * 0.25;
+        double totalHeightDiff = heightDiff + extraHeight;
+        
         // vy = (y + 0.5*g*t^2) / t
-        double vy = (heightDiff + 0.5 * GRAVITY * time * time) / time;
+        double vy = (totalHeightDiff + 0.5 * GRAVITY * time * time) / time;
         
         return new Vec3(vx, vy, vz);
     }
