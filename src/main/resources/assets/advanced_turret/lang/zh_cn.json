@@ -41,6 +41,11 @@
   "block.advanced_turret.rocket_turret": "火箭炮塔",
   "block.advanced_turret.missile_turret": "导弹炮塔",
   "block.advanced_turret.laser_turret": "激光炮塔",
+  "block.advanced_turret.grenade_launcher_turret": "榴弹发射器炮塔",
+  "block.advanced_turret.junk_turret": "垃圾炮塔",
+  "item.advanced_turret.grenade": "榴弹",
+  "item.advanced_turret.grenade_launcher_turret": "榴弹发射器炮塔",
+  "item.advanced_turret.junk_turret": "垃圾炮塔",
   "item.advanced_turret.missile": "导弹",
 
   "item.advanced_turret.rocket_turret": "火箭炮塔",
@@ -48,6 +53,8 @@
   "tooltip.advanced_turret.rocket_turret.stats": "直击 %.1f | 爆炸 %.1f (半径%.1f) | 射程 %.0f | 射速 %.1f秒/发 | 能耗 %d FE/发",
   "tooltip.advanced_turret.missile_turret.stats": "直击 %.1f | 爆炸 %.1f (半径%.1f) | 射程 %.0f | 射速 %.1f秒/发 | 能耗 %d FE/发",
   "tooltip.advanced_turret.laser_turret.stats": "每tick伤害 %.1f | 射程 %.0f | 能耗 %d FE/tick | 无需弹药",
+  "tooltip.advanced_turret.grenade_launcher_turret.stats": "直击 %.1f | 爆炸 %.1f (半径%.1f) | 射程 %.0f | 射速 %.1f秒/发 | 能耗 %d FE/发",
+  "tooltip.advanced_turret.junk_turret.stats": "伤害 %.1f | 射程 %.0f | 射速 %.1f秒/发 | 能耗 %d FE/发 | 使用任意物品作为弹药",
 
   "itemGroup.turret_tab": "炮塔模组",
 

@@ -444,6 +444,14 @@ private java.util.UUID owner;
             TurretBaseBlockEntity base = turret.getBaseEntity();
             return base != null && base.getBlockPos().equals(getBlockPos());
         }
+        if (be instanceof GrenadeLauncherTurretBlockEntity turret) {
+            TurretBaseBlockEntity base = turret.getBaseEntity();
+            return base != null && base.getBlockPos().equals(getBlockPos());
+        }
+        if (be instanceof JunkTurretBlockEntity turret) {
+            TurretBaseBlockEntity base = turret.getBaseEntity();
+            return base != null && base.getBlockPos().equals(getBlockPos());
+        }
         return false;
     }
     

@@ -46,6 +46,22 @@ public class Config {
             .comment("激光炮塔每tick能量消耗")
             .defineInRange("laserEnergyPerTick", 500, 1, 10000);
     
+    public static final ForgeConfigSpec.IntValue ROCKET_ENERGY_COST = BUILDER
+            .comment("火箭炮塔每次射击能量消耗")
+            .defineInRange("rocketEnergyCost", 5000, 100, 50000);
+    
+    public static final ForgeConfigSpec.IntValue MISSILE_ENERGY_COST = BUILDER
+            .comment("导弹炮塔每次射击能量消耗")
+            .defineInRange("missileEnergyCost", 10000, 100, 100000);
+    
+    public static final ForgeConfigSpec.IntValue GRENADE_LAUNCHER_ENERGY_COST = BUILDER
+            .comment("榴弹发射器炮塔每次射击能量消耗")
+            .defineInRange("grenadeLauncherEnergyCost", 3000, 100, 30000);
+    
+    public static final ForgeConfigSpec.IntValue JUNK_TURRET_ENERGY_COST = BUILDER
+            .comment("垃圾炮塔每次射击能量消耗")
+            .defineInRange("junkTurretEnergyCost", 20, 1, 500);
+    
     // 插件配置
     public static final ForgeConfigSpec.IntValue SOLAR_ENERGY_GENERATION = BUILDER
             .comment("太阳能插件发电量 (FE/tick)")
@@ -69,6 +85,10 @@ public class Config {
     public static int machineGunEnergyCost;
     public static int railgunEnergyCost;
     public static int laserEnergyPerTick;
+    public static int rocketEnergyCost;
+    public static int missileEnergyCost;
+    public static int grenadeLauncherEnergyCost;
+    public static int junkTurretEnergyCost;
     public static int solarEnergyGeneration;
     public static double ammoRecycleChance;
     public static int redstoneToEnergyRatio;
@@ -82,6 +102,10 @@ public class Config {
         machineGunEnergyCost = MACHINE_GUN_ENERGY_COST.get();
         railgunEnergyCost = RAILGUN_ENERGY_COST.get();
         laserEnergyPerTick = LASER_ENERGY_PER_TICK.get();
+        rocketEnergyCost = ROCKET_ENERGY_COST.get();
+        missileEnergyCost = MISSILE_ENERGY_COST.get();
+        grenadeLauncherEnergyCost = GRENADE_LAUNCHER_ENERGY_COST.get();
+        junkTurretEnergyCost = JUNK_TURRET_ENERGY_COST.get();
         solarEnergyGeneration = SOLAR_ENERGY_GENERATION.get();
         ammoRecycleChance = AMMO_RECYCLE_CHANCE.get();
         redstoneToEnergyRatio = REDSTONE_TO_ENERGY_RATIO.get();

@@ -65,6 +65,32 @@ public class ModEntities {
             .build(TurretMod.location("missile").toString())
     );
 
+    public static final RegistryObject<EntityType<GrenadeEntity>> GRENADE = ENTITIES.register(
+            "grenade",
+            () -> EntityType.Builder.<GrenadeEntity>of(
+                    GrenadeEntity::new,
+                    MobCategory.MISC
+            )
+            .sized(0.4F, 0.4F)  // 榴弹尺寸
+            .clientTrackingRange(64)
+            .updateInterval(1)
+            .fireImmune()
+            .build(TurretMod.location("grenade").toString())
+    );
+    
+    public static final RegistryObject<EntityType<JunkProjectileEntity>> JUNK_PROJECTILE = ENTITIES.register(
+            "junk_projectile",
+            () -> EntityType.Builder.<JunkProjectileEntity>of(
+                    JunkProjectileEntity::new,
+                    MobCategory.MISC
+            )
+            .sized(0.3F, 0.3F)  // 垃圾投射物尺寸
+            .clientTrackingRange(64)
+            .updateInterval(1)
+            .fireImmune()
+            .build(TurretMod.location("junk_projectile").toString())
+    );
+
     public static void register(IEventBus eventBus) {
         ENTITIES.register(eventBus);
     }

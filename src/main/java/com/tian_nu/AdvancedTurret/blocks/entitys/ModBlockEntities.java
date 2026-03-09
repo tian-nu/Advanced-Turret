@@ -53,6 +53,18 @@ public class ModBlockEntities {
                     BlockEntityType.Builder.of(MissileTurretBlockEntity::new,
                             ModBlocks.MISSILE_TURRET.get()
                     ).build(null));
+    
+    public static final RegistryObject<BlockEntityType<GrenadeLauncherTurretBlockEntity>> GRENADE_LAUNCHER_TURRET =
+            BLOCK_ENTITIES.register("grenade_launcher_turret", () ->
+                    BlockEntityType.Builder.of(GrenadeLauncherTurretBlockEntity::new,
+                            ModBlocks.GRENADE_LAUNCHER_TURRET.get()
+                    ).build(null));
+    
+    public static final RegistryObject<BlockEntityType<JunkTurretBlockEntity>> JUNK_TURRET =
+            BLOCK_ENTITIES.register("junk_turret", () ->
+                    BlockEntityType.Builder.of(JunkTurretBlockEntity::new,
+                            ModBlocks.JUNK_TURRET.get()
+                    ).build(null));
 
     public static final RegistryObject<BlockEntityType<LaserTurretBlockEntity>> LASER_TURRET =
             BLOCK_ENTITIES.register("laser_turret", () ->

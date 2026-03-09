@@ -33,6 +33,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.MACHINE_GUN_BULLET.get());
                         output.accept(ModItems.ROCKET.get());
                         output.accept(ModItems.MISSILE.get());
+                        output.accept(ModItems.GRENADE.get());
 
                         // 炮塔类型
                         output.accept(ModBlocks.MACHINE_GUN_TURRET.get());
@@ -40,6 +41,8 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.ROCKET_TURRET.get());
                         output.accept(ModBlocks.MISSILE_TURRET.get());
                         output.accept(ModBlocks.LASER_TURRET.get());
+                        output.accept(ModBlocks.GRENADE_LAUNCHER_TURRET.get());
+                        output.accept(ModBlocks.JUNK_TURRET.get());
                         
                         // 特殊组件
                         output.accept(ModItems.CREATIVE_POWER_COMPONENT.get());

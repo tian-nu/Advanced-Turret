@@ -88,6 +88,20 @@ public class ModBlocks {
                     .mapColor(MapColor.METAL)
                     .noOcclusion()
                     .strength(1.0f, 6.0f)));
+    
+    // 榴弹发射器炮塔
+    public static final RegistryObject<Block> GRENADE_LAUNCHER_TURRET =
+            registerBlock("grenade_launcher_turret", () -> new GrenadeLauncherTurretBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .noOcclusion()
+                    .strength(1.0f, 6.0f)));
+    
+    // 垃圾炮塔
+    public static final RegistryObject<Block> JUNK_TURRET =
+            registerBlock("junk_turret", () -> new JunkTurretBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .noOcclusion()
+                    .strength(1.0f, 6.0f)));
 
     private static <T extends Block> void registerBlockItems(String name, RegistryObject<T> block) {
         ModItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));

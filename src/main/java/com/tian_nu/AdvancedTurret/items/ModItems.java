@@ -28,6 +28,10 @@ public class ModItems {
     // 导弹物品
     public static final RegistryObject<Item> MISSILE =
             ITEMS.register("missile", () -> new Item(new Item.Properties().stacksTo(64)));
+    
+    // 榴弹物品
+    public static final RegistryObject<Item> GRENADE =
+            ITEMS.register("grenade", () -> new Item(new Item.Properties().stacksTo(64)));
 
     // 插件物品
     public static final RegistryObject<Item> CREATIVE_POWER_COMPONENT =

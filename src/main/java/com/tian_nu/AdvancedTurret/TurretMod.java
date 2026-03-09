@@ -7,6 +7,8 @@ import com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.RocketTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.LaserTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.GrenadeLauncherTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.JunkTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
@@ -119,6 +121,26 @@ public class TurretMod {
             SerializableDataTicket.ofBoolean(location("laser_beam_active")));
         LaserTurretBlockEntity.FIRE_RATE_COUNT = GeckoLibUtil.addDataTicket(
             SerializableDataTicket.ofInt(location("laser_fire_rate_count")));
+
+        // 榴弹发射器炮塔数据票
+        GrenadeLauncherTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofBoolean(location("grenade_has_target")));
+        GrenadeLauncherTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("grenade_target_pos_x")));
+        GrenadeLauncherTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("grenade_target_pos_y")));
+        GrenadeLauncherTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("grenade_target_pos_z")));
+
+        // 垃圾炮塔数据票
+        JunkTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofBoolean(location("junk_has_target")));
+        JunkTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("junk_target_pos_x")));
+        JunkTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("junk_target_pos_y")));
+        JunkTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("junk_target_pos_z")));
     }
     
     private void commonSetup(final FMLCommonSetupEvent event) {

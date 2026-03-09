@@ -6,6 +6,8 @@ import com.tian_nu.AdvancedTurret.client.renderer.RailgunBulletRenderer;
 import com.tian_nu.AdvancedTurret.client.renderer.RocketRenderer;
 import com.tian_nu.AdvancedTurret.client.renderer.TurretBulletRenderer;
 import com.tian_nu.AdvancedTurret.client.renderer.MissileRenderer;
+import com.tian_nu.AdvancedTurret.client.renderer.GrenadeRenderer;
+import com.tian_nu.AdvancedTurret.client.renderer.JunkProjectileRenderer;
 import com.tian_nu.AdvancedTurret.client.models.MachineGunTurretGeoModel;
 import com.tian_nu.AdvancedTurret.client.models.RailgunTurretGeoModel;
 import com.tian_nu.AdvancedTurret.client.models.RocketTurretGeoModel;
@@ -15,6 +17,8 @@ import com.tian_nu.AdvancedTurret.client.RailgunTurretGeoRenderer;
 import com.tian_nu.AdvancedTurret.client.RocketTurretGeoRenderer;
 import com.tian_nu.AdvancedTurret.client.MissileTurretGeoRenderer;
 import com.tian_nu.AdvancedTurret.client.LaserTurretGeoRenderer;
+import com.tian_nu.AdvancedTurret.client.GrenadeLauncherTurretGeoRenderer;
+import com.tian_nu.AdvancedTurret.client.JunkTurretGeoRenderer;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
 import com.tian_nu.AdvancedTurret.gui.TurretFaceConfigScreen;
@@ -73,6 +77,14 @@ public class ClientEvents {
             ModBlockEntities.LASER_TURRET.get(),
             LaserTurretGeoRenderer::new
         );
+        event.registerBlockEntityRenderer(
+            ModBlockEntities.GRENADE_LAUNCHER_TURRET.get(),
+            GrenadeLauncherTurretGeoRenderer::new
+        );
+        event.registerBlockEntityRenderer(
+            ModBlockEntities.JUNK_TURRET.get(),
+            JunkTurretGeoRenderer::new
+        );
     }
     
     /**
@@ -84,5 +96,7 @@ public class ClientEvents {
         event.registerEntityRenderer(ModEntities.RAILGUN_BULLET.get(), RailgunBulletRenderer::new);
         event.registerEntityRenderer(ModEntities.ROCKET.get(), RocketRenderer::new);
         event.registerEntityRenderer(ModEntities.MISSILE.get(), MissileRenderer::new);
+        event.registerEntityRenderer(ModEntities.GRENADE.get(), GrenadeRenderer::new);
+        event.registerEntityRenderer(ModEntities.JUNK_PROJECTILE.get(), JunkProjectileRenderer::new);
     }
 }
