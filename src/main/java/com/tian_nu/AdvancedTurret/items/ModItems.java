@@ -20,6 +20,10 @@ public class ModItems {
     // 弹药物品
     public static final RegistryObject<Item> MACHINE_GUN_BULLET =
             ITEMS.register("machine_gun_bullet", () -> new Item(new Item.Properties().stacksTo(64)));
+
+    // 磁轨炮弹药
+    public static final RegistryObject<Item> RAILGUN_BULLET =
+            ITEMS.register("railgun_bullet", () -> new Item(new Item.Properties().stacksTo(64)));
     
     // 火箭弹物品
     public static final RegistryObject<Item> ROCKET =

@@ -1,6 +1,6 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "advanced_turret:item/creative_power_component"
+    "layer0": "advanced_turret:item/energy_efficiency_component"
   }
 }

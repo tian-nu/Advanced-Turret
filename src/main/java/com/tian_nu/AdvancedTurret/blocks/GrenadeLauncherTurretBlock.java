@@ -1,6 +1,8 @@
 package com.tian_nu.AdvancedTurret.blocks;
 
+import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.entitys.GrenadeLauncherTurretBlockEntity;
+
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -75,13 +77,14 @@ public class GrenadeLauncherTurretBlock extends BaseEntityBlock {
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base"));
         tooltip.add(Component.translatable("tooltip.advanced_turret.grenade_launcher_turret.stats",
-                GrenadeLauncherTurretBlockEntity.DIRECT_DAMAGE,
-                GrenadeLauncherTurretBlockEntity.EXPLOSION_DAMAGE,
-                GrenadeLauncherTurretBlockEntity.EXPLOSION_RADIUS,
-                GrenadeLauncherTurretBlockEntity.SEARCH_RADIUS,
-                GrenadeLauncherTurretBlockEntity.FIRE_RATE / 20.0,
-                3000
+                GrenadeLauncherTurretBlockEntity.getDirectDamage(),
+                GrenadeLauncherTurretBlockEntity.getExplosionDamage(),
+                GrenadeLauncherTurretBlockEntity.getExplosionRadius(),
+                GrenadeLauncherTurretBlockEntity.getSearchRadius(),
+                GrenadeLauncherTurretBlockEntity.getFireRate() / 20.0,
+                Config.grenadeLauncherEnergyCost
         ).withStyle(net.minecraft.ChatFormatting.GRAY));
+
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

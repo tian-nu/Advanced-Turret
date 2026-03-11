@@ -60,7 +60,12 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
     /** 子弹速度 */
     public static final double BULLET_SPEED = 3.0;
     /** 子弹伤害 */
-    public static final float BULLET_DAMAGE = 4.0F;
+    public static final float BULLET_DAMAGE = 3.0F;
+
+    public static int getFireRate() { return Config.machineGunFireRate; }
+    public static double getSearchRadius() { return Config.machineGunRange; }
+    public static float getBulletDamage() { return (float) Config.machineGunDamage; }
+    public static float getBulletSpeed() { return (float) Config.machineGunBulletSpeed; }
 
     // ========== GeckoLib数据同步票 ==========
     public static SerializableDataTicket<Boolean> HAS_TARGET;
@@ -123,7 +128,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         if (blockEntity.target != null && blockEntity.cooldown <= 0) {
             if (blockEntity.canShoot(base)) {
                 blockEntity.shoot(level, pos, state, base);
-                blockEntity.cooldown = base.getFireRateForFace(facing, FIRE_RATE);
+                blockEntity.cooldown = base.getFireRateForFace(facing, getFireRate());
             }
         }
     }
@@ -169,7 +174,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 			if (target != null && base.isThriftyMode()) {
 				base.cancelReservation(target.getId());
 			}
-			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
+			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, getSearchRadius()));
 			targetLostTicks = 0;
 			
 			// 新目标锁定时预约伤害
@@ -179,7 +184,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 			}
 		} else {
 // 检查是否超出范围
-		if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
+		if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, getSearchRadius()))) {
 			targetLostTicks++;
 			if (targetLostTicks > 20) {
 				// 目标丢失，取消预约
@@ -286,7 +291,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 		// 预判瞄准
 		if (base.isPredictiveAiming()) {
 			double dist = muzzlePos.distanceTo(targetPos);
-			double time = dist / BULLET_SPEED;
+			double time = dist / getBulletSpeed();
 			targetPos = targetPos.add(target.getDeltaMovement().scale(time));
 		}
 
@@ -307,12 +312,12 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 		}
 
 		// 计算伤害并创建子弹
-		float damage = base.getDamageForFace(facing, BULLET_DAMAGE);
+		float damage = base.getDamageForFace(facing, getBulletDamage());
 		TurretBulletEntity bullet = new TurretBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
 		bullet.setOwner(null);
 		bullet.setSourcePos(pos);
 		bullet.setBasePos(pos.relative(facing.getOpposite())); // 设置基座位置
-		bullet.shoot(direction, (float) BULLET_SPEED);
+		bullet.shoot(direction, getBulletSpeed());
 
 		boolean spawned = level.addFreshEntity(bullet);
 		if (!spawned) {
@@ -328,9 +333,9 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 	 */
 	public float getExpectedDamage(TurretBaseBlockEntity base) {
 		BlockState state = getBlockState();
-		if (!(state.getBlock() instanceof MachineGunTurretBlock)) return BULLET_DAMAGE;
+		if (!(state.getBlock() instanceof MachineGunTurretBlock)) return getBulletDamage();
 		Direction facing = state.getValue(MachineGunTurretBlock.FACING);
-		return base.getDamageForFace(facing, BULLET_DAMAGE);
+		return base.getDamageForFace(facing, getBulletDamage());
 	}
 
     /**
@@ -494,7 +499,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
         }
 
         Direction facing = getBlockState().getValue(MachineGunTurretBlock.FACING);
-        double searchRadius = base.getSearchRadiusForFace(facing, SEARCH_RADIUS);
+        double searchRadius = base.getSearchRadiusForFace(facing, getSearchRadius());
         if (!isTargetInRange(entity, pos, searchRadius)) {
             return false;
         }

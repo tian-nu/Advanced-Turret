@@ -14,10 +14,12 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -36,7 +38,7 @@ import java.util.List;
 
 /**
  * 垃圾炮塔方块实体
- * 
+ *
  * <p>特点：</p>
  * <ul>
  *   <li>任意物品作弹药</li>
@@ -44,7 +46,7 @@ import java.util.List;
  *   <li>低伤害低成本</li>
  *   <li>投射物渲染为弹药物品</li>
  * </ul>
- * 
+ *
  * @author tian_nu
  */
 public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity {
@@ -52,34 +54,50 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
     private static final Logger LOGGER = LogUtils.getLogger();
 
     // ========== 常量 ==========
-    
+
     /** 射击间隔 (tick) - 0.5发/秒 */
     public static final int FIRE_RATE = 40;
     /** 搜索范围 */
     public static final double SEARCH_RADIUS = 16.0;
     /** 子弹速度 */
-    public static final double BULLET_SPEED = 1.2;
+    public static final double BULLET_SPEED = 2.0;
     /** 子弹伤害 */
     public static final float BULLET_DAMAGE = 2.0F;
+
     /** 重力常数 */
     public static final double GRAVITY = 0.05;
+    /** 最小抛物线高度（相对于起点） */
+    private static final double MIN_ARC_HEIGHT = 0.6;
+    /** 最大抛物线高度（相对于起点） */
+    private static final double MAX_ARC_HEIGHT = 4.2;
+
+    public static int getFireRate() { return Config.junkTurretFireRate; }
+    public static double getSearchRadius() { return Config.junkTurretRange; }
+    public static float getBulletDamage() { return (float) Config.junkTurretDamage; }
+    public static double getBulletSpeed() { return Config.junkTurretBulletSpeed; }
+    public static double getGravity() { return Config.junkTurretGravity; }
+    public static double getMinArcHeight() { return Config.junkTurretMinArcHeight; }
+    public static double getMaxArcHeight() { return Config.junkTurretMaxArcHeight; }
 
     // ========== GeckoLib数据同步票 ==========
     public static SerializableDataTicket<Boolean> HAS_TARGET;
     public static SerializableDataTicket<Double> TARGET_POS_X;
     public static SerializableDataTicket<Double> TARGET_POS_Y;
     public static SerializableDataTicket<Double> TARGET_POS_Z;
+    public static SerializableDataTicket<Double> AIM_DIR_X;
+    public static SerializableDataTicket<Double> AIM_DIR_Y;
+    public static SerializableDataTicket<Double> AIM_DIR_Z;
 
     // ========== GeckoLib动画缓存 ==========
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     // ========== 字段 ==========
-    
+
     private int cooldown = 0;
     private LivingEntity target = null;
     private int targetLostTicks = 0;
     private Vec3 visibleTargetPoint = null;
-    
+
     public float yRot0 = 0.0f;
     public float xRot0 = 0.0f;
 
@@ -102,6 +120,9 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
             blockEntity.setAnimData(TARGET_POS_X, pos.getX() + 0.5);
             blockEntity.setAnimData(TARGET_POS_Y, pos.getY() - 2.0);
             blockEntity.setAnimData(TARGET_POS_Z, pos.getZ() + 0.5);
+            blockEntity.setAnimData(AIM_DIR_X, 0.0);
+            blockEntity.setAnimData(AIM_DIR_Y, -1.0);
+            blockEntity.setAnimData(AIM_DIR_Z, 0.0);
             return;
         }
 
@@ -109,6 +130,9 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
         if (!base.isFaceEnabled(facing)) {
             blockEntity.target = null;
             blockEntity.setAnimData(HAS_TARGET, false);
+            blockEntity.setAnimData(AIM_DIR_X, 0.0);
+            blockEntity.setAnimData(AIM_DIR_Y, 0.0);
+            blockEntity.setAnimData(AIM_DIR_Z, 0.0);
             return;
         }
 
@@ -121,18 +145,18 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
         if (blockEntity.target != null && blockEntity.cooldown <= 0) {
             if (blockEntity.canShoot(base)) {
                 blockEntity.shoot(level, pos, state, base);
-                blockEntity.cooldown = base.getFireRateForFace(facing, FIRE_RATE);
+                blockEntity.cooldown = base.getFireRateForFace(facing, getFireRate());
             }
         }
     }
 
     // ========== GeckoLib动画控制 ==========
-    
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "controller", 0, state -> PlayState.CONTINUE));
     }
-    
+
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.cache;
@@ -166,15 +190,15 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
             if (target != null && base.isThriftyMode()) {
                 base.cancelReservation(target.getId());
             }
-            target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
+            target = findTarget(level, pos, base.getSearchRadiusForFace(facing, getSearchRadius()));
             targetLostTicks = 0;
-            
+
             if (target != null && base.isThriftyMode()) {
                 float expectedDamage = getExpectedDamage(base);
                 base.reserveDamage(target.getId(), expectedDamage, target.getHealth(), level.getGameTime());
             }
         } else {
-            if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
+            if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, getSearchRadius()))) {
                 targetLostTicks++;
                 if (targetLostTicks > 20) {
                     if (base.isThriftyMode()) {
@@ -183,9 +207,12 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
                     target = null;
                     visibleTargetPoint = null;
                     setAnimData(HAS_TARGET, false);
+                    setAnimData(AIM_DIR_X, 0.0);
+                    setAnimData(AIM_DIR_Y, 0.0);
+                    setAnimData(AIM_DIR_Z, 0.0);
                 }
             } else {
-                Vec3 visiblePoint = getVisibleTargetPoint(target, level, pos);
+                Vec3 visiblePoint = getVisibleTargetPoint(target);
                 if (visiblePoint == null) {
                     targetLostTicks++;
                     if (targetLostTicks > 20) {
@@ -195,7 +222,10 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
                         target = null;
                         visibleTargetPoint = null;
                         setAnimData(HAS_TARGET, false);
-                    }
+                    setAnimData(AIM_DIR_X, 0.0);
+                    setAnimData(AIM_DIR_Y, 0.0);
+                    setAnimData(AIM_DIR_Z, 0.0);
+                }
                 } else {
                     targetLostTicks = 0;
                     visibleTargetPoint = visiblePoint;
@@ -203,6 +233,7 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
                     setAnimData(TARGET_POS_Y, visiblePoint.y);
                     setAnimData(TARGET_POS_Z, visiblePoint.z);
                     setAnimData(HAS_TARGET, true);
+                    syncAimDirectionData(pos, getBlockState().getValue(JunkTurretBlock.FACING));
                 }
             }
         }
@@ -216,13 +247,13 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
         if (!(state.getBlock() instanceof JunkTurretBlock)) return false;
         Direction facing = state.getValue(JunkTurretBlock.FACING);
         int energyCost = base.getEnergyCostForFace(facing, Config.junkTurretEnergyCost);
-        
+
         if (base.getEnergyStored() < energyCost) return false;
-        
+
         // 垃圾炮塔接受任意物品作弹药
         return hasAnyAmmo(base);
     }
-    
+
     /**
      * 检查弹药槽是否有任意物品
      */
@@ -236,7 +267,7 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
         }
         return false;
     }
-    
+
     /**
      * 获取任意弹药物品
      */
@@ -250,11 +281,11 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
         }
         return ItemStack.EMPTY;
     }
-    
+
     /**
      * 消耗一个弹药物品
      */
-    private void consumeAmmo(TurretBaseBlockEntity base, ItemStack ammoStack) {
+    private void consumeAmmo(ItemStack ammoStack) {
         ammoStack.shrink(1);
     }
 
@@ -266,49 +297,45 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
         int energyCost = base.getEnergyCostForFace(facing, Config.junkTurretEnergyCost);
         if (base.getEnergyStored() < energyCost) return;
 
-        // 获取弹药物品
         ItemStack ammoStack = findAnyAmmo(base);
         if (ammoStack.isEmpty()) return;
 
         if (!(level instanceof ServerLevel)) return;
 
         Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
-
         Vec3 targetPos = (visibleTargetPoint != null)
             ? visibleTargetPoint
-            : target.position().add(0, target.getBbHeight() * 0.5, 0);
+            : getBallisticTargetPoint(target);
 
         // 预判瞄准
-        if (base.isPredictiveAiming()) {
+        if (base.isPredictiveAiming() && target != null) {
             double dist = muzzlePos.distanceTo(targetPos);
-            double time = dist / BULLET_SPEED;
-            targetPos = targetPos.add(target.getDeltaMovement().scale(time));
+            double time = dist / getBulletSpeed();
+            Vec3 movement = target.getDeltaMovement();
+            // 只做水平预判，避免实体重力导致Y轴瞄准点被压到地面
+            targetPos = targetPos.add(movement.x * time, 0.0, movement.z * time);
         }
 
-        // 计算抛物线初速度
-        Vec3 velocity = calculateParabolicVelocity(muzzlePos, targetPos, BULLET_SPEED);
+        Vec3 velocity = calculateParabolicVelocity(muzzlePos, targetPos);
 
-        // 消耗能量
         base.consumeEnergy(energyCost);
 
-        // 消耗弹药（弹药回收插件：20%概率不消耗）
         Level baseLevel = base.getLevel();
         if (baseLevel != null && base.hasAmmoRecyclingPlugin()) {
             if (baseLevel.random.nextFloat() >= Config.ammoRecycleChance) {
-                consumeAmmo(base, ammoStack);
+                consumeAmmo(ammoStack);
             }
         } else {
-            consumeAmmo(base, ammoStack);
+            consumeAmmo(ammoStack);
         }
 
-        // 创建垃圾投射物
-        float damage = base.getDamageForFace(facing, BULLET_DAMAGE);
-        
+        float damage = base.getDamageForFace(facing, getBulletDamage());
+
         JunkProjectileEntity junk = new JunkProjectileEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
         junk.setOwner(null);
         junk.setSourcePos(pos);
         junk.setBasePos(pos.relative(facing.getOpposite()));
-        junk.setAmmoItem(ammoStack.copy()); // 传递弹药物品用于渲染
+        junk.setAmmoItem(ammoStack.copy());
         junk.setDeltaMovement(velocity);
 
         boolean spawned = level.addFreshEntity(junk);
@@ -320,26 +347,108 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
     }
 
     /**
-     * 计算抛物线初速度
+     * 计算抛物线初速度（平滑曲线）
      */
-    private Vec3 calculateParabolicVelocity(Vec3 start, Vec3 end, double speed) {
+    private Vec3 calculateParabolicVelocity(Vec3 start, Vec3 end) {
         Vec3 diff = end.subtract(start);
         double horizontalDist = Math.sqrt(diff.x * diff.x + diff.z * diff.z);
+
+        if (horizontalDist < 0.1) {
+            return new Vec3(0, getBulletSpeed(), 0);
+        }
+
         double heightDiff = diff.y;
-        
-        double time = horizontalDist / speed;
-        if (time < 1) time = 1;
-        
-        double vx = diff.x / time;
-        double vz = diff.z / time;
-        
-        // 增加额外高度（基于距离的20%），让抛物线弧度更明显
-        double extraHeight = horizontalDist * 0.20;
-        double totalHeightDiff = heightDiff + extraHeight;
-        
-        double vy = (totalHeightDiff + 0.5 * GRAVITY * time * time) / time;
-        
+
+        // 距离越远弧线越高，但整体保持低抛
+        double arcFactor = 1.0 - Math.exp(-horizontalDist / 8.0);
+        double arcHeight = getMinArcHeight() + (getMaxArcHeight() - getMinArcHeight()) * arcFactor;
+        // 目标较高时保证最小越顶余量
+        arcHeight = Math.max(arcHeight, heightDiff + 0.6);
+
+        double riseTime = Math.sqrt(2 * arcHeight / getGravity());
+        double fallHeight = arcHeight - heightDiff;
+        if (fallHeight < 0) fallHeight = 0.3;
+        double fallTime = Math.sqrt(2 * fallHeight / getGravity());
+        double totalTime = riseTime + fallTime;
+
+        double vx = diff.x / totalTime;
+        double vz = diff.z / totalTime;
+        double vy = getGravity() * riseTime;
+
+        if (vy < 0.2) vy = 0.2;
+
         return new Vec3(vx, vy, vz);
+    }
+
+    /**
+     * 统一弹道瞄准点（目标躯干中部偏上）
+     */
+    private Vec3 getBallisticTargetPoint(LivingEntity targetEntity) {
+        return targetEntity.position().add(0, targetEntity.getBbHeight() * 0.55, 0);
+    }
+
+    /**
+     * 检查抛物线是否可达
+     */
+    private boolean canReachWithParabola(LivingEntity targetEntity, Level level, BlockPos pos, double maxRange) {
+        BlockState state = getBlockState();
+        if (!(state.getBlock() instanceof JunkTurretBlock)) return false;
+
+        Direction facing = state.getValue(JunkTurretBlock.FACING);
+        Vec3 start = calculateMuzzlePosition(pos, facing);
+        Vec3 end = getBallisticTargetPoint(targetEntity);
+
+        Vec3 diff = end.subtract(start);
+        double horizontalDist = Math.sqrt(diff.x * diff.x + diff.z * diff.z);
+        if (horizontalDist > maxRange) return false;
+
+        Vec3 velocity = calculateParabolicVelocity(start, end);
+        Vec3 currentPos = start;
+        final double hitThresholdSqr = 1.3 * 1.3;
+
+        for (int tick = 0; tick < 100; tick++) {
+            Vec3 nextPos = currentPos.add(velocity);
+
+            if (pointToSegmentDistanceSqr(end, currentPos, nextPos) <= hitThresholdSqr) {
+                return true;
+            }
+
+            BlockHitResult hitResult = level.clip(new ClipContext(
+                currentPos,
+                nextPos,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                null
+            ));
+
+            if (hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
+                return false;
+            }
+
+            currentPos = nextPos;
+            velocity = new Vec3(velocity.x, velocity.y - getGravity(), velocity.z);
+
+            if (currentPos.y < level.getMinBuildHeight() || currentPos.y > level.getMaxBuildHeight()) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 点到线段最短距离平方
+     */
+    private double pointToSegmentDistanceSqr(Vec3 point, Vec3 segStart, Vec3 segEnd) {
+        Vec3 seg = segEnd.subtract(segStart);
+        double segLenSqr = seg.lengthSqr();
+        if (segLenSqr < 1.0E-8) {
+            return point.distanceToSqr(segStart);
+        }
+        double t = point.subtract(segStart).dot(seg) / segLenSqr;
+        t = Math.max(0.0, Math.min(1.0, t));
+        Vec3 projection = segStart.add(seg.scale(t));
+        return point.distanceToSqr(projection);
     }
 
     /**
@@ -347,9 +456,9 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
      */
     public float getExpectedDamage(TurretBaseBlockEntity base) {
         BlockState state = getBlockState();
-        if (!(state.getBlock() instanceof JunkTurretBlock)) return BULLET_DAMAGE;
+        if (!(state.getBlock() instanceof JunkTurretBlock)) return getBulletDamage();
         Direction facing = state.getValue(JunkTurretBlock.FACING);
-        return base.getDamageForFace(facing, BULLET_DAMAGE);
+        return base.getDamageForFace(facing, getBulletDamage());
     }
 
     /**
@@ -357,13 +466,13 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
      */
     private Vec3 calculateMuzzlePosition(BlockPos pos, Direction facing) {
         double outwardOffset = 0.3;
-        
+
         Vec3 center = new Vec3(
             pos.getX() + 0.5,
             pos.getY() + 0.5,
             pos.getZ() + 0.5
         );
-        
+
         if (facing == Direction.UP) {
             center = new Vec3(center.x, center.y + outwardOffset, center.z);
         } else if (facing == Direction.DOWN) {
@@ -372,7 +481,7 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
             Vec3 outward = new Vec3(facing.getStepX(), 0, facing.getStepZ()).scale(outwardOffset);
             center = center.add(outward);
         }
-        
+
         return center;
     }
 
@@ -381,14 +490,14 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
      */
     private LivingEntity findTarget(Level level, BlockPos pos, double searchRadius) {
         AABB searchArea = new AABB(
-                pos.getX() - searchRadius, pos.getY() - searchRadius, pos.getZ() - searchRadius,
-                pos.getX() + searchRadius, pos.getY() + searchRadius, pos.getZ() + searchRadius
+            pos.getX() - searchRadius, pos.getY() - searchRadius, pos.getZ() - searchRadius,
+            pos.getX() + searchRadius, pos.getY() + searchRadius, pos.getZ() + searchRadius
         );
 
         List<LivingEntity> enemies = level.getEntitiesOfClass(
-                LivingEntity.class,
-                searchArea,
-                entity -> isValidTarget(entity, level, pos)
+            LivingEntity.class,
+            searchArea,
+            entity -> isValidTarget(entity, level, pos)
         );
 
         if (enemies.isEmpty()) {
@@ -398,22 +507,26 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
 
         Vec3 turretPos = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
         LivingEntity closest = enemies.stream()
-                .min(Comparator.comparingDouble(e -> e.distanceToSqr(turretPos)))
-                .orElse(null);
-        
+            .min(Comparator.comparingDouble(e -> e.distanceToSqr(turretPos)))
+            .orElse(null);
+
         if (closest != null) {
-            Vec3 visiblePoint = getVisibleTargetPoint(closest, level, pos);
+            Vec3 visiblePoint = getVisibleTargetPoint(closest);
             if (visiblePoint != null) {
                 visibleTargetPoint = visiblePoint;
                 setAnimData(TARGET_POS_X, visiblePoint.x);
                 setAnimData(TARGET_POS_Y, visiblePoint.y);
                 setAnimData(TARGET_POS_Z, visiblePoint.z);
-                setAnimData(HAS_TARGET, true);
+                    setAnimData(HAS_TARGET, true);
+                    syncAimDirectionData(pos, getBlockState().getValue(JunkTurretBlock.FACING));
             } else {
                 setAnimData(HAS_TARGET, false);
-            }
+                    setAnimData(AIM_DIR_X, 0.0);
+                    setAnimData(AIM_DIR_Y, 0.0);
+                    setAnimData(AIM_DIR_Z, 0.0);
+                }
         }
-        
+
         return closest;
     }
 
@@ -426,30 +539,30 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
 
         TurretBaseBlockEntity base = getBaseEntity();
         if (base == null) return false;
-        
+
         ItemStack pluginStack = base.getPluginStack();
         String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
-        
+
         List<String> blacklist = SmartChipItem.getBlacklist(pluginStack);
         boolean inBlacklist = blacklist.contains(entityId);
-        
+
         List<String> whitelist = SmartChipItem.getWhitelist(pluginStack);
         if (whitelist.contains(entityId)) {
             return false;
         }
-        
+
         if (!inBlacklist) {
             int flags = SmartChipItem.getTargetFlags(pluginStack);
             boolean matched = false;
-            
+
             if ((flags & SmartChipItem.FLAG_HOSTILE) != 0) {
                 if (entity instanceof net.minecraft.world.entity.monster.Enemy) matched = true;
             }
-            
+
             if (!matched && (flags & SmartChipItem.FLAG_NEUTRAL) != 0) {
                 if (entity instanceof net.minecraft.world.entity.NeutralMob) matched = true;
             }
-            
+
             if (!matched && (flags & SmartChipItem.FLAG_FRIENDLY) != 0) {
                 if (entity instanceof net.minecraft.world.entity.animal.Animal ||
                     entity instanceof net.minecraft.world.entity.ambient.AmbientCreature ||
@@ -457,32 +570,34 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
                     matched = true;
                 }
             }
-            
+
             if (!matched && (flags & SmartChipItem.FLAG_PLAYERS) != 0) {
                 if (entity instanceof Player) matched = true;
             }
-            
+
             if (!matched) return false;
         }
-        
+
         if (SmartChipItem.isFriendlyFire(pluginStack)) {
             return true;
         }
-        
+
         if (entity instanceof Player player) {
             if (player.getUUID().equals(base.getOwner())) return false;
         }
-        
+
         if (entity instanceof net.minecraft.world.entity.TamableAnimal tameable) {
             if (base.getOwner() != null && base.getOwner().equals(tameable.getOwnerUUID())) {
                 return false;
             }
         }
-        
+
+        Direction facing = getBlockState().getValue(JunkTurretBlock.FACING);
+        double searchRadius = base.getSearchRadiusForFace(facing, getSearchRadius());
         double dist = entity.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        if (dist > SEARCH_RADIUS * SEARCH_RADIUS) return false;
-        
-        return canSeeTarget(entity, level, pos);
+        if (dist > searchRadius * searchRadius) return false;
+
+        return canReachWithParabola(entity, level, pos, searchRadius);
     }
 
     private boolean isTargetInRange(LivingEntity target, BlockPos pos, double range) {
@@ -490,67 +605,32 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
         return dist <= range * range;
     }
 
-    private boolean canSeeTarget(LivingEntity target, Level level, BlockPos pos) {
-        Vec3 start = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        
-        Vec3[] points = {
-            target.position().add(0, target.getBbHeight() * 0.1, 0),
-            target.position().add(0, target.getBbHeight() * 0.5, 0),
-            target.position().add(0, target.getBbHeight() * 0.9, 0)
-        };
-        
-        for (Vec3 point : points) {
-            if (canSeePoint(start, point, level, pos)) {
-                return true;
-            }
-        }
-        return false;
+    /**
+     * 垃圾炮塔使用与发射一致的弹道瞄准点
+     */
+    private Vec3 getVisibleTargetPoint(LivingEntity target) {
+        return getBallisticTargetPoint(target);
     }
 
-    private boolean canSeePoint(Vec3 start, Vec3 end, Level level, BlockPos pos) {
-        BlockState state = getBlockState();
-        if (!(state.getBlock() instanceof JunkTurretBlock)) return false;
-        Direction facing = state.getValue(JunkTurretBlock.FACING);
-        
-        Vec3 outward = new Vec3(facing.getStepX(), facing.getStepY(), facing.getStepZ());
-        Vec3 adjustedStart = start.add(outward.scale(0.6));
-        
-        net.minecraft.world.level.ClipContext context = new net.minecraft.world.level.ClipContext(
-            adjustedStart, end,
-            net.minecraft.world.level.ClipContext.Block.COLLIDER,
-            net.minecraft.world.level.ClipContext.Fluid.NONE,
-            null
-        );
-        
-        net.minecraft.world.phys.BlockHitResult hitResult = level.clip(context);
-        
-        if (hitResult.getType() == net.minecraft.world.phys.HitResult.Type.MISS) {
-            return true;
-        }
-        
-        BlockPos basePos = pos.relative(facing.getOpposite());
-        if (hitResult.getBlockPos().equals(basePos)) {
-            return false;
-        }
-        
-        return false;
+    /**
+     * 计算炮塔抛物线瞄准方向（初速度方向）
+     */
+    private Vec3 getAimDirection(BlockPos pos, Direction facing) {
+        if (visibleTargetPoint == null) return new Vec3(0, 0, 0);
+
+        Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
+        Vec3 velocity = calculateParabolicVelocity(muzzlePos, visibleTargetPoint);
+        return velocity.normalize();
     }
 
-    private Vec3 getVisibleTargetPoint(LivingEntity target, Level level, BlockPos pos) {
-        Vec3 start = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        
-        Vec3[] points = {
-            target.position().add(0, target.getBbHeight() * 0.1, 0),
-            target.position().add(0, target.getBbHeight() * 0.5, 0),
-            target.position().add(0, target.getBbHeight() * 0.9, 0)
-        };
-        
-        for (Vec3 point : points) {
-            if (canSeePoint(start, point, level, pos)) {
-                return point;
-            }
-        }
-        return null;
+    /**
+     * 同步抛物线瞄准方向到客户端动画
+     */
+    private void syncAimDirectionData(BlockPos pos, Direction facing) {
+        Vec3 aimDirection = getAimDirection(pos, facing);
+        setAnimData(AIM_DIR_X, aimDirection.x);
+        setAnimData(AIM_DIR_Y, aimDirection.y);
+        setAnimData(AIM_DIR_Z, aimDirection.z);
     }
 
     @Override

@@ -131,6 +131,12 @@ public class TurretMod {
             SerializableDataTicket.ofDouble(location("grenade_target_pos_y")));
         GrenadeLauncherTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
             SerializableDataTicket.ofDouble(location("grenade_target_pos_z")));
+        GrenadeLauncherTurretBlockEntity.AIM_DIR_X = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("grenade_aim_dir_x")));
+        GrenadeLauncherTurretBlockEntity.AIM_DIR_Y = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("grenade_aim_dir_y")));
+        GrenadeLauncherTurretBlockEntity.AIM_DIR_Z = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("grenade_aim_dir_z")));
 
         // 垃圾炮塔数据票
         JunkTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
@@ -141,6 +147,12 @@ public class TurretMod {
             SerializableDataTicket.ofDouble(location("junk_target_pos_y")));
         JunkTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
             SerializableDataTicket.ofDouble(location("junk_target_pos_z")));
+        JunkTurretBlockEntity.AIM_DIR_X = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("junk_aim_dir_x")));
+        JunkTurretBlockEntity.AIM_DIR_Y = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("junk_aim_dir_y")));
+        JunkTurretBlockEntity.AIM_DIR_Z = GeckoLibUtil.addDataTicket(
+            SerializableDataTicket.ofDouble(location("junk_aim_dir_z")));
     }
     
     private void commonSetup(final FMLCommonSetupEvent event) {

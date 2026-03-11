@@ -6,7 +6,6 @@ import com.tian_nu.AdvancedTurret.blocks.entitys.JunkTurretBlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
@@ -25,6 +24,7 @@ public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
 
     @Override
     public ResourceLocation getTextureResource(JunkTurretBlockEntity animatable) {
+        // 临时占位：复用机枪炮塔贴图，保证UV一致
         return TurretMod.location("textures/block/junk_turret.png");
     }
 
@@ -36,35 +36,41 @@ public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
     @Override
     public void setCustomAnimations(JunkTurretBlockEntity animatable, long instanceId, AnimationState<JunkTurretBlockEntity> animationState) {
         CoreGeoBone turret = getAnimationProcessor().getBone("turret");
-        
+
         if (turret != null) {
             if (hasTarget(animatable)) {
-                Vec3 targetPos = new Vec3(targetX(animatable), targetY(animatable), targetZ(animatable));
-                
                 Direction direction = animatable.getBlockState().getValue(JunkTurretBlock.FACING);
-                
-                Vec3 center = animatable.getBlockPos().getCenter();
-                
-                Vector3f deltaPos = getTransform(direction).transform(
-                    new Vec3(targetPos.x - center.x, targetPos.y - center.y, targetPos.z - center.z).toVector3f()
+
+                // 使用服务端同步的抛物线初速度方向，保证炮口朝向和真实弹道一致
+                Vector3f worldAimDirection = new Vector3f(
+                    (float) aimDirX(animatable),
+                    (float) aimDirY(animatable),
+                    (float) aimDirZ(animatable)
                 );
-                
-                double horizontalDist = Math.sqrt(deltaPos.x * deltaPos.x + deltaPos.z * deltaPos.z);
-                
-                float yRot = (float) -Math.atan2(deltaPos.x, deltaPos.z);
-                
+
+                if (worldAimDirection.lengthSquared() < 1.0E-6f) {
+                    worldAimDirection.set(0.0f, 0.0f, 1.0f);
+                } else {
+                    worldAimDirection.normalize();
+                }
+
+                Vector3f localAimDirection = getTransform(direction).transform(worldAimDirection);
+                double horizontalDist = Math.sqrt(localAimDirection.x * localAimDirection.x + localAimDirection.z * localAimDirection.z);
+
+                float yRot = (float) -Math.atan2(localAimDirection.x, localAimDirection.z);
+
                 if (direction == Direction.UP || direction == Direction.EAST || direction == Direction.WEST) {
                     yRot += (float) Math.PI;
                 }
-                
-                float xRot = (float) -Math.atan2(deltaPos.y, horizontalDist);
-                
+
+                float xRot = (float) -Math.atan2(localAimDirection.y, horizontalDist);
+
                 yRot = lerp(animatable.yRot0, yRot);
                 xRot = lerp(animatable.xRot0, xRot);
-                
+
                 animatable.xRot0 = xRot;
                 animatable.yRot0 = yRot;
-                
+
                 turret.setRotX(xRot);
                 turret.setRotY(yRot);
             } else {
@@ -89,7 +95,7 @@ public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
         }
         return new Quaternionf();
     }
-    
+
     private float lerp(float start, float end) {
         return Mth.rotLerp(0.1F, start * Mth.RAD_TO_DEG, end * Mth.RAD_TO_DEG) * Mth.DEG_TO_RAD;
     }
@@ -99,18 +105,18 @@ public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
         return Boolean.TRUE.equals(hasTarget);
     }
 
-    private double targetX(JunkTurretBlockEntity animatable) {
-        Double targetX = animatable.getAnimData(JunkTurretBlockEntity.TARGET_POS_X);
-        return targetX != null ? targetX : 0;
+    private double aimDirX(JunkTurretBlockEntity animatable) {
+        Double aimDirX = animatable.getAnimData(JunkTurretBlockEntity.AIM_DIR_X);
+        return aimDirX != null ? aimDirX : 0;
     }
-    
-    private double targetY(JunkTurretBlockEntity animatable) {
-        Double targetY = animatable.getAnimData(JunkTurretBlockEntity.TARGET_POS_Y);
-        return targetY != null ? targetY : 0;
+
+    private double aimDirY(JunkTurretBlockEntity animatable) {
+        Double aimDirY = animatable.getAnimData(JunkTurretBlockEntity.AIM_DIR_Y);
+        return aimDirY != null ? aimDirY : 0;
     }
-    
-    private double targetZ(JunkTurretBlockEntity animatable) {
-        Double targetZ = animatable.getAnimData(JunkTurretBlockEntity.TARGET_POS_Z);
-        return targetZ != null ? targetZ : 0;
+
+    private double aimDirZ(JunkTurretBlockEntity animatable) {
+        Double aimDirZ = animatable.getAnimData(JunkTurretBlockEntity.AIM_DIR_Z);
+        return aimDirZ != null ? aimDirZ : 0;
     }
 }

@@ -1,6 +1,8 @@
 package com.tian_nu.AdvancedTurret.blocks;
 
+import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.entitys.JunkTurretBlockEntity;
+
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -75,11 +77,12 @@ public class JunkTurretBlock extends BaseEntityBlock {
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base"));
         tooltip.add(Component.translatable("tooltip.advanced_turret.junk_turret.stats",
-                JunkTurretBlockEntity.BULLET_DAMAGE,
-                JunkTurretBlockEntity.SEARCH_RADIUS,
-                JunkTurretBlockEntity.FIRE_RATE / 20.0,
-                20
+                JunkTurretBlockEntity.getBulletDamage(),
+                JunkTurretBlockEntity.getSearchRadius(),
+                JunkTurretBlockEntity.getFireRate() / 20.0,
+                Config.junkTurretEnergyCost
         ).withStyle(net.minecraft.ChatFormatting.GRAY));
+
         super.appendHoverText(stack, level, tooltip, flag);
     }
 
@@ -164,10 +167,12 @@ public class JunkTurretBlock extends BaseEntityBlock {
             BlockPos basePos = pos.relative(facing.getOpposite());
             BlockEntity blockEntity = level.getBlockEntity(basePos);
             if (blockEntity instanceof TurretBaseBlockEntity baseEntity) {
-                return baseEntity.getBlockState().getBlock().use(baseEntity.getBlockState(), level, basePos, player, hand, 
+                return baseEntity.getBlockState().getBlock().use(baseEntity.getBlockState(), level, basePos, player, hand,
                         new BlockHitResult(hit.getLocation(), facing.getOpposite(), basePos, hit.isInside()));
             }
         }
         return InteractionResult.SUCCESS;
     }
 }
+
+        

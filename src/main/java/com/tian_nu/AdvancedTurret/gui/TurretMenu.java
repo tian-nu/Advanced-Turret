@@ -104,7 +104,7 @@ public class TurretMenu extends AbstractContainerMenu {
     private void addPlayerInventory(Inventory playerInventory) {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                int x = 8 + col * 18;
+                int x = 16 + col * 18;
                 int y = 84 + row * 18;
                 int index = col + row * 9 + 9;
                 addSlot(new Slot(playerInventory, index, x, y));
@@ -114,7 +114,7 @@ public class TurretMenu extends AbstractContainerMenu {
     
     private void addPlayerHotbar(Inventory playerInventory) {
         for (int col = 0; col < 9; col++) {
-            int x = 8 + col * 18;
+            int x = 16 + col * 18;
             int y = 142;
             addSlot(new Slot(playerInventory, col, x, y));
         }

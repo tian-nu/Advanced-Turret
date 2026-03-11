@@ -4,7 +4,9 @@ import com.mojang.logging.LogUtils;
 import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.RailgunTurretBlock;
 import com.tian_nu.AdvancedTurret.entity.RailgunBulletEntity;
+import com.tian_nu.AdvancedTurret.items.ModItems;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem;
+
 import net.minecraft.world.entity.ambient.AmbientCreature;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -45,6 +47,12 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
     public static final double BULLET_SPEED = 6.0;
     public static final float BULLET_DAMAGE = 60.0F;
     public static final int ENERGY_COST = 10000;
+
+    public static int getFireRate() { return Config.railgunFireRate; }
+    public static double getSearchRadius() { return Config.railgunRange; }
+    public static float getBulletDamage() { return (float) Config.railgunDamage; }
+    public static int getPenetrationCount() { return Config.railgunPenetrationCount; }
+    public static float getBulletSpeed() { return (float) Config.railgunBulletSpeed; }
 
     public static SerializableDataTicket<Boolean> HAS_TARGET;
     public static SerializableDataTicket<Double> TARGET_POS_X;
@@ -99,7 +107,7 @@ public class RailgunTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         if (blockEntity.target != null && blockEntity.cooldown <= 0) {
             if (blockEntity.canShoot(base, facing)) {
                 blockEntity.shoot(level, pos, state, base, facing);
-                blockEntity.cooldown = base.getFireRateForFace(facing, FIRE_RATE);
+                blockEntity.cooldown = base.getFireRateForFace(facing, getFireRate());
             }
         }
     }
@@ -127,7 +135,7 @@ private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base,
 			if (target != null && base.isThriftyMode()) {
 				base.cancelReservation(target.getId());
 			}
-			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
+			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, getSearchRadius()));
 			targetLostTicks = 0;
 			
 			// 新目标锁定时预约伤害
@@ -137,7 +145,7 @@ private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base,
 			}
 		} else {
 			// 检查是否超出范围
-			if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
+			if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, getSearchRadius()))) {
 				targetLostTicks++;
 				if (targetLostTicks > 20) {
 					// 目标丢失，取消预约
@@ -178,13 +186,41 @@ private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base,
 
 	private boolean canShoot(TurretBaseBlockEntity base, Direction facing) {
 		int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
-		return base.getEnergyStored() >= energyCost;
+		if (base.getEnergyStored() < energyCost) {
+			return false;
+		}
+		return hasAmmo(base);
 	}
+
+	private boolean hasAmmo(TurretBaseBlockEntity base) {
+		net.minecraftforge.items.IItemHandler ammoInv = base.getAmmoInventory();
+		for (int i = 0; i < ammoInv.getSlots(); i++) {
+			ItemStack stack = ammoInv.getStackInSlot(i);
+			if (!stack.isEmpty() && stack.is(ModItems.RAILGUN_BULLET.get())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void consumeAmmo(TurretBaseBlockEntity base) {
+		net.minecraftforge.items.IItemHandler ammoInv = base.getAmmoInventory();
+		for (int i = 0; i < ammoInv.getSlots(); i++) {
+			ItemStack stack = ammoInv.getStackInSlot(i);
+			if (!stack.isEmpty() && stack.is(ModItems.RAILGUN_BULLET.get())) {
+				stack.shrink(1);
+				return;
+			}
+		}
+	}
+
 
 	private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base, Direction facing) {
 		int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
 		if (base.getEnergyStored() < energyCost) return;
+		if (!hasAmmo(base)) return;
 		if (!(level instanceof ServerLevel)) return;
+
 
 		Vec3 muzzlePos = calculateMuzzlePosition(pos, facing);
 
@@ -195,7 +231,7 @@ private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base,
 
         if (base.isPredictiveAiming()) {
             double dist = muzzlePos.distanceTo(targetPos);
-            double time = dist / BULLET_SPEED;
+            double time = dist / getBulletSpeed();
             targetPos = targetPos.add(target.getDeltaMovement().scale(time));
         }
 
@@ -204,14 +240,25 @@ private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base,
 		// 消耗能量
 		base.consumeEnergy(energyCost);
 
+		// 消耗弹药（弹药回收插件：按配置概率不消耗）
+		Level baseLevel = base.getLevel();
+		if (baseLevel != null && base.hasAmmoRecyclingPlugin()) {
+			if (baseLevel.random.nextFloat() >= Config.ammoRecycleChance) {
+				consumeAmmo(base);
+			}
+		} else {
+			consumeAmmo(base);
+		}
+
 		// 计算伤害并创建子弹
-		float damage = base.getDamageForFace(facing, BULLET_DAMAGE);
+
+		float damage = base.getDamageForFace(facing, getBulletDamage());
 		RailgunBulletEntity bullet = new RailgunBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
         bullet.setOwner(null);
         bullet.setSourcePos(pos);
         bullet.setBasePos(pos.relative(facing.getOpposite())); // 设置基座位置
-        bullet.setPenetrationCount(3); // 穿透3个目标
-        bullet.shoot(direction, (float) BULLET_SPEED);
+        bullet.setPenetrationCount(getPenetrationCount()); // 穿透目标数量可配置
+        bullet.shoot(direction, getBulletSpeed());
 
         boolean spawned = level.addFreshEntity(bullet);
         if (!spawned) {
@@ -227,9 +274,9 @@ level.playSound(null, pos, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1.0F,
 	 */
 	public float getExpectedDamage(TurretBaseBlockEntity base) {
 		BlockState state = getBlockState();
-		if (!(state.getBlock() instanceof RailgunTurretBlock)) return BULLET_DAMAGE;
+		if (!(state.getBlock() instanceof RailgunTurretBlock)) return getBulletDamage();
 		Direction facing = state.getValue(RailgunTurretBlock.FACING);
-		return base.getDamageForFace(facing, BULLET_DAMAGE);
+		return base.getDamageForFace(facing, getBulletDamage());
 	}
 
     /**
@@ -366,7 +413,7 @@ level.playSound(null, pos, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1.0F,
         }
 
         Direction facing = getBlockState().getValue(RailgunTurretBlock.FACING);
-        double searchRadius = base.getSearchRadiusForFace(facing, SEARCH_RADIUS);
+        double searchRadius = base.getSearchRadiusForFace(facing, getSearchRadius());
         if (!isTargetInRange(entity, pos, searchRadius)) {
             return false;
         }

@@ -86,8 +86,8 @@ public class LaserTurretBlock extends BaseEntityBlock {
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base"));
         tooltip.add(Component.translatable("tooltip.advanced_turret.laser_turret.stats",
-                LaserTurretBlockEntity.DAMAGE_PER_TICK,
-                LaserTurretBlockEntity.SEARCH_RADIUS,
+                LaserTurretBlockEntity.getDamagePerTick(),
+                LaserTurretBlockEntity.getSearchRadius(),
                 Config.laserEnergyPerTick
         ));
         super.appendHoverText(stack, level, tooltip, flag);

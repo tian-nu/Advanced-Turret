@@ -70,11 +70,12 @@ public class RailgunTurretBlock extends BaseEntityBlock {
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.advanced_turret.railgun_turret.stats",
-                RailgunTurretBlockEntity.BULLET_DAMAGE,
-                RailgunTurretBlockEntity.SEARCH_RADIUS,
-                RailgunTurretBlockEntity.FIRE_RATE,
+                RailgunTurretBlockEntity.getBulletDamage(),
+                RailgunTurretBlockEntity.getSearchRadius(),
+                RailgunTurretBlockEntity.getFireRate(),
                 Config.railgunEnergyCost
         ).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable("tooltip.advanced_turret.railgun_turret.ammo").withStyle(ChatFormatting.DARK_GRAY));
         if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
             String ownerName = stack.getTag().getString("OwnerName");
             tooltip.add(Component.translatable("gui.advanced_turret.owner_tooltip", ownerName).withStyle(ChatFormatting.GOLD));

@@ -125,6 +125,11 @@ private java.util.UUID owner;
             setChanged();
             syncToClient();
         }
+
+        @Override
+        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+            return isValidAmmoForMountedTurrets(stack);
+        }
     };
     
     // 使用最大槽位数量，实际可用槽位由getPluginSlotCount()决定
@@ -967,6 +972,58 @@ public boolean hasDestructionPlugin() {
                 || stack.is(ModItems.AMMO_RECYCLING_PLUGIN.get())
                 || stack.is(ModItems.REDSTONE_CONVERSION_PLUGIN.get())
                 || stack.is(ModItems.DESTRUCTION_PLUGIN.get());
+    }
+
+    private boolean isValidAmmoForMountedTurrets(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+
+        Level level = getLevel();
+        if (level == null) {
+            return isGenericAmmo(stack);
+        }
+
+        boolean hasJunkTurret = false;
+        boolean hasSpecificAmmoMatch = false;
+        boolean hasMountedTurret = false;
+
+        for (Direction face : Direction.values()) {
+            BlockEntity be = level.getBlockEntity(getBlockPos().relative(face));
+
+            if (be instanceof MachineGunTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
+                hasSpecificAmmoMatch |= stack.is(ModItems.MACHINE_GUN_BULLET.get());
+            } else if (be instanceof RailgunTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
+                hasSpecificAmmoMatch |= stack.is(ModItems.RAILGUN_BULLET.get());
+            } else if (be instanceof RocketTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
+                hasSpecificAmmoMatch |= stack.is(ModItems.ROCKET.get());
+            } else if (be instanceof MissileTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
+                hasSpecificAmmoMatch |= stack.is(ModItems.MISSILE.get());
+            } else if (be instanceof GrenadeLauncherTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
+                hasSpecificAmmoMatch |= stack.is(ModItems.GRENADE.get());
+            } else if (be instanceof JunkTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
+                hasJunkTurret = true;
+            } else if (be instanceof LaserTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
+            }
+        }
+
+        if (hasJunkTurret) return true;
+        if (hasMountedTurret) return hasSpecificAmmoMatch;
+
+        return isGenericAmmo(stack);
+    }
+
+    private boolean isGenericAmmo(ItemStack stack) {
+        return stack.is(ModItems.MACHINE_GUN_BULLET.get())
+                || stack.is(ModItems.RAILGUN_BULLET.get())
+                || stack.is(ModItems.ROCKET.get())
+                || stack.is(ModItems.MISSILE.get())
+                || stack.is(ModItems.GRENADE.get());
     }
 
     public float getDamageForFace(Direction face, float baseDamage) {

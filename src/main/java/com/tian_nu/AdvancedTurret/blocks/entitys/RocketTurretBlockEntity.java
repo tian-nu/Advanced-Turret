@@ -1,5 +1,6 @@
 package com.tian_nu.AdvancedTurret.blocks.entitys;
 
+import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.RocketTurretBlock;
 import com.tian_nu.AdvancedTurret.entity.RocketEntity;
 import com.tian_nu.AdvancedTurret.items.ModItems;
@@ -78,6 +79,14 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
     /** 能量消耗 */
     public static final int ENERGY_COST = 5000;
 
+    public static int getFireRate() { return Config.rocketFireRate; }
+    public static double getSearchRadius() { return Config.rocketRange; }
+    public static float getDirectDamage() { return (float) Config.rocketDirectDamage; }
+    public static float getExplosionDamage() { return (float) Config.rocketExplosionDamage; }
+    public static float getExplosionRadius() { return (float) Config.rocketExplosionRadius; }
+    public static float getBulletSpeed() { return (float) Config.rocketBulletSpeed; }
+    public static double getAcceleration() { return Config.rocketAcceleration; }
+
     // ========== GeckoLib数据同步票 ==========
     public static SerializableDataTicket<Boolean> HAS_TARGET;
     public static SerializableDataTicket<Double> TARGET_POS_X;
@@ -138,7 +147,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         if (blockEntity.target != null && blockEntity.cooldown <= 0) {
             if (blockEntity.canShoot(base)) {
                 blockEntity.shoot(level, pos, state, base);
-                blockEntity.cooldown = base.getFireRateForFace(facing, FIRE_RATE);
+                blockEntity.cooldown = base.getFireRateForFace(facing, getFireRate());
             }
         }
     }
@@ -184,7 +193,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
 			if (target != null && base.isThriftyMode()) {
 				base.cancelReservation(target.getId());
 			}
-			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
+			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, getSearchRadius()));
 			targetLostTicks = 0;
 			
 			// 新目标锁定时预约伤害
@@ -194,7 +203,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
 			}
 		} else {
 			// 检查是否超出范围
-			if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
+			if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, getSearchRadius()))) {
 				targetLostTicks++;
 				if (targetLostTicks > 20) {
 					// 目标丢失，取消预约
@@ -240,7 +249,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         BlockState state = getBlockState();
         if (!(state.getBlock() instanceof RocketTurretBlock)) return false;
         Direction facing = state.getValue(RocketTurretBlock.FACING);
-        int energyCost = base.getEnergyCostForFace(facing, ENERGY_COST);
+        int energyCost = base.getEnergyCostForFace(facing, com.tian_nu.AdvancedTurret.Config.rocketEnergyCost);
 
         // 检查能量
         if (base.getEnergyStored() < energyCost) return false;
@@ -248,6 +257,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         // 检查弹药
         return hasAmmo(base);
     }
+
     
     /**
      * 检查弹药槽是否有火箭弹
@@ -282,8 +292,9 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
 	 */
 	private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base) {
 		Direction facing = state.getValue(RocketTurretBlock.FACING);
-		int energyCost = base.getEnergyCostForFace(facing, ENERGY_COST);
+		int energyCost = base.getEnergyCostForFace(facing, com.tian_nu.AdvancedTurret.Config.rocketEnergyCost);
 		if (base.getEnergyStored() < energyCost) return;
+
 
 		// 检查弹药
 		if (!hasAmmo(base)) return;
@@ -300,7 +311,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         // 预判瞄准
         if (base.isPredictiveAiming()) {
             double dist = muzzlePos.distanceTo(targetPos);
-            double time = dist / BULLET_SPEED;
+            double time = dist / getBulletSpeed();
             targetPos = targetPos.add(target.getDeltaMovement().scale(time));
         }
 
@@ -320,8 +331,8 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         }
 
         // 计算伤害（应用升级组件）
-        float directDamage = base.getDamageForFace(facing, DIRECT_DAMAGE);
-        float explosionDamage = EXPLOSION_DAMAGE; // 爆炸伤害不随升级组件变化
+        float directDamage = base.getDamageForFace(facing, getDirectDamage());
+        float explosionDamage = getExplosionDamage(); // 爆炸伤害不随升级组件变化
 
         // 创建火箭弹
         RocketEntity rocket = new RocketEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, directDamage);
@@ -329,13 +340,13 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         rocket.setSourcePos(pos);
         rocket.setBasePos(pos.relative(facing.getOpposite()));
         rocket.setExplosionDamage(explosionDamage);
-        rocket.setExplosionRadius(EXPLOSION_RADIUS);
-        rocket.setAcceleration(ACCELERATION); // 越飞越快
+        rocket.setExplosionRadius(getExplosionRadius());
+        rocket.setAcceleration(getAcceleration()); // 越飞越快
         
         // 破坏插件：决定是否破坏方块
         rocket.setDestroyBlocks(base.hasDestructionPlugin());
 
-        rocket.shoot(direction, (float) BULLET_SPEED);
+        rocket.shoot(direction, getBulletSpeed());
 
         boolean spawned = level.addFreshEntity(rocket);
         if (!spawned) {
@@ -351,10 +362,10 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
 	 */
 	public float getExpectedDamage(TurretBaseBlockEntity base) {
 		BlockState state = getBlockState();
-		if (!(state.getBlock() instanceof RocketTurretBlock)) return DIRECT_DAMAGE + EXPLOSION_DAMAGE;
+		if (!(state.getBlock() instanceof RocketTurretBlock)) return getDirectDamage() + getExplosionDamage();
 		Direction facing = state.getValue(RocketTurretBlock.FACING);
-		float directDamage = base.getDamageForFace(facing, DIRECT_DAMAGE);
-		return directDamage + EXPLOSION_DAMAGE;
+		float directDamage = base.getDamageForFace(facing, getDirectDamage());
+		return directDamage + getExplosionDamage();
 	}
 
     /**
@@ -482,7 +493,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         }
 
         Direction facing = getBlockState().getValue(RocketTurretBlock.FACING);
-        double searchRadius = base.getSearchRadiusForFace(facing, SEARCH_RADIUS);
+        double searchRadius = base.getSearchRadiusForFace(facing, getSearchRadius());
         if (!isTargetInRange(entity, pos, searchRadius)) return false;
 
 // 获取可见瞄准点（优先：头部 > 身体 > 脚部）

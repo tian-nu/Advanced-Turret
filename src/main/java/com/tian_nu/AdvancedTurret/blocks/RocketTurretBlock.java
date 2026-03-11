@@ -1,8 +1,10 @@
 package com.tian_nu.AdvancedTurret.blocks;
 
+import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.entitys.RocketTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -82,12 +84,12 @@ public class RocketTurretBlock extends BaseEntityBlock {
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.advanced_turret.rocket_turret.stats",
-                RocketTurretBlockEntity.DIRECT_DAMAGE,
-                RocketTurretBlockEntity.EXPLOSION_DAMAGE,
-                RocketTurretBlockEntity.EXPLOSION_RADIUS,
-                RocketTurretBlockEntity.SEARCH_RADIUS,
-                RocketTurretBlockEntity.FIRE_RATE / 20.0,
-                RocketTurretBlockEntity.ENERGY_COST
+                RocketTurretBlockEntity.getDirectDamage(),
+                RocketTurretBlockEntity.getExplosionDamage(),
+                RocketTurretBlockEntity.getExplosionRadius(),
+                RocketTurretBlockEntity.getSearchRadius(),
+                RocketTurretBlockEntity.getFireRate() / 20.0,
+                Config.rocketEnergyCost
         ).withStyle(ChatFormatting.GRAY));
         if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
             String ownerName = stack.getTag().getString("OwnerName");

@@ -1,5 +1,6 @@
 package com.tian_nu.AdvancedTurret.blocks;
 
+import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
@@ -84,12 +85,12 @@ public class MissileTurretBlock extends BaseEntityBlock {
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base").withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("tooltip.advanced_turret.missile_turret.stats",
-                MissileTurretBlockEntity.DIRECT_DAMAGE,
-                MissileTurretBlockEntity.EXPLOSION_DAMAGE,
-                MissileTurretBlockEntity.EXPLOSION_RADIUS,
-                MissileTurretBlockEntity.SEARCH_RADIUS,
-                MissileTurretBlockEntity.FIRE_RATE / 20.0,
-                MissileTurretBlockEntity.ENERGY_COST
+                MissileTurretBlockEntity.getDirectDamage(),
+                MissileTurretBlockEntity.getExplosionDamage(),
+                MissileTurretBlockEntity.getExplosionRadius(),
+                MissileTurretBlockEntity.getSearchRadius(),
+                MissileTurretBlockEntity.getFireRate() / 20.0,
+                Config.missileEnergyCost
         ).withStyle(ChatFormatting.GRAY));
         if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
             String ownerName = stack.getTag().getString("OwnerName");

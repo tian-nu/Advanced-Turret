@@ -1,6 +1,67 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "advanced_turret:block/junk_turret"
-  }
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"texture_size": [64, 64],
+	"textures": {
+		"1": "advanced_turret:block/junk_turret",
+		"particle": "advanced_turret:block/junk_turret"
+	},
+	"elements": [
+		{
+			"name": "炮塔主体",
+			"from": [4, 4, 4],
+			"to": [12, 11, 12],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 4, 8.25]},
+			"faces": {
+				"north": {"uv": [3, 4, 5, 5.75], "texture": "#1"},
+				"east": {"uv": [5, 0, 7, 1.75], "texture": "#1"},
+				"south": {"uv": [5, 1.75, 7, 3.5], "texture": "#1"},
+				"west": {"uv": [5, 3.5, 7, 5.25], "texture": "#1"},
+				"up": {"uv": [5, 2, 3, 0], "texture": "#1"},
+				"down": {"uv": [5, 2, 3, 4], "texture": "#1"}
+			}
+		},
+		{
+			"name": "炮塔底座",
+			"from": [2, 0, 2],
+			"to": [14, 1, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 4, 8.25]},
+			"faces": {
+				"north": {"uv": [5.75, 5.75, 8.75, 6], "texture": "#1"},
+				"east": {"uv": [0, 6, 3, 6.25], "texture": "#1"},
+				"south": {"uv": [5.75, 6, 8.75, 6.25], "texture": "#1"},
+				"west": {"uv": [0, 6.25, 3, 6.5], "texture": "#1"},
+				"up": {"uv": [3, 3, 0, 0], "texture": "#1"},
+				"down": {"uv": [3, 3, 0, 6], "texture": "#1"}
+			}
+		},
+		{
+			"name": "炮塔支架",
+			"from": [7, 1, 7],
+			"to": [9, 4, 9],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 4, 8.25]},
+			"faces": {
+				"north": {"uv": [3, 6.25, 3.5, 7], "texture": "#1"},
+				"east": {"uv": [3.5, 6.25, 4, 7], "texture": "#1"},
+				"south": {"uv": [4, 6.25, 4.5, 7], "texture": "#1"},
+				"west": {"uv": [5.75, 6.25, 6.25, 7], "texture": "#1"},
+				"up": {"uv": [6.75, 6.75, 6.25, 6.25], "texture": "#1"},
+				"down": {"uv": [0.5, 6.5, 0, 7], "texture": "#1"}
+			}
+		},
+		{
+			"name": "炮塔枪管",
+			"from": [7, 6, -1],
+			"to": [9, 8, 6],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, 4, 8.25]},
+			"faces": {
+				"north": {"uv": [0.5, 6.5, 1, 7], "texture": "#1"},
+				"east": {"uv": [5, 5.25, 6.75, 5.75], "texture": "#1"},
+				"south": {"uv": [1, 6.5, 1.5, 7], "texture": "#1"},
+				"west": {"uv": [3, 5.75, 4.75, 6.25], "texture": "#1"},
+				"up": {"uv": [5.25, 7.5, 4.75, 5.75], "texture": "#1"},
+				"down": {"uv": [5.75, 5.75, 5.25, 7.5], "texture": "#1"}
+			}
+		}
+	]
 }

@@ -31,9 +31,11 @@ public class ModCreativeModeTabs {
                         
                         // 弹药
                         output.accept(ModItems.MACHINE_GUN_BULLET.get());
+                        output.accept(ModItems.RAILGUN_BULLET.get());
                         output.accept(ModItems.ROCKET.get());
                         output.accept(ModItems.MISSILE.get());
                         output.accept(ModItems.GRENADE.get());
+
 
                         // 炮塔类型
                         output.accept(ModBlocks.MACHINE_GUN_TURRET.get());

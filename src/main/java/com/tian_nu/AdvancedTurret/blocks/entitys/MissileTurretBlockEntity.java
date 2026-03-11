@@ -1,5 +1,6 @@
 package com.tian_nu.AdvancedTurret.blocks.entitys;
 
+import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.MissileTurretBlock;
 import com.tian_nu.AdvancedTurret.entity.MissileEntity;
 import com.tian_nu.AdvancedTurret.items.ModItems;
@@ -67,7 +68,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
     // ========== 常量（来自炮塔数值与机制.md） ==========
 
     /** 射击间隔 (tick) - 6.7秒 */
-    public static final int FIRE_RATE = 133;
+    public static final int FIRE_RATE = 200;
     /** 搜索范围 */
     public static final double SEARCH_RADIUS = 64.0;
     /** 子弹初始速度 */
@@ -79,11 +80,20 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
     /** 直击伤害 */
     public static final float DIRECT_DAMAGE = 10.0F;
     /** 爆炸伤害 */
-    public static final float EXPLOSION_DAMAGE = 15.0F;
+    public static final float EXPLOSION_DAMAGE = 20.0F;
     /** 爆炸半径 */
     public static final float EXPLOSION_RADIUS = 4.0F;
     /** 能量消耗 */
     public static final int ENERGY_COST = 10000;
+
+    public static int getFireRate() { return Config.missileFireRate; }
+    public static double getSearchRadius() { return Config.missileRange; }
+    public static float getDirectDamage() { return (float) Config.missileDirectDamage; }
+    public static float getExplosionDamage() { return (float) Config.missileExplosionDamage; }
+    public static float getExplosionRadius() { return (float) Config.missileExplosionRadius; }
+    public static float getBulletSpeed() { return (float) Config.missileBulletSpeed; }
+    public static double getAcceleration() { return Config.missileAcceleration; }
+    public static double getTurnRate() { return Config.missileTurnRate; }
 
     // ========== GeckoLib数据同步票 ==========
     public static SerializableDataTicket<Boolean> HAS_TARGET;
@@ -145,7 +155,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         if (blockEntity.target != null && blockEntity.cooldown <= 0) {
             if (blockEntity.canShoot(base)) {
                 blockEntity.shoot(level, pos, state, base);
-                blockEntity.cooldown = base.getFireRateForFace(facing, FIRE_RATE);
+                blockEntity.cooldown = base.getFireRateForFace(facing, getFireRate());
             }
         }
     }
@@ -191,7 +201,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 			if (target != null && base.isThriftyMode()) {
 				base.cancelReservation(target.getId());
 			}
-			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS));
+			target = findTarget(level, pos, base.getSearchRadiusForFace(facing, getSearchRadius()));
 			targetLostTicks = 0;
 			
 			// 新目标锁定时预约伤害
@@ -201,7 +211,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 			}
 		} else {
 			// 检查是否超出范围
-			if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, SEARCH_RADIUS))) {
+			if (!isTargetInRange(target, pos, base.getSearchRadiusForFace(facing, getSearchRadius()))) {
 				targetLostTicks++;
 				if (targetLostTicks > 20) {
 					// 目标丢失，取消预约
@@ -247,7 +257,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         BlockState state = getBlockState();
         if (!(state.getBlock() instanceof MissileTurretBlock)) return false;
         Direction facing = state.getValue(MissileTurretBlock.FACING);
-        int energyCost = base.getEnergyCostForFace(facing, ENERGY_COST);
+        int energyCost = base.getEnergyCostForFace(facing, com.tian_nu.AdvancedTurret.Config.missileEnergyCost);
 
         // 检查能量
         if (base.getEnergyStored() < energyCost) return false;
@@ -289,7 +299,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 	 */
 	private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base) {
 		Direction facing = state.getValue(MissileTurretBlock.FACING);
-		int energyCost = base.getEnergyCostForFace(facing, ENERGY_COST);
+		int energyCost = base.getEnergyCostForFace(facing, com.tian_nu.AdvancedTurret.Config.missileEnergyCost);
 		if (base.getEnergyStored() < energyCost) return;
 
 		// 检查弹药
@@ -307,7 +317,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         // 预判瞄准（导弹有制导，预判不太重要，但保留选项）
         if (base.isPredictiveAiming()) {
             double dist = muzzlePos.distanceTo(targetPos);
-            double time = dist / BULLET_SPEED;
+            double time = dist / getBulletSpeed();
             targetPos = targetPos.add(target.getDeltaMovement().scale(time));
         }
 
@@ -327,8 +337,8 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         }
 
         // 计算伤害（应用升级组件）
-        float directDamage = base.getDamageForFace(facing, DIRECT_DAMAGE);
-        float explosionDamage = EXPLOSION_DAMAGE; // 爆炸伤害不随升级组件变化
+        float directDamage = base.getDamageForFace(facing, getDirectDamage());
+        float explosionDamage = getExplosionDamage(); // 爆炸伤害不随升级组件变化
 
         // 创建导弹
         MissileEntity missile = new MissileEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, directDamage);
@@ -336,15 +346,15 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         missile.setSourcePos(pos);
         missile.setBasePos(pos.relative(facing.getOpposite()));
         missile.setExplosionDamage(explosionDamage);
-        missile.setExplosionRadius(EXPLOSION_RADIUS);
-        missile.setAcceleration(ACCELERATION); // 越飞越快
-        missile.setTurnRate(TURN_RATE); // 制导追踪转向速率
+        missile.setExplosionRadius(getExplosionRadius());
+        missile.setAcceleration(getAcceleration()); // 越飞越快
+        missile.setTurnRate(getTurnRate()); // 制导追踪转向速率
         missile.setTargetEntity(target); // 设置追踪目标
 
         // 破坏插件：决定是否破坏方块
         missile.setDestroyBlocks(base.hasDestructionPlugin());
 
-        missile.shoot(direction, (float) BULLET_SPEED);
+        missile.shoot(direction, getBulletSpeed());
 
         boolean spawned = level.addFreshEntity(missile);
         if (!spawned) {
@@ -360,10 +370,10 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 	 */
 	public float getExpectedDamage(TurretBaseBlockEntity base) {
 		BlockState state = getBlockState();
-		if (!(state.getBlock() instanceof MissileTurretBlock)) return DIRECT_DAMAGE + EXPLOSION_DAMAGE;
+		if (!(state.getBlock() instanceof MissileTurretBlock)) return getDirectDamage() + getExplosionDamage();
 		Direction facing = state.getValue(MissileTurretBlock.FACING);
-		float directDamage = base.getDamageForFace(facing, DIRECT_DAMAGE);
-		return directDamage + EXPLOSION_DAMAGE;
+		float directDamage = base.getDamageForFace(facing, getDirectDamage());
+		return directDamage + getExplosionDamage();
 	}
 
     /**
@@ -491,7 +501,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         }
 
         Direction facing = getBlockState().getValue(MissileTurretBlock.FACING);
-        double searchRadius = base.getSearchRadiusForFace(facing, SEARCH_RADIUS);
+        double searchRadius = base.getSearchRadiusForFace(facing, getSearchRadius());
         if (!isTargetInRange(entity, pos, searchRadius)) return false;
 
 // 获取可见瞄准点（优先：头部 > 身体 > 脚部）
