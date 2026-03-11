@@ -545,42 +545,19 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     }
 
     private boolean isTargetInRange(LivingEntity entity, BlockPos pos, double searchRadius) {
-        Vec3 turretPos = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        return entity.distanceToSqr(turretPos) <= searchRadius * searchRadius;
+        return LinearTurretTargetingHelper.isTargetInRange(entity, pos, searchRadius);
     }
 
     private Vec3 getVisibleTargetPoint(LivingEntity entity, Level level, BlockPos pos) {
         Direction facing = getBlockState().getValue(LaserTurretBlock.FACING);
         Vec3 start = calculateMuzzlePosition(pos, facing);
-
-        Vec3 headPoint = entity.position().add(0, entity.getEyeHeight(), 0);
-        Vec3 bodyPoint = entity.position().add(0, entity.getBbHeight() * 0.5, 0);
-        Vec3 feetPoint = entity.position();
-
-        if (canSeePoint(level, pos, start, headPoint)) return headPoint;
-        if (canSeePoint(level, pos, start, bodyPoint)) return bodyPoint;
-        if (canSeePoint(level, pos, start, feetPoint)) return feetPoint;
-
-        return null;
+        return LinearTurretTargetingHelper.findVisibleTargetPoint(level, pos, facing, start, entity);
     }
 
     private boolean canSeePoint(Level level, BlockPos pos, Vec3 start, Vec3 end) {
-        Vec3 toPoint = end.subtract(start);
-        if (toPoint.lengthSqr() < 1.0E-6) {
-            return true;
-        }
-
-        Vec3 adjustedStart = start.add(toPoint.normalize().scale(0.6));
-        net.minecraft.world.phys.BlockHitResult hitResult = level.clip(new net.minecraft.world.level.ClipContext(
-                adjustedStart, end,
-                net.minecraft.world.level.ClipContext.Block.COLLIDER,
-                net.minecraft.world.level.ClipContext.Fluid.NONE,
-                null
-        ));
-
-        return hitResult.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
+        Direction facing = getBlockState().getValue(LaserTurretBlock.FACING);
+        return LinearTurretTargetingHelper.canSeePoint(level, pos, facing, start, end);
     }
-
 
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag) {

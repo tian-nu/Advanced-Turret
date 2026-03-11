@@ -528,8 +528,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
      * 检查目标是否在范围内
      */
     private boolean isTargetInRange(LivingEntity entity, BlockPos pos, double searchRadius) {
-        Vec3 turretPos = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        return entity.distanceToSqr(turretPos) <= searchRadius * searchRadius;
+        return LinearTurretTargetingHelper.isTargetInRange(entity, pos, searchRadius);
     }
 
     /**
@@ -541,42 +540,12 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
     private Vec3 getVisibleTargetPoint(LivingEntity entity, Level level, BlockPos pos) {
         Direction facing = getBlockState().getValue(MissileTurretBlock.FACING);
         Vec3 start = calculateMuzzlePosition(pos, facing);
-
-        // 目标检测点：眼睛、中心、脚部（优先头部）
-        Vec3 headPoint = entity.position().add(0, entity.getEyeHeight(), 0);
-        Vec3 bodyPoint = entity.position().add(0, entity.getBbHeight() * 0.5, 0);
-        Vec3 feetPoint = entity.position();
-
-        // 优先检测头部（更致命）
-        if (canSeePoint(level, pos, start, headPoint)) return headPoint;
-        // 其次身体
-        if (canSeePoint(level, pos, start, bodyPoint)) return bodyPoint;
-        // 最后脚部
-        if (canSeePoint(level, pos, start, feetPoint)) return feetPoint;
-
-        return null; // 完全不可见
+        return LinearTurretTargetingHelper.findVisibleTargetPoint(level, pos, facing, start, entity);
     }
 
     private boolean canSeePoint(Level level, BlockPos pos, Vec3 start, Vec3 end) {
-        Vec3 outward = end.subtract(start).normalize();
-        Vec3 adjustedStart = start.add(outward.scale(0.6));
-
-        net.minecraft.world.phys.BlockHitResult hitResult = level.clip(new net.minecraft.world.level.ClipContext(
-                adjustedStart, end,
-                net.minecraft.world.level.ClipContext.Block.COLLIDER,
-                net.minecraft.world.level.ClipContext.Fluid.NONE,
-                null
-        ));
-
-        if (hitResult.getType() == net.minecraft.world.phys.HitResult.Type.MISS) return true;
-
-        BlockPos hitPos = hitResult.getBlockPos();
-
         Direction facing = getBlockState().getValue(MissileTurretBlock.FACING);
-        BlockPos basePos = pos.relative(facing.getOpposite());
-        if (hitPos.equals(basePos)) return false;
-
-        return false;
+        return LinearTurretTargetingHelper.canSeePoint(level, pos, facing, start, end);
     }
 
     @Override
