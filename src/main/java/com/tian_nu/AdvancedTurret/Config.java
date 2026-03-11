@@ -1,9 +1,11 @@
 package com.tian_nu.AdvancedTurret;
 
+import com.mojang.logging.LogUtils;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
+import org.slf4j.Logger;
 
 /**
  * 模组配置类
@@ -13,6 +15,7 @@ import net.minecraftforge.fml.event.config.ModConfigEvent;
 @Mod.EventBusSubscriber(modid = TurretMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {
 
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
     // 通用配置
@@ -35,7 +38,7 @@ public class Config {
     // 机枪炮塔
     public static final ForgeConfigSpec.DoubleValue MACHINE_GUN_DAMAGE = BUILDER
             .comment("机枪炮塔子弹伤害")
-            .defineInRange("machineGunDamage", 3.0, 0.1, 1000.0);
+            .defineInRange("machineGunDamage", 4.0, 0.1, 1000.0);
 
     public static final ForgeConfigSpec.DoubleValue MACHINE_GUN_RANGE = BUILDER
             .comment("机枪炮塔搜索范围")
@@ -72,7 +75,7 @@ public class Config {
 
     public static final ForgeConfigSpec.IntValue RAILGUN_ENERGY_COST = BUILDER
             .comment("磁轨炮炮塔每次射击能量消耗")
-            .defineInRange("railgunEnergyCost", 25000, 1, 1000000);
+            .defineInRange("railgunEnergyCost", 10000, 1, 1000000);
 
     public static final ForgeConfigSpec.IntValue RAILGUN_PENETRATION = BUILDER
             .comment("磁轨炮炮塔穿透目标数量")
@@ -89,7 +92,7 @@ public class Config {
 
     public static final ForgeConfigSpec.IntValue LASER_ENERGY_PER_TICK = BUILDER
             .comment("激光炮塔每tick能量消耗")
-            .defineInRange("laserEnergyPerTick", 1000, 1, 100000);
+            .defineInRange("laserEnergyPerTick", 500, 1, 100000);
 
     public static final ForgeConfigSpec.IntValue LASER_FIRE_SECONDS = BUILDER
             .comment("激光炮塔点燃时间 (秒)")
@@ -143,7 +146,7 @@ public class Config {
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_EXPLOSION_DAMAGE = BUILDER
             .comment("导弹炮塔爆炸伤害")
-            .defineInRange("missileExplosionDamage", 20.0, 0.0, 10000.0);
+            .defineInRange("missileExplosionDamage", 15.0, 0.0, 10000.0);
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_EXPLOSION_RADIUS = BUILDER
             .comment("导弹炮塔爆炸半径")
@@ -155,7 +158,7 @@ public class Config {
 
     public static final ForgeConfigSpec.IntValue MISSILE_FIRE_RATE = BUILDER
             .comment("导弹炮塔射击间隔 (tick/发)")
-            .defineInRange("missileFireRate", 200, 1, 2400);
+            .defineInRange("missileFireRate", 133, 1, 2400);
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_BULLET_SPEED = BUILDER
             .comment("导弹炮塔导弹初速度")
@@ -217,7 +220,7 @@ public class Config {
     // 垃圾炮塔
     public static final ForgeConfigSpec.DoubleValue JUNK_TURRET_DAMAGE = BUILDER
             .comment("垃圾炮塔投射物伤害")
-            .defineInRange("junkTurretDamage", 2.0, 0.1, 1000.0);
+            .defineInRange("junkTurretDamage", 4.0, 0.1, 1000.0);
 
     public static final ForgeConfigSpec.DoubleValue JUNK_TURRET_RANGE = BUILDER
             .comment("垃圾炮塔搜索范围")
@@ -333,6 +336,10 @@ public class Config {
 
     @SubscribeEvent
     static void onLoad(ModConfigEvent event) {
+        if (event.getConfig().getSpec() != SPEC) {
+            return;
+        }
+
         turretBaseMaxEnergyT1 = TURRET_BASE_MAX_ENERGY_T1.get();
         turretBaseMaxEnergyT2 = TURRET_BASE_MAX_ENERGY_T2.get();
         turretBaseMaxEnergyT3 = TURRET_BASE_MAX_ENERGY_T3.get();
@@ -400,5 +407,15 @@ public class Config {
         solarEnergyGeneration = SOLAR_ENERGY_GENERATION.get();
         ammoRecycleChance = AMMO_RECYCLE_CHANCE.get();
         redstoneToEnergyRatio = REDSTONE_TO_ENERGY_RATIO.get();
+
+        LOGGER.info("已加载炮塔配置文件: {}", event.getConfig().getFileName());
+        LOGGER.info("当前关键能耗配置: 激光={} FE/t, 磁轨={} FE/发", laserEnergyPerTick, railgunEnergyCost);
+
+        if (laserEnergyPerTick == 10 || railgunEnergyCost == 1000) {
+            LOGGER.warn("检测到旧版能耗配置仍在生效。当前值: 激光={} FE/t, 磁轨={} FE/发。若这不是你的主动配置，请检查并更新 {}",
+                    laserEnergyPerTick,
+                    railgunEnergyCost,
+                    event.getConfig().getFileName());
+        }
     }
 }

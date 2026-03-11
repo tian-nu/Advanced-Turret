@@ -214,7 +214,6 @@ private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base,
 		}
 	}
 
-
 	private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base, Direction facing) {
 		int energyCost = base.getEnergyCostForFace(facing, Config.railgunEnergyCost);
 		if (base.getEnergyStored() < energyCost) return;
@@ -249,8 +248,6 @@ private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base,
 		} else {
 			consumeAmmo(base);
 		}
-
-		// 计算伤害并创建子弹
 
 		float damage = base.getDamageForFace(facing, getBulletDamage());
 		RailgunBulletEntity bullet = new RailgunBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
