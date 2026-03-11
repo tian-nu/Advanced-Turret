@@ -1,11 +1,9 @@
 package com.tian_nu.AdvancedTurret;
 
-import com.mojang.logging.LogUtils;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-import org.slf4j.Logger;
 
 /**
  * 模组配置类
@@ -14,8 +12,6 @@ import org.slf4j.Logger;
  */
 @Mod.EventBusSubscriber(modid = TurretMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {
-
-    private static final Logger LOGGER = LogUtils.getLogger();
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
     // 通用配置
@@ -408,14 +404,6 @@ public class Config {
         ammoRecycleChance = AMMO_RECYCLE_CHANCE.get();
         redstoneToEnergyRatio = REDSTONE_TO_ENERGY_RATIO.get();
 
-        LOGGER.info("已加载炮塔配置文件: {}", event.getConfig().getFileName());
-        LOGGER.info("当前关键能耗配置: 激光={} FE/t, 磁轨={} FE/发", laserEnergyPerTick, railgunEnergyCost);
 
-        if (laserEnergyPerTick == 10 || railgunEnergyCost == 1000) {
-            LOGGER.warn("检测到旧版能耗配置仍在生效。当前值: 激光={} FE/t, 磁轨={} FE/发。若这不是你的主动配置，请检查并更新 {}",
-                    laserEnergyPerTick,
-                    railgunEnergyCost,
-                    event.getConfig().getFileName());
-        }
     }
 }
