@@ -42,7 +42,9 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.RAILGUN_TURRET.get());
                         output.accept(ModBlocks.ROCKET_TURRET.get());
                         output.accept(ModBlocks.MISSILE_TURRET.get());
-                        output.accept(ModBlocks.LASER_TURRET.get());
+                        
+                        output.accept(ModBlocks.PHASE_FIELD_TURRET.get());
+                        output.accept(ModBlocks.RESONANCE_FIELD_TURRET.get());
                         output.accept(ModBlocks.GRENADE_LAUNCHER_TURRET.get());
                         output.accept(ModBlocks.JUNK_TURRET.get());
                         

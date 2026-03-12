@@ -259,6 +259,25 @@ public class Config {
             .comment("红石转化插件：每个红石转化能量 (FE/个)")
             .defineInRange("redstoneToEnergyRatio", 2000, 100, 10000);
 
+    // 立场炮塔
+    public static final ForgeConfigSpec.DoubleValue PHASE_FIELD_RANGE = BUILDER
+            .comment("相位立场炮塔基础作用范围")
+            .defineInRange("phaseFieldRange", 32.0, 1.0, 256.0);
+    public static final ForgeConfigSpec.IntValue PHASE_FIELD_ENERGY_PER_TICK = BUILDER
+            .comment("相位立场炮塔每 tick 能量消耗")
+            .defineInRange("phaseFieldEnergyPerTick", 100, 1, 100000);
+    public static final ForgeConfigSpec.IntValue PHASE_FIELD_EFFECT_DURATION = BUILDER
+            .comment("相位立场炮塔基础效果持续时间 (tick)")
+            .defineInRange("phaseFieldEffectDuration", 600, 1, 12000);
+    public static final ForgeConfigSpec.DoubleValue RESONANCE_FIELD_RANGE = BUILDER
+            .comment("谐振立场炮塔基础作用范围")
+            .defineInRange("resonanceFieldRange", 64.0, 1.0, 256.0);
+    public static final ForgeConfigSpec.IntValue RESONANCE_FIELD_ENERGY_PER_TICK = BUILDER
+            .comment("谐振立场炮塔每 tick 能量消耗")
+            .defineInRange("resonanceFieldEnergyPerTick", 100, 1, 100000);
+    public static final ForgeConfigSpec.IntValue RESONANCE_FIELD_EFFECT_DURATION = BUILDER
+            .comment("谐振立场炮塔基础效果持续时间 (tick)")
+            .defineInRange("resonanceFieldEffectDuration", 1200, 1, 12000);
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     // 运行时配置值
@@ -325,6 +344,12 @@ public class Config {
     public static double junkTurretMinArcHeight;
     public static double junkTurretMaxArcHeight;
     public static int junkTurretEnergyCost;
+    public static double phaseFieldRange;
+    public static int phaseFieldEnergyPerTick;
+    public static int phaseFieldEffectDuration;
+    public static double resonanceFieldRange;
+    public static int resonanceFieldEnergyPerTick;
+    public static int resonanceFieldEffectDuration;
 
     public static int solarEnergyGeneration;
     public static double ammoRecycleChance;
@@ -399,6 +424,12 @@ public class Config {
         junkTurretMinArcHeight = JUNK_TURRET_MIN_ARC_HEIGHT.get();
         junkTurretMaxArcHeight = JUNK_TURRET_MAX_ARC_HEIGHT.get();
         junkTurretEnergyCost = JUNK_TURRET_ENERGY_COST.get();
+        phaseFieldRange = PHASE_FIELD_RANGE.get();
+        phaseFieldEnergyPerTick = PHASE_FIELD_ENERGY_PER_TICK.get();
+        phaseFieldEffectDuration = PHASE_FIELD_EFFECT_DURATION.get();
+        resonanceFieldRange = RESONANCE_FIELD_RANGE.get();
+        resonanceFieldEnergyPerTick = RESONANCE_FIELD_ENERGY_PER_TICK.get();
+        resonanceFieldEffectDuration = RESONANCE_FIELD_EFFECT_DURATION.get();
 
         solarEnergyGeneration = SOLAR_ENERGY_GENERATION.get();
         ammoRecycleChance = AMMO_RECYCLE_CHANCE.get();

@@ -88,6 +88,16 @@ public class ModBlocks {
                     .mapColor(MapColor.METAL)
                     .noOcclusion()
                     .strength(1.0f, 6.0f)));
+    public static final RegistryObject<Block> PHASE_FIELD_TURRET =
+            registerBlock("phase_field_turret", () -> new PhaseFieldTurretBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .noOcclusion()
+                    .strength(1.0f, 6.0f)));
+    public static final RegistryObject<Block> RESONANCE_FIELD_TURRET =
+            registerBlock("resonance_field_turret", () -> new ResonanceFieldTurretBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .noOcclusion()
+                    .strength(1.0f, 6.0f)));
     
     // 榴弹发射器炮塔
     public static final RegistryObject<Block> GRENADE_LAUNCHER_TURRET =

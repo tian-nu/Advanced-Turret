@@ -457,6 +457,14 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
             TurretBaseBlockEntity base = turret.getBaseEntity();
             return base != null && base.getBlockPos().equals(getBlockPos());
         }
+        if (be instanceof PhaseFieldTurretBlockEntity turret) {
+            TurretBaseBlockEntity base = turret.getBaseEntity();
+            return base != null && base.getBlockPos().equals(getBlockPos());
+        }
+        if (be instanceof ResonanceFieldTurretBlockEntity turret) {
+            TurretBaseBlockEntity base = turret.getBaseEntity();
+            return base != null && base.getBlockPos().equals(getBlockPos());
+        }
         return false;
     }
     
@@ -1023,6 +1031,10 @@ public boolean hasDestructionPlugin() {
                 hasJunkTurret = true;
             } else if (be instanceof LaserTurretBlockEntity turret && turret.getBaseEntity() == this) {
                 hasMountedTurret = true;
+            } else if (be instanceof PhaseFieldTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
+            } else if (be instanceof ResonanceFieldTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
             }
         }
 
@@ -1066,6 +1078,10 @@ public boolean hasDestructionPlugin() {
         int count = countUpgradeItems(face, ModItems.ENERGY_EFFICIENCY_COMPONENT.get());
         double factor = Math.max(0.20, 1.0 - (count * 0.05));
         return Math.max(1, (int) Math.ceil(baseEnergyCost * factor));
+    }
+
+    public int getUpgradeItemCountForFace(Direction face, net.minecraft.world.item.Item item) {
+        return countUpgradeItems(face, item);
     }
 
     private int countUpgradeItems(Direction face, net.minecraft.world.item.Item item) {

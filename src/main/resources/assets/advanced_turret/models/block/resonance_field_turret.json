@@ -1,0 +1,7 @@
+{
+  ""parent"": ""advanced_turret:block/machine_gun_turret"",
+  ""textures"": {
+    ""1"": ""advanced_turret:block/resonance_field_turret"",
+    ""particle"": ""advanced_turret:block/resonance_field_turret""
+  }
+}
