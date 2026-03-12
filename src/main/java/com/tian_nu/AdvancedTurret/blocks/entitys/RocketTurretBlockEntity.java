@@ -439,86 +439,27 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
      * 检查是否为有效目标
      */
     private boolean isValidTarget(LivingEntity entity, Level level, BlockPos pos) {
-        if (!entity.isAlive()) return false;
-        if (entity.isInvulnerable()) return false;
-
         TurretBaseBlockEntity base = getBaseEntity();
-        if (base == null) return false;
-
-        ItemStack pluginStack = base.getPluginStack();
-        String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
-
-        // 1. 黑名单检查 (强制攻击)
-        List<String> blacklist = SmartChipItem.getBlacklist(pluginStack);
-        boolean inBlacklist = blacklist.contains(entityId);
-
-        // 2. 白名单检查 (强制排除)
-        List<String> whitelist = SmartChipItem.getWhitelist(pluginStack);
-        if (whitelist.contains(entityId)) return false;
-
-        // 3. 目标模式检查
-        if (!inBlacklist) {
-            int flags = SmartChipItem.getTargetFlags(pluginStack);
-            boolean matched = false;
-
-            if ((flags & SmartChipItem.FLAG_HOSTILE) != 0) {
-                if (entity instanceof Enemy) matched = true;
-            }
-
-            if (!matched && (flags & SmartChipItem.FLAG_NEUTRAL) != 0) {
-                if (entity instanceof NeutralMob) matched = true;
-            }
-
-            if (!matched && (flags & SmartChipItem.FLAG_FRIENDLY) != 0) {
-                if (entity instanceof Animal || entity instanceof AmbientCreature || entity instanceof WaterAnimal) matched = true;
-            }
-
-            if (!matched && (flags & SmartChipItem.FLAG_PLAYERS) != 0) {
-                if (entity instanceof Player p && !p.isCreative() && !p.isSpectator()) matched = true;
-            }
-
-            if (!matched) return false;
-        }
-
-        // 4. 友伤保护检查
-        if (base.isFriendlyFire()) {
-            java.util.UUID ownerId = base.getOwner();
-            if (ownerId != null) {
-                if (entity.getUUID().equals(ownerId)) return false;
-                if (entity instanceof net.minecraft.world.entity.TamableAnimal tameable) {
-                    java.util.UUID tameOwner = tameable.getOwnerUUID();
-                    if (tameOwner != null && tameOwner.equals(ownerId)) return false;
-                }
-            }
+        if (base == null) {
+            return false;
         }
 
         Direction facing = getBlockState().getValue(RocketTurretBlock.FACING);
         double searchRadius = base.getSearchRadiusForFace(facing, getSearchRadius());
-        if (!isTargetInRange(entity, pos, searchRadius)) return false;
+        if (!TurretTargetFilterHelper.passesCommonChecks(entity, base, pos, searchRadius)) {
+            return false;
+        }
 
-// 获取可见瞄准点（优先：头部 > 身体 > 脚部）
-		Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
-		if (visiblePoint == null) {
-			return false; // 完全不可见
-		}
-		// 存储可见点供射击使用
-		visibleTargetPoint = visiblePoint;
+        // 获取可见瞄准点（优先：头部 > 身体 > 脚部）
+        Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
+        if (visiblePoint == null) {
+            return false;
+        }
+        visibleTargetPoint = visiblePoint;
 
-		// 5. 厉行节约检查：目标是否值得攻击
-		if (base.isThriftyMode()) {
-			float reservedDamage = base.getReservedDamage(entity.getId());
-			float remainingHealth = entity.getHealth() - reservedDamage;
-			if (remainingHealth <= 0) {
-				return false;
-			}
-		}
+        return !TurretTargetFilterHelper.shouldSkipForThrifty(entity, base);
+    }
 
-		return true;
-	}
-
-    /**
-     * 检查目标是否在范围内
-     */
     private boolean isTargetInRange(LivingEntity entity, BlockPos pos, double searchRadius) {
         return LinearTurretTargetingHelper.isTargetInRange(entity, pos, searchRadius);
     }

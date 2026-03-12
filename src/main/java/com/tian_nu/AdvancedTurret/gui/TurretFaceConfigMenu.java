@@ -15,18 +15,24 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class TurretFaceConfigMenu extends AbstractContainerMenu {
 
-    private final TurretBaseBlockEntity blockEntity;
-    private final ContainerLevelAccess levelAccess;
-    private final ContainerData data;
+    private static final int FACE_COLUMNS = 6;
+    private static final int SLOT_SPACING = 18;
+    private static final int UPGRADE_START_X = 43;
+    private static final int UPGRADE_START_Y = 24;
     private static final int UPGRADE_SLOTS = 6 * TurretBaseBlockEntity.MAX_UPGRADE_SLOTS_PER_FACE;
     private static final int PLAYER_INV_START = UPGRADE_SLOTS;
     private static final int PLAYER_INV_END = PLAYER_INV_START + 27;
     private static final int PLAYER_HOTBAR_END = PLAYER_INV_END + 9;
+
+    private final TurretBaseBlockEntity blockEntity;
+    private final ContainerLevelAccess levelAccess;
+    private final ContainerData data;
 
     public TurretFaceConfigMenu(int containerId, Inventory playerInventory, FriendlyByteBuf extraData) {
         this(containerId, playerInventory, getBlockEntity(playerInventory, extraData), new SimpleContainerData(3), false);
@@ -51,6 +57,7 @@ public class TurretFaceConfigMenu extends AbstractContainerMenu {
         this.blockEntity = turretBase;
         this.levelAccess = ContainerLevelAccess.create(turretBase.getLevel(), turretBase.getBlockPos());
         if (isServerSide) {
+            cleanupInactiveUpgradeItems(playerInventory.player);
             this.data = new ContainerData() {
                 @Override
                 public int get(int index) {
@@ -77,20 +84,41 @@ public class TurretFaceConfigMenu extends AbstractContainerMenu {
         addFaceUpgradeSlots();
         addPlayerInventory(playerInventory);
         addPlayerHotbar(playerInventory);
-
         addDataSlots(this.data);
+    }
+
+    private void cleanupInactiveUpgradeItems(Player player) {
+        for (Direction face : new Direction[] {Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST}) {
+            ItemStackHandler handler = (ItemStackHandler) blockEntity.getFaceUpgradeSlots(face);
+            boolean faceActive = blockEntity.hasTurretOnFace(face);
+            int allowedSlots = faceActive ? blockEntity.getUpgradeSlotsPerFace() : 0;
+            for (int slot = allowedSlots; slot < handler.getSlots(); slot++) {
+                ItemStack stack = handler.getStackInSlot(slot);
+                if (stack.isEmpty()) {
+                    continue;
+                }
+                ItemStack copy = stack.copy();
+                handler.setStackInSlot(slot, ItemStack.EMPTY);
+                if (!player.getInventory().add(copy)) {
+                    player.drop(copy, false);
+                }
+            }
+        }
+        blockEntity.setChanged();
+        blockEntity.syncToClient();
     }
 
     private void addFaceUpgradeSlots() {
         Direction[] faces = new Direction[] {Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
-        for (int faceIndex = 0; faceIndex < faces.length; faceIndex++) {
+        for (int faceIndex = 0; faceIndex < FACE_COLUMNS; faceIndex++) {
             Direction face = faces[faceIndex];
             IItemHandlerModifiable handler = (IItemHandlerModifiable) blockEntity.getFaceUpgradeSlots(face);
+            int x = UPGRADE_START_X + faceIndex * SLOT_SPACING;
             for (int upgradeIndex = 0; upgradeIndex < TurretBaseBlockEntity.MAX_UPGRADE_SLOTS_PER_FACE; upgradeIndex++) {
-                int x = 8 + faceIndex * 18;
-                int y = 18 + upgradeIndex * 18;
+                int y = UPGRADE_START_Y + upgradeIndex * SLOT_SPACING;
                 int slotIndex = upgradeIndex;
-                addSlot(new ConditionalSlotItemHandler(handler, slotIndex, x, y, () -> blockEntity.hasTurretOnFace(face) && slotIndex < blockEntity.getUpgradeSlotsPerFace()));
+                addSlot(new ConditionalSlotItemHandler(handler, slotIndex, x, y,
+                    () -> blockEntity.hasTurretOnFace(face) && slotIndex < blockEntity.getUpgradeSlotsPerFace()));
             }
         }
     }
@@ -178,13 +206,11 @@ public class TurretFaceConfigMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPickup(Player playerIn) {
-            if (this.hasItem()) return true;
             return activeSupplier.isActive() && super.mayPickup(playerIn);
         }
 
         @Override
         public boolean isActive() {
-            if (this.hasItem()) return true;
             return activeSupplier.isActive();
         }
     }

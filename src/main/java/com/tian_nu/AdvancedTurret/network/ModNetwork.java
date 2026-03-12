@@ -50,5 +50,21 @@ public class ModNetwork {
                 TurretFaceSelectPacket::decode,
                 TurretFaceSelectPacket::handle
         );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                TurretRangeConfigPacket.class,
+                TurretRangeConfigPacket::encode,
+                TurretRangeConfigPacket::decode,
+                TurretRangeConfigPacket::handle
+        );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                TurretFaceEnableConfigPacket.class,
+                TurretFaceEnableConfigPacket::encode,
+                TurretFaceEnableConfigPacket::decode,
+                TurretFaceEnableConfigPacket::handle
+        );
     }
 }

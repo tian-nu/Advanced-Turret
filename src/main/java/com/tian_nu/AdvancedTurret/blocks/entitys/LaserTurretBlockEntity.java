@@ -481,67 +481,25 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
      * 妫€鏌ユ槸鍚︿负鏈夋晥鐩爣
      */
     private boolean isValidTarget(LivingEntity entity, Level level, BlockPos pos) {
-        if (!entity.isAlive()) return false;
-        if (entity.isInvulnerable()) return false;
-
         TurretBaseBlockEntity base = getBaseEntity();
-        if (base == null) return false;
-
-        ItemStack pluginStack = base.getPluginStack();
-        String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
-
-        List<String> blacklist = SmartChipItem.getBlacklist(pluginStack);
-        boolean inBlacklist = blacklist.contains(entityId);
-
-        List<String> whitelist = SmartChipItem.getWhitelist(pluginStack);
-        if (whitelist.contains(entityId)) return false;
-
-        if (!inBlacklist) {
-            int flags = SmartChipItem.getTargetFlags(pluginStack);
-            boolean matched = false;
-
-            if ((flags & SmartChipItem.FLAG_HOSTILE) != 0 && entity instanceof Enemy) matched = true;
-            if (!matched && (flags & SmartChipItem.FLAG_NEUTRAL) != 0 && entity instanceof NeutralMob) matched = true;
-            if (!matched && (flags & SmartChipItem.FLAG_FRIENDLY) != 0 &&
-                (entity instanceof Animal || entity instanceof AmbientCreature || entity instanceof WaterAnimal)) matched = true;
-            if (!matched && (flags & SmartChipItem.FLAG_PLAYERS) != 0 &&
-                entity instanceof Player p && !p.isCreative() && !p.isSpectator()) matched = true;
-
-            if (!matched) return false;
-        }
-
-        // 鍙嬩激淇濇姢
-        if (base.isFriendlyFire()) {
-            java.util.UUID ownerId = base.getOwner();
-            if (ownerId != null) {
-                if (entity.getUUID().equals(ownerId)) return false;
-                if (entity instanceof net.minecraft.world.entity.TamableAnimal tameable) {
-                    java.util.UUID tameOwner = tameable.getOwnerUUID();
-                    if (tameOwner != null && tameOwner.equals(ownerId)) return false;
-                }
-            }
+        if (base == null) {
+            return false;
         }
 
         Direction facing = getBlockState().getValue(LaserTurretBlock.FACING);
         double searchRadius = base.getSearchRadiusForFace(facing, getSearchRadius());
-        if (!isTargetInRange(entity, pos, searchRadius)) return false;
-
-        // 鍙鎬ф鏌?
-        Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
-        if (visiblePoint == null) return false;
-
-        visibleTargetPoint = visiblePoint;
-
-        // 鍘夎鑺傜害
-        if (base.isThriftyMode()) {
-            float expectedDamage = getExpectedDamage(base);
-            float currentHealth = entity.getHealth();
-            float reservedDamage = base.getReservedDamage(entity.getId());
-            float remainingHealth = currentHealth - reservedDamage;
-            if (remainingHealth <= 0) return false;
+        if (!TurretTargetFilterHelper.passesCommonChecks(entity, base, pos, searchRadius)) {
+            return false;
         }
 
-        return true;
+        // 获取可见瞄准点（优先：头部 > 身体 > 脚部）
+        Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
+        if (visiblePoint == null) {
+            return false;
+        }
+        visibleTargetPoint = visiblePoint;
+
+        return !TurretTargetFilterHelper.shouldSkipForThrifty(entity, base);
     }
 
     private boolean isTargetInRange(LivingEntity entity, BlockPos pos, double searchRadius) {

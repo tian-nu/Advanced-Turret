@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 /**
- * 鐐GUI缁熶竴瑙嗚宸ュ叿
+ * 炮塔 GUI 统一视觉工具
  */
 public final class TurretUiTheme {
 
@@ -26,18 +26,30 @@ public final class TurretUiTheme {
     public static final int COLOR_TEXT_SUB = 0xFFB7C0D4;
 
     public static void drawPanel(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + h, COLOR_PANEL_BG);
-        drawBorder(g, x, y, w, h, COLOR_PANEL_BORDER);
+        drawPanel(g, x, y, w, h, 1.0F);
+    }
+
+    public static void drawPanel(GuiGraphics g, int x, int y, int w, int h, float alpha) {
+        g.fill(x, y, x + w, y + h, withAlpha(COLOR_PANEL_BG, alpha));
+        drawBorder(g, x, y, w, h, withAlpha(COLOR_PANEL_BORDER, Math.max(alpha, 0.35F)));
     }
 
     public static void drawSection(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + h, COLOR_SECTION_BG);
-        drawBorder(g, x, y, w, h, COLOR_SECTION_BORDER);
+        drawSection(g, x, y, w, h, 1.0F);
+    }
+
+    public static void drawSection(GuiGraphics g, int x, int y, int w, int h, float alpha) {
+        g.fill(x, y, x + w, y + h, withAlpha(COLOR_SECTION_BG, alpha));
+        drawBorder(g, x, y, w, h, withAlpha(COLOR_SECTION_BORDER, Math.max(alpha, 0.35F)));
     }
 
     public static void drawSlotFrame(GuiGraphics g, int x, int y) {
-        g.fill(x, y, x + 18, y + 18, COLOR_SLOT_BG);
-        drawBorder(g, x, y, 18, 18, COLOR_SLOT_BORDER);
+        drawSlotFrame(g, x, y, 1.0F);
+    }
+
+    public static void drawSlotFrame(GuiGraphics g, int x, int y, float alpha) {
+        g.fill(x, y, x + 18, y + 18, withAlpha(COLOR_SLOT_BG, alpha));
+        drawBorder(g, x, y, 18, 18, withAlpha(COLOR_SLOT_BORDER, Math.max(alpha, 0.35F)));
     }
 
     public static void drawBorder(GuiGraphics g, int x, int y, int w, int h, int color) {
@@ -45,6 +57,13 @@ public final class TurretUiTheme {
         g.fill(x, y + h - 1, x + w, y + h, color);
         g.fill(x, y, x + 1, y + h, color);
         g.fill(x + w - 1, y, x + w, y + h, color);
+    }
+
+    public static int withAlpha(int color, float alphaMultiplier) {
+        float clamped = Math.max(0.0F, Math.min(1.0F, alphaMultiplier));
+        int alpha = (color >>> 24) & 0xFF;
+        int adjusted = Math.max(0, Math.min(255, Math.round(alpha * clamped)));
+        return (color & 0x00FFFFFF) | (adjusted << 24);
     }
 
     public static MutableComponent tipTitle(String text) {

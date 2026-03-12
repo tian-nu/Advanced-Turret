@@ -4,10 +4,11 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.tian_nu.AdvancedTurret.ConfigManager;
 import com.tian_nu.AdvancedTurret.network.ModNetwork;
 import com.tian_nu.AdvancedTurret.network.TurretOpenFaceConfigPacket;
+import com.tian_nu.AdvancedTurret.network.TurretRangeConfigPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -29,25 +30,26 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
 
     private static final int TEXTURE_WIDTH = 194;
     private static final int TEXTURE_HEIGHT = 166;
-
     private static final int AMMO_SLOT_COUNT = 9;
     private static final int PLAYER_SLOT_COUNT = 36;
-
-    private float backgroundAlpha = ConfigManager.getBackgroundAlpha();
-    private float energyBarAlpha = ConfigManager.getEnergyBarAlpha();
-
-    private static final ResourceLocation PERSONAL_CONFIG_BUTTON_TEXTURE =
-        ResourceLocation.fromNamespaceAndPath("advanced_turret", "textures/gui/container/personal_config_button.png");
-    private static final int CONFIG_BUTTON_SIZE = 20;
-    private static final int CONFIG_BUTTON_TEXTURE_SIZE = 474;
 
     private static final int ENERGY_BAR_X = 169;
     private static final int ENERGY_BAR_Y = 19;
     private static final int ENERGY_BAR_WIDTH = 14;
     private static final int ENERGY_BAR_HEIGHT = 50;
+    private static final int RANGE_INPUT_X = 80;
+    private static final int RANGE_INPUT_Y = 22;
+    private static final int RANGE_INPUT_WIDTH = 28;
+    private static final int RANGE_INPUT_HEIGHT = 16;
+
+    private float backgroundAlpha = ConfigManager.getBackgroundAlpha();
+    private float energyBarAlpha = ConfigManager.getEnergyBarAlpha();
 
     private Button smartConfigButton;
     private Button faceConfigButton;
+    private Button personalConfigButton;
+    private EditBox rangeInput;
+    private double lastSubmittedRange = Double.NaN;
 
     public TurretScreen(TurretMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -60,10 +62,8 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         super.init();
 
         this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
-        this.titleLabelY = 6;
+        this.titleLabelY = 2;
         this.inventoryLabelY = this.imageHeight - 94;
-
-        addConfigButton();
 
         int guiLeft = (this.width - this.imageWidth) / 2;
         int guiTop = (this.height - this.imageHeight) / 2;
@@ -80,34 +80,87 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
             ModNetwork.CHANNEL.sendToServer(new TurretOpenFaceConfigPacket(menu.getBlockEntity().getBlockPos()))
         ).bounds(guiLeft + this.imageWidth + 8, guiTop + 47, 84, 20).build();
         addRenderableWidget(this.faceConfigButton);
+
+        this.personalConfigButton = Button.builder(Component.translatable("gui.turret_personal_config.button"), b ->
+            openConfigScreen()
+        ).bounds(guiLeft + this.imageWidth + 8, guiTop + 72, 84, 20).build();
+        addRenderableWidget(this.personalConfigButton);
+
+        int rangeInputX = guiLeft + getRangeInputX();
+        this.rangeInput = new EditBox(this.font, rangeInputX, guiTop + RANGE_INPUT_Y, getRangeInputWidth(), getRangeInputHeight(),
+            Component.translatable("gui.advanced_turret.range_control"));
+        this.rangeInput.setMaxLength(3);
+        this.rangeInput.setFilter(this::isValidRangeInput);
+        double manualLimit = menu.getBlockEntity().getManualRangeLimit();
+        this.rangeInput.setValue(formatRangeValue(manualLimit));
+        this.lastSubmittedRange = manualLimit;
+        addRenderableWidget(this.rangeInput);
     }
 
-    private void addConfigButton() {
-        int guiLeft = (this.width - this.imageWidth) / 2;
-        int guiTop = (this.height - this.imageHeight) / 2;
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        if (rangeInput != null && !rangeInput.isFocused()) {
+            commitRangeInput();
+        }
+    }
 
-        this.addRenderableWidget(new ImageButton(
-            guiLeft + this.imageWidth - CONFIG_BUTTON_SIZE - 5,
-            guiTop + 5,
-            CONFIG_BUTTON_SIZE,
-            CONFIG_BUTTON_SIZE,
-            0,
-            0,
-            PERSONAL_CONFIG_BUTTON_TEXTURE,
-            button -> openConfigScreen()
-        ) {
-            @Override
-            public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-                RenderSystem.setShaderTexture(0, PERSONAL_CONFIG_BUTTON_TEXTURE);
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                guiGraphics.blit(PERSONAL_CONFIG_BUTTON_TEXTURE, this.getX(), this.getY(), 0, 0,
-                    this.width, this.height, CONFIG_BUTTON_TEXTURE_SIZE, CONFIG_BUTTON_TEXTURE_SIZE);
-
-                if (this.isHovered) {
-                    TurretUiTheme.drawBorder(guiGraphics, this.getX() - 1, this.getY() - 1, this.width + 2, this.height + 2, TurretUiTheme.COLOR_WARN);
-                }
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        boolean clickedInput = rangeInput != null && rangeInput.isMouseOver(mouseX, mouseY);
+        boolean handled = super.mouseClicked(mouseX, mouseY, button);
+        if (rangeInput != null && !clickedInput) {
+            if (rangeInput.isFocused()) {
+                commitRangeInput();
             }
-        });
+            rangeInput.setFocused(false);
+        }
+        return handled;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (rangeInput != null && rangeInput.isFocused() && (keyCode == 257 || keyCode == 335)) {
+            commitRangeInput();
+            rangeInput.setFocused(false);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    private boolean isValidRangeInput(String value) {
+        return value.isEmpty() || value.matches("\\d{0,3}");
+    }
+
+    private String formatRangeValue(double value) {
+        if (value <= 0.0D) {
+            return "";
+        }
+        return Integer.toString((int) Math.round(value));
+    }
+
+    private void commitRangeInput() {
+        if (rangeInput == null) {
+            return;
+        }
+        String raw = rangeInput.getValue().trim();
+        double parsed;
+        if (raw.isEmpty()) {
+            parsed = 0.0D;
+        } else {
+            try {
+                parsed = Integer.parseInt(raw);
+            } catch (NumberFormatException ignored) {
+                return;
+            }
+        }
+        parsed = parsed <= 0.0D ? 0.0D : Math.min(256.0D, Math.max(1.0D, parsed));
+        if (Math.abs(parsed - lastSubmittedRange) < 0.001D) {
+            return;
+        }
+        lastSubmittedRange = parsed;
+        rangeInput.setValue(formatRangeValue(parsed));
+        ModNetwork.CHANNEL.sendToServer(new TurretRangeConfigPacket(menu.getBlockEntity().getBlockPos(), parsed));
     }
 
     private ItemStack getPluginStack() {
@@ -130,7 +183,6 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateControlsVisibility();
-
         renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
@@ -168,38 +220,37 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         guiGraphics.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
+        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.range_control"), x + getRangeLabelX(), y + 13, TurretUiTheme.COLOR_TEXT_SUB, false);
+
         Rect ammoRect = calcSlotRect(0, AMMO_SLOT_COUNT, 3);
         if (ammoRect != null) {
-            TurretUiTheme.drawSection(guiGraphics, x + ammoRect.x, y + ammoRect.y, ammoRect.w, ammoRect.h);
+            TurretUiTheme.drawSection(guiGraphics, x + ammoRect.x, y + ammoRect.y, ammoRect.w, ammoRect.h, backgroundAlpha);
             guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.ammo"), x + ammoRect.x, y + ammoRect.y - 9, TurretUiTheme.COLOR_TEXT_SUB, false);
             drawSlotFrames(guiGraphics, x, y, 0, AMMO_SLOT_COUNT);
         }
 
-        int pluginSlotCount = Math.min(menu.getBlockEntity().getPluginSlotCount(), menu.getBlockEntity().getBasePluginSlot().getSlots());
-        if (pluginSlotCount > 0) {
-            Rect pluginRect = calcSlotRect(AMMO_SLOT_COUNT, pluginSlotCount, 2);
-            if (pluginRect != null) {
-                TurretUiTheme.drawSection(guiGraphics, x + pluginRect.x, y + pluginRect.y, pluginRect.w, pluginRect.h);
-                guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.plugin"), x + pluginRect.x, y + pluginRect.y - 9, TurretUiTheme.COLOR_TEXT_SUB, false);
-                drawSlotFrames(guiGraphics, x, y, AMMO_SLOT_COUNT, pluginSlotCount);
-            }
+        Rect pluginRect = getPluginRect();
+        if (pluginRect != null) {
+            TurretUiTheme.drawSection(guiGraphics, x + pluginRect.x, y + pluginRect.y, pluginRect.w, pluginRect.h, backgroundAlpha);
+            guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.plugin"), x + pluginRect.x, y + pluginRect.y - 10, TurretUiTheme.COLOR_TEXT_SUB, false);
+            drawSlotFrames(guiGraphics, x, y, AMMO_SLOT_COUNT,
+                Math.min(menu.getBlockEntity().getPluginSlotCount(), menu.getBlockEntity().getBasePluginSlot().getSlots()));
         }
 
-        // 玩家背包和快捷栏区域按真实 slot 坐标计算，避免手调像素误差。
         int playerStart = menu.slots.size() - PLAYER_SLOT_COUNT;
         if (playerStart >= 0) {
             Rect invRect = calcSlotRect(playerStart, 27, 3);
             if (invRect != null) {
-                TurretUiTheme.drawSection(guiGraphics, x + invRect.x, y + invRect.y, invRect.w, invRect.h);
+                TurretUiTheme.drawSection(guiGraphics, x + invRect.x, y + invRect.y, invRect.w, invRect.h, backgroundAlpha);
             }
 
             Rect hotbarRect = calcSlotRect(playerStart + 27, 9, 3);
             if (hotbarRect != null) {
-                TurretUiTheme.drawSection(guiGraphics, x + hotbarRect.x, y + hotbarRect.y, hotbarRect.w, hotbarRect.h);
+                TurretUiTheme.drawSection(guiGraphics, x + hotbarRect.x, y + hotbarRect.y, hotbarRect.w, hotbarRect.h, backgroundAlpha);
             }
         }
 
-        TurretUiTheme.drawSection(guiGraphics, x + ENERGY_BAR_X - 2, y + ENERGY_BAR_Y - 2, ENERGY_BAR_WIDTH + 4, ENERGY_BAR_HEIGHT + 4);
+        TurretUiTheme.drawSection(guiGraphics, x + ENERGY_BAR_X - 2, y + ENERGY_BAR_Y - 2, ENERGY_BAR_WIDTH + 4, ENERGY_BAR_HEIGHT + 4, backgroundAlpha);
         renderEnergyBar(guiGraphics, x, y);
         RenderSystem.disableBlend();
     }
@@ -211,10 +262,46 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
                 continue;
             }
             Slot slot = menu.slots.get(idx);
-            TurretUiTheme.drawSlotFrame(guiGraphics, guiX + slot.x - 1, guiY + slot.y - 1);
+            TurretUiTheme.drawSlotFrame(guiGraphics, guiX + slot.x - 1, guiY + slot.y - 1, backgroundAlpha);
         }
     }
 
+    private Rect getPluginRect() {
+        int pluginSlotCount = Math.min(menu.getBlockEntity().getPluginSlotCount(), menu.getBlockEntity().getBasePluginSlot().getSlots());
+        if (pluginSlotCount <= 0) {
+            return null;
+        }
+        return calcSlotRect(AMMO_SLOT_COUNT, pluginSlotCount, 1);
+    }
+
+    private int getRangeInputX() {
+        Rect pluginRect = getPluginRect();
+        if (pluginRect != null) {
+            return pluginRect.x;
+        }
+        return RANGE_INPUT_X;
+    }
+
+    private int getRangeLabelX() {
+        Rect pluginRect = getPluginRect();
+        if (pluginRect != null) {
+            return pluginRect.x;
+        }
+        return getRangeInputX() - 6;
+    }
+
+
+    private int getRangeInputWidth() {
+        Rect pluginRect = getPluginRect();
+        if (pluginRect != null) {
+            return pluginRect.w;
+        }
+        return RANGE_INPUT_WIDTH;
+    }
+
+    private int getRangeInputHeight() {
+        return RANGE_INPUT_HEIGHT;
+    }
     private Rect calcSlotRect(int startIndex, int count, int pad) {
         if (count <= 0) {
             return null;
@@ -233,7 +320,6 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
             Slot slot = menu.slots.get(idx);
             minX = Math.min(minX, slot.x - 1);
             minY = Math.min(minY, slot.y - 1);
-            // 视觉边界取 slot 外框，避免比 18x18 再多 1px。
             maxX = Math.max(maxX, slot.x + 16);
             maxY = Math.max(maxY, slot.y + 16);
         }

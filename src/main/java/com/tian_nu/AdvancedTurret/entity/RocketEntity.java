@@ -264,40 +264,6 @@ public class RocketEntity extends TurretProjectileEntity {
         }
     }
     
-    // ==================== 爆炸免疫 ====================
-    
-    /**
-     * 火箭弹免疫所有伤害
-     */
-    @Override
-    public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
-        return false;
-    }
-    
-    /**
-     * 火箭弹不能被碰撞
-     */
-    @Override
-    public boolean canBeCollidedWith() {
-        return false;
-    }
-    
-    /**
-     * 忽略外部推力
-     */
-    @Override
-    public void push(double x, double y, double z) {
-        // 忽略
-    }
-    
-    /**
-     * 忽略实体碰撞推力
-     */
-    @Override
-    public void push(net.minecraft.world.entity.Entity entity) {
-        // 忽略
-    }
-    
     /**
      * 生成烟雾尾迹
      */

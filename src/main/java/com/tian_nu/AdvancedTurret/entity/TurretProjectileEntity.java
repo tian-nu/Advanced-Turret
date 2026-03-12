@@ -145,6 +145,36 @@ public abstract class TurretProjectileEntity extends Projectile {
     }
     
     @Override
+    public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
+        return false;
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return false;
+    }
+
+    @Override
+    public boolean isPushable() {
+        return false;
+    }
+
+    @Override
+    public boolean ignoreExplosion() {
+        return true;
+    }
+
+    @Override
+    public void push(double x, double y, double z) {
+        // 投射物不受外部推力影响，避免被爆炸或碰撞带偏
+    }
+
+    @Override
+    public void push(Entity entity) {
+        // 投射物不受实体碰撞推力影响
+    }
+    
+    @Override
     protected void onHit(HitResult result) {
         if (result.getType() == HitResult.Type.ENTITY) {
             onHitEntity((EntityHitResult) result);

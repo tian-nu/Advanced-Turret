@@ -3,7 +3,6 @@ package com.tian_nu.AdvancedTurret.entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -97,28 +96,6 @@ public class MissileEntity extends TurretProjectileEntity {
         if (allowDeltaMovementChange) {
             super.setDeltaMovement(x, y, z);
         }
-    }
-
-    // ==================== 免疫击退 ====================
-
-    @Override
-    public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
-        return false;
-    }
-
-    @Override
-    public boolean canBeCollidedWith() {
-        return false;
-    }
-
-    @Override
-    public void push(double x, double y, double z) {
-        // 忽略外部推力
-    }
-
-    @Override
-    public void push(Entity entity) {
-        // 忽略实体碰撞推力
     }
 
     // ==================== 属性访问器 ====================

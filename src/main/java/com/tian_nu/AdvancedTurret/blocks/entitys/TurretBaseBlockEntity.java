@@ -100,7 +100,11 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     // 但是，如果没有插件，默认行为是什么？
     // 假设没有插件时，默认全开。
     
-private java.util.UUID owner;
+    private java.util.UUID owner;
+    /** 基座面的启用状态位掩码，默认六面全开。 */
+    private byte enabledFacesMask = 0b111111;
+    /** 手动限制攻击范围，<= 0 表示不限制。 */
+    private double manualRangeLimit = 0.0D;
 
 	// ========== 厉行节约 - 目标伤害预约系统 ==========
 	
@@ -412,11 +416,7 @@ private java.util.UUID owner;
     }
 
     public byte getEnabledFacesMask() {
-        ItemStack stack = getPluginStack();
-        if (!stack.isEmpty()) {
-            return com.tian_nu.AdvancedTurret.items.SmartChipItem.getEnabledFaces(stack);
-        }
-        return 0b111111; // 默认全开
+        return enabledFacesMask;
     }
     
     public boolean isFaceEnabled(Direction face) {
@@ -478,34 +478,39 @@ private java.util.UUID owner;
     }
 
     public void setEnabledFacesMask(byte enabledFacesMask) {
-        ItemStack stack = getPluginStack();
-        if (!stack.isEmpty()) {
-            com.tian_nu.AdvancedTurret.items.SmartChipItem.setEnabledFaces(stack, enabledFacesMask);
-            setChanged();
-        }
+        this.enabledFacesMask = enabledFacesMask;
+        setChanged();
+        syncToClient();
     }
     
     public void setFaceEnabled(Direction face, boolean enabled) {
-        ItemStack stack = getPluginStack();
-        if (!stack.isEmpty()) {
-            byte mask = com.tian_nu.AdvancedTurret.items.SmartChipItem.getEnabledFaces(stack);
-            if (enabled) {
-                mask |= (1 << face.get3DDataValue());
-            } else {
-                mask &= ~(1 << face.get3DDataValue());
-            }
-            com.tian_nu.AdvancedTurret.items.SmartChipItem.setEnabledFaces(stack, mask);
-            setChanged();
+        byte mask = enabledFacesMask;
+        if (enabled) {
+            mask |= (byte) (1 << face.get3DDataValue());
+        } else {
+            mask &= (byte) ~(1 << face.get3DDataValue());
         }
-    }
-    
-    public void setOwner(java.util.UUID owner) {
-        this.owner = owner;
-        setChanged();
+        setEnabledFacesMask(mask);
     }
     
     public java.util.UUID getOwner() {
         return owner;
+    }
+
+
+    public void setOwner(java.util.UUID owner) {
+        this.owner = owner;
+        setChanged();
+        syncToClient();
+    }
+    public double getManualRangeLimit() {
+        return manualRangeLimit;
+    }
+
+    public void setManualRangeLimit(double manualRangeLimit) {
+        this.manualRangeLimit = manualRangeLimit <= 0.0D ? 0.0D : Math.min(256.0D, manualRangeLimit);
+        setChanged();
+        syncToClient();
     }
     
     /**
@@ -898,6 +903,8 @@ public boolean hasDestructionPlugin() {
         if (owner != null) {
             tag.putUUID("Owner", owner);
         }
+        tag.putByte("EnabledFacesMask", enabledFacesMask);
+        tag.putDouble("ManualRangeLimit", manualRangeLimit);
     }
     
     @Override
@@ -949,11 +956,18 @@ public boolean hasDestructionPlugin() {
                 }
             }
         }
-        
-        // 插件配置现在存储在 PluginSlot 的物品 NBT 中，不需要单独读取
-
         if (tag.contains("Owner")) {
             owner = tag.getUUID("Owner");
+        }
+        if (tag.contains("EnabledFacesMask")) {
+            enabledFacesMask = tag.getByte("EnabledFacesMask");
+        } else {
+            enabledFacesMask = 0b111111;
+        }
+        if (tag.contains("ManualRangeLimit")) {
+            manualRangeLimit = tag.getDouble("ManualRangeLimit");
+        } else {
+            manualRangeLimit = 0.0D;
         }
     }
 
@@ -1035,7 +1049,11 @@ public boolean hasDestructionPlugin() {
     public double getSearchRadiusForFace(Direction face, double baseRadius) {
         int count = countUpgradeItems(face, ModItems.RANGE_COMPONENT.get());
         // 每个范围组件增加8格，上限为基础范围+32格
-        return Math.min(baseRadius + 32.0, baseRadius + count * 8);
+        double upgradedRadius = Math.min(baseRadius + 32.0, baseRadius + count * 8);
+        if (manualRangeLimit > 0.0D) {
+            return Math.max(1.0D, Math.min(upgradedRadius, manualRangeLimit));
+        }
+        return upgradedRadius;
     }
 
     public int getFireRateForFace(Direction face, int baseFireRate) {

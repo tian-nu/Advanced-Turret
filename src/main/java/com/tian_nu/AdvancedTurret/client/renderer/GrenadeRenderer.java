@@ -1,29 +1,24 @@
 package com.tian_nu.AdvancedTurret.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.tian_nu.AdvancedTurret.TurretMod;
 import com.tian_nu.AdvancedTurret.entity.GrenadeEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
 
 /**
- * 榴弹渲染器
- * 
- * <p>渲染抛物线飞行的榴弹，使用暗绿色纹理</p>
- * 
- * @author tian_nu
+ * 榴弹渲染器。
+ *
+ * <p>使用灰黑色正方体盒体渲染，避免平面贴图在各个角度下看起来发飘。</p>
  */
 public class GrenadeRenderer extends EntityRenderer<GrenadeEntity> {
 
-    private static final ResourceLocation TEXTURE = TurretMod.location("textures/entity/grenade.png");
+    private static final ResourceLocation TEXTURE = TurretMod.location("textures/entity/projectile_box.png");
+    private static final float BOX_SIZE = 4.0F / 16.0F;
 
     public GrenadeRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -37,108 +32,29 @@ public class GrenadeRenderer extends EntityRenderer<GrenadeEntity> {
     @Override
     public void render(GrenadeEntity entity, float entityYaw, float partialTick, PoseStack poseStack,
                        MultiBufferSource buffer, int packedLight) {
-        
         poseStack.pushPose();
-        
-        // 旋转面向飞行方向
-        Vec3 velocity = entity.getDeltaMovement();
-        if (velocity.lengthSqr() > 0.001) {
-            float yaw = (float) (Math.atan2(velocity.z, velocity.x) * 180.0 / Math.PI) - 90.0F;
-            float pitch = (float) (Math.asin(velocity.y / velocity.length()) * 180.0 / Math.PI);
-            poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(yaw));
-            poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(pitch));
-        }
-        
-        poseStack.scale(0.8F, 0.8F, 0.8F);
-        
-        VertexConsumer consumer = buffer.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
-        
-        PoseStack.Pose pose = poseStack.last();
-        Matrix4f matrix4f = pose.pose();
-        Matrix3f matrix3f = pose.normal();
-        
-        float size = 0.3F;
-        
-        // 暗绿色（军绿色）
-        int r = 80;
-        int g = 100;
-        int b = 60;
-        int a = 255;
-        
-        // 渲染交叉四边形
-        renderCrossedQuads(consumer, matrix4f, matrix3f, size, r, g, b, a, packedLight);
-        
+        alignToMotion(entity, poseStack, partialTick);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(20.0F));
+        ProjectileBoxRenderHelper.renderBox(poseStack, buffer, TEXTURE, packedLight,
+                BOX_SIZE, BOX_SIZE, BOX_SIZE,
+                70, 70, 70, 255);
         poseStack.popPose();
-        
         super.render(entity, entityYaw, partialTick, poseStack, buffer, packedLight);
     }
-    
-    private void renderCrossedQuads(VertexConsumer consumer, Matrix4f matrix4f, Matrix3f matrix3f, 
-                                     float size, int r, int g, int b, int a, int packedLight) {
-        // 第一个四边形（XZ平面）
-        consumer.vertex(matrix4f, -size, 0, -size)
-                .color(r, g, b, a)
-                .uv(0.0F, 0.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(matrix3f, 0.0F, 1.0F, 0.0F)
-                .endVertex();
-        
-        consumer.vertex(matrix4f, size, 0, -size)
-                .color(r, g, b, a)
-                .uv(1.0F, 0.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(matrix3f, 0.0F, 1.0F, 0.0F)
-                .endVertex();
-        
-        consumer.vertex(matrix4f, size, 0, size)
-                .color(r, g, b, a)
-                .uv(1.0F, 1.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(matrix3f, 0.0F, 1.0F, 0.0F)
-                .endVertex();
-        
-        consumer.vertex(matrix4f, -size, 0, size)
-                .color(r, g, b, a)
-                .uv(0.0F, 1.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(matrix3f, 0.0F, 1.0F, 0.0F)
-                .endVertex();
-        
-        // 第二个四边形（XY平面）
-        consumer.vertex(matrix4f, -size, -size, 0)
-                .color(r, g, b, a)
-                .uv(0.0F, 0.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(matrix3f, 0.0F, 0.0F, 1.0F)
-                .endVertex();
-        
-        consumer.vertex(matrix4f, size, -size, 0)
-                .color(r, g, b, a)
-                .uv(1.0F, 0.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(matrix3f, 0.0F, 0.0F, 1.0F)
-                .endVertex();
-        
-        consumer.vertex(matrix4f, size, size, 0)
-                .color(r, g, b, a)
-                .uv(1.0F, 1.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(matrix3f, 0.0F, 0.0F, 1.0F)
-                .endVertex();
-        
-        consumer.vertex(matrix4f, -size, size, 0)
-                .color(r, g, b, a)
-                .uv(0.0F, 1.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(packedLight)
-                .normal(matrix3f, 0.0F, 0.0F, 1.0F)
-                .endVertex();
+
+    private void alignToMotion(GrenadeEntity entity, PoseStack poseStack, float partialTick) {
+        Vec3 velocity = entity.getDeltaMovement();
+        if (velocity.lengthSqr() < 1.0E-6D) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(entity.getYRot()));
+            poseStack.mulPose(Axis.XP.rotationDegrees(-entity.getXRot()));
+            return;
+        }
+
+        double horizontal = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+        float yaw = (float) (Math.atan2(velocity.x, velocity.z) * 180.0D / Math.PI);
+        float pitch = (float) (Math.atan2(velocity.y, horizontal) * 180.0D / Math.PI);
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-pitch));
     }
 }

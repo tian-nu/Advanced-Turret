@@ -415,122 +415,27 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
      * 检查是否为有效目标
      */
     private boolean isValidTarget(LivingEntity entity, Level level, BlockPos pos) {
-        if (!entity.isAlive()) {
-            return false;
-        }
-        
-        if (entity.isInvulnerable()) {
-            return false;
-        }
-
         TurretBaseBlockEntity base = getBaseEntity();
-        if (base == null) return false;
-        
-        ItemStack pluginStack = base.getPluginStack();
-        String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
-        
-        // 1. 黑名单检查 (强制攻击)
-        List<String> blacklist = SmartChipItem.getBlacklist(pluginStack);
-        boolean inBlacklist = blacklist.contains(entityId);
-        
-        // 2. 白名单检查 (强制排除)
-        List<String> whitelist = SmartChipItem.getWhitelist(pluginStack);
-        if (whitelist.contains(entityId)) {
+        if (base == null) {
             return false;
-        }
-        
-        // 3. 目标模式检查 (如果没有在黑名单中)
-        if (!inBlacklist) {
-            // 使用 Flags 进行组合检查
-            int flags = SmartChipItem.getTargetFlags(pluginStack);
-            boolean matched = false;
-            
-            // Hostile (Monster/Enemy)
-            if ((flags & SmartChipItem.FLAG_HOSTILE) != 0) {
-                if (entity instanceof Enemy) matched = true;
-            }
-            
-            // Neutral (NeutralMob, like Enderman, Piglin, Wolf)
-            if (!matched && (flags & SmartChipItem.FLAG_NEUTRAL) != 0) {
-                // NeutralMob interface covers most neutral mobs
-                // Also check if it's a Mob but NOT Enemy and NOT Animal (rough heuristic)
-                if (entity instanceof NeutralMob) matched = true;
-            }
-            
-            // Friendly (Animal, Ambient, WaterAnimal)
-            if (!matched && (flags & SmartChipItem.FLAG_FRIENDLY) != 0) {
-                if (entity instanceof Animal || entity instanceof AmbientCreature || entity instanceof WaterAnimal) matched = true;
-            }
-            
-            // Players
-            if (!matched && (flags & SmartChipItem.FLAG_PLAYERS) != 0) {
-                if (entity instanceof Player p && !p.isCreative() && !p.isSpectator()) matched = true;
-            }
-            
-            // Blacklist Only Mode Check (Special case handled by TargetMode Enum for UI compatibility, 
-            // but logic here relies on flags mostly. 
-            // If user selected "Blacklist Only", flags might be 0)
-            
-            // If ALL flags are off, check if it's "Blacklist Only" mode explicitly or just nothing
-            if (flags == 0) {
-                // If flags are 0, we don't match anything unless it was in blacklist (already checked above)
-            }
-            
-            if (!matched) return false;
-        }
-
-        // 4. 友伤保护检查
-        if (base.isFriendlyFire()) {
-            java.util.UUID ownerId = base.getOwner();
-            if (ownerId != null) {
-                // 检查实体是否是主人
-                if (entity.getUUID().equals(ownerId)) return false;
-                
-                // 检查实体是否被主人驯服
-                if (entity instanceof net.minecraft.world.entity.TamableAnimal tameable) {
-                    java.util.UUID tameOwner = tameable.getOwnerUUID();
-                    if (tameOwner != null && tameOwner.equals(ownerId)) {
-                        return false;
-                    }
-                }
-                
-                // 额外检查：如果是玩家，检查是否是同一队伍（可选，暂时只检查ID）
-            }
         }
 
         Direction facing = getBlockState().getValue(MachineGunTurretBlock.FACING);
         double searchRadius = base.getSearchRadiusForFace(facing, getSearchRadius());
-        if (!isTargetInRange(entity, pos, searchRadius)) {
+        if (!TurretTargetFilterHelper.passesCommonChecks(entity, base, pos, searchRadius)) {
             return false;
         }
 
-// 获取可见瞄准点（优先：头部 > 身体 > 脚部）
-		Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
-		if (visiblePoint == null) {
-			return false; // 完全不可见
-		}
-		// 存储可见点供射击使用
-		visibleTargetPoint = visiblePoint;
+        // 获取可见瞄准点（优先：头部 > 身体 > 脚部）
+        Vec3 visiblePoint = getVisibleTargetPoint(entity, level, pos);
+        if (visiblePoint == null) {
+            return false;
+        }
+        visibleTargetPoint = visiblePoint;
 
-		// 5. 厉行节约检查：目标是否值得攻击
-		if (base.isThriftyMode()) {
-			float expectedDamage = getExpectedDamage(base);
-			float currentHealth = entity.getHealth();
-			float reservedDamage = base.getReservedDamage(entity.getId());
-			float remainingHealth = currentHealth - reservedDamage;
-			
-			// 如果剩余生命值 <= 0，说明目标已被其他炮塔预约击杀，跳过
-			if (remainingHealth <= 0) {
-				return false;
-			}
-		}
+        return !TurretTargetFilterHelper.shouldSkipForThrifty(entity, base);
+    }
 
-		return true;
-	}
-
-    /**
-     * 检查目标是否在范围内
-     */
     private boolean isTargetInRange(LivingEntity entity, BlockPos pos, double searchRadius) {
         return LinearTurretTargetingHelper.isTargetInRange(entity, pos, searchRadius);
     }

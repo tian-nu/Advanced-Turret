@@ -78,6 +78,7 @@
   "gui.advanced_turret.face_config": "Face Config",
   "gui.advanced_turret.ammo": "Ammo",
   "gui.advanced_turret.plugin": "Plugin",
+  "gui.advanced_turret.range_control": "Range",
   "gui.advanced_turret.energy": "Energy",
   "gui.advanced_turret.target_type": "Target Type",
   "gui.advanced_turret.behavior_toggles": "Behavior Toggles",

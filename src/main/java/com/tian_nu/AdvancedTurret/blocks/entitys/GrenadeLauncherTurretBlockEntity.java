@@ -570,81 +570,24 @@ public class GrenadeLauncherTurretBlockEntity extends BlockEntity implements Geo
      * 检查是否为有效目标
      */
     private boolean isValidTarget(LivingEntity entity, Level level, BlockPos pos) {
-        if (!entity.isAlive()) return false;
-        if (entity.isInvulnerable()) return false;
-
         TurretBaseBlockEntity base = getBaseEntity();
-        if (base == null) return false;
-        
-        ItemStack pluginStack = base.getPluginStack();
-        String entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
-        
-        // 1. 黑名单检查 (强制攻击)
-        List<String> blacklist = SmartChipItem.getBlacklist(pluginStack);
-        boolean inBlacklist = blacklist.contains(entityId);
-        
-        // 2. 白名单检查 (强制排除)
-        List<String> whitelist = SmartChipItem.getWhitelist(pluginStack);
-        if (whitelist.contains(entityId)) {
+        if (base == null) {
             return false;
         }
-        
-        // 3. 目标模式检查
-        if (!inBlacklist) {
-            int flags = SmartChipItem.getTargetFlags(pluginStack);
-            boolean matched = false;
-            
-            if ((flags & SmartChipItem.FLAG_HOSTILE) != 0) {
-                if (entity instanceof net.minecraft.world.entity.monster.Enemy) matched = true;
-            }
-            
-            if (!matched && (flags & SmartChipItem.FLAG_NEUTRAL) != 0) {
-                if (entity instanceof net.minecraft.world.entity.NeutralMob) matched = true;
-            }
-            
-            if (!matched && (flags & SmartChipItem.FLAG_FRIENDLY) != 0) {
-                if (entity instanceof net.minecraft.world.entity.animal.Animal ||
-                    entity instanceof net.minecraft.world.entity.ambient.AmbientCreature ||
-                    entity instanceof net.minecraft.world.entity.animal.WaterAnimal) {
-                    matched = true;
-                }
-            }
-            
-            if (!matched && (flags & SmartChipItem.FLAG_PLAYERS) != 0) {
-                if (entity instanceof Player) matched = true;
-            }
-            
-            if (!matched) return false;
-        }
-        
-        // 4. 友伤保护检查
-        if (SmartChipItem.isFriendlyFire(pluginStack)) {
-            return true;
-        }
-        
-        if (entity instanceof Player player) {
-            if (player.getUUID().equals(base.getOwner())) return false;
-        }
-        
-        if (entity instanceof net.minecraft.world.entity.TamableAnimal tameable) {
-            if (base.getOwner() != null && base.getOwner().equals(tameable.getOwnerUUID())) {
-                return false;
-            }
-        }
-        
-        // 5. 范围检查
+
         Direction facing = getBlockState().getValue(GrenadeLauncherTurretBlock.FACING);
         double searchRadius = base.getSearchRadiusForFace(facing, getSearchRadius());
-        double dist = entity.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        if (dist > searchRadius * searchRadius) return false;
-        
-        // 6. 抛物线可达性检测（替代视线检测）
+        if (!TurretTargetFilterHelper.passesCommonChecks(entity, base, pos, searchRadius)) {
+            return false;
+        }
+
+        if (TurretTargetFilterHelper.shouldSkipForThrifty(entity, base)) {
+            return false;
+        }
+
         return canReachWithParabola(entity, level, pos);
     }
 
-    /**
-     * 检查目标是否在范围内
-     */
     private boolean isTargetInRange(LivingEntity target, BlockPos pos, double range) {
         double dist = target.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
         return dist <= range * range;

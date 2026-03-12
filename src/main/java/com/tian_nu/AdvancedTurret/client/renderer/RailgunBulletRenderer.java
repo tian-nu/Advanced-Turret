@@ -1,92 +1,57 @@
 package com.tian_nu.AdvancedTurret.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.tian_nu.AdvancedTurret.TurretMod;
 import com.tian_nu.AdvancedTurret.entity.RailgunBulletEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
+import net.minecraft.world.phys.Vec3;
 
 /**
- * 磁轨炮子弹渲染器
- * 
- * <p>渲染高速电弧子弹，使用蓝紫色纹理</p>
- * 
- * @author tian_nu
+ * 磁轨炮子弹渲染器。
+ *
+ * <p>使用固定朝向的白色长条盒体，避免平面物品在不同视角下始终面向玩家。</p>
  */
 public class RailgunBulletRenderer extends EntityRenderer<RailgunBulletEntity> {
 
-    // 临时使用机枪子弹纹理，后续可替换为专用纹理
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(TurretMod.MOD_ID, "textures/entity/turret_bullet.png");
+    private static final ResourceLocation TEXTURE = TurretMod.location("textures/entity/projectile_box.png");
+    private static final float BOX_WIDTH = 1.0F / 16.0F;
+    private static final float BOX_HEIGHT = 1.0F / 16.0F;
+    private static final float BOX_LENGTH = 5.0F / 16.0F;
 
     public RailgunBulletRenderer(EntityRendererProvider.Context context) {
         super(context);
     }
 
     @Override
-    public void render(RailgunBulletEntity entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+    public void render(RailgunBulletEntity entity, float entityYaw, float partialTick, PoseStack poseStack,
+                       MultiBufferSource buffer, int packedLight) {
         poseStack.pushPose();
-        
-        poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
-        
-        // 磁轨炮子弹更大更亮
-        poseStack.scale(1.5F, 1.5F, 1.5F);
-        
-        VertexConsumer consumer = buffer.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
-        
-        PoseStack.Pose pose = poseStack.last();
-        Matrix4f matrix4f = pose.pose();
-        Matrix3f matrix3f = pose.normal();
-        
-        float size = 0.25F;
-        
-        // 使用更亮的颜色（青蓝色）
-        int r = 100;
-        int g = 200;
-        int b = 255;
-        int a = 255;
-        
-        consumer.vertex(matrix4f, -size, -size, 0.0F)
-                .color(r, g, b, a)
-                .uv(0.0F, 0.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880) // 全亮
-                .normal(matrix3f, 0.0F, 0.0F, 1.0F)
-                .endVertex();
-        
-        consumer.vertex(matrix4f, size, -size, 0.0F)
-                .color(r, g, b, a)
-                .uv(1.0F, 0.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(matrix3f, 0.0F, 0.0F, 1.0F)
-                .endVertex();
-        
-        consumer.vertex(matrix4f, size, size, 0.0F)
-                .color(r, g, b, a)
-                .uv(1.0F, 1.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(matrix3f, 0.0F, 0.0F, 1.0F)
-                .endVertex();
-        
-        consumer.vertex(matrix4f, -size, size, 0.0F)
-                .color(r, g, b, a)
-                .uv(0.0F, 1.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(matrix3f, 0.0F, 0.0F, 1.0F)
-                .endVertex();
-        
+        alignToMotion(entity, poseStack, partialTick);
+        ProjectileBoxRenderHelper.renderBox(poseStack, buffer, TEXTURE, 15728880,
+                BOX_WIDTH, BOX_HEIGHT, BOX_LENGTH,
+                255, 255, 255, 255);
         poseStack.popPose();
-        
         super.render(entity, entityYaw, partialTick, poseStack, buffer, packedLight);
+    }
+
+    private void alignToMotion(RailgunBulletEntity entity, PoseStack poseStack, float partialTick) {
+        Vec3 velocity = entity.getDeltaMovement();
+        if (velocity.lengthSqr() < 1.0E-6D) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(entity.getYRot()));
+            poseStack.mulPose(Axis.XP.rotationDegrees(-entity.getXRot()));
+            return;
+        }
+
+        double horizontal = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+        float yaw = (float) (Math.atan2(velocity.x, velocity.z) * 180.0D / Math.PI);
+        float pitch = (float) (Math.atan2(velocity.y, horizontal) * 180.0D / Math.PI);
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-pitch));
     }
 
     @Override

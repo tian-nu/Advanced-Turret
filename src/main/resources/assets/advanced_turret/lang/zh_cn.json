@@ -78,6 +78,7 @@
   "gui.advanced_turret.face_config": "面板配置",
   "gui.advanced_turret.ammo": "弹药",
   "gui.advanced_turret.plugin": "插件",
+  "gui.advanced_turret.range_control": "攻击范围",
   "gui.advanced_turret.energy": "能量",
   "gui.advanced_turret.target_type": "目标类型",
   "gui.advanced_turret.behavior_toggles": "行为开关",
