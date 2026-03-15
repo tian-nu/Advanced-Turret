@@ -3,15 +3,18 @@ package com.tian_nu.AdvancedTurret.client.models;
 import com.tian_nu.AdvancedTurret.TurretMod;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ResonanceFieldTurretBlockEntity;
 import net.minecraft.resources.ResourceLocation;
+import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 
 /** 谐振立场炮塔 Geo 模型。 */
 public class ResonanceFieldTurretGeoModel extends GeoModel<ResonanceFieldTurretBlockEntity> {
 
+    private static final float CORE_SPIN_SPEED = 0.18F;
+
     @Override
     public ResourceLocation getModelResource(ResonanceFieldTurretBlockEntity animatable) {
-        return TurretMod.location("geo/block/machine_gun_turret.geo.json");
+        return TurretMod.location("geo/block/resonance_field_turret.geo.json");
     }
 
     @Override
@@ -28,5 +31,30 @@ public class ResonanceFieldTurretGeoModel extends GeoModel<ResonanceFieldTurretB
     public void setCustomAnimations(ResonanceFieldTurretBlockEntity animatable, long instanceId,
                                     AnimationState<ResonanceFieldTurretBlockEntity> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
+
+        CoreGeoBone coreBone = getRotatingCoreBone();
+        if (coreBone == null) {
+            return;
+        }
+
+        if (Boolean.TRUE.equals(animatable.getAnimData(ResonanceFieldTurretBlockEntity.WORKING_ACTIVE))) {
+            double gameTime = animatable.getLevel() != null ? animatable.getLevel().getGameTime() : 0.0D;
+            float rotY = (float) ((gameTime + animationState.getPartialTick()) * CORE_SPIN_SPEED);
+            coreBone.setRotY(rotY);
+        } else {
+            coreBone.setRotY(0.0F);
+        }
+    }
+
+    private CoreGeoBone getRotatingCoreBone() {
+        CoreGeoBone bone = getAnimationProcessor().getBone("炮塔主体");
+        if (bone != null) {
+            return bone;
+        }
+        bone = getAnimationProcessor().getBone("core");
+        if (bone != null) {
+            return bone;
+        }
+        return getAnimationProcessor().getBone("turret");
     }
 }

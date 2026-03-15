@@ -20,6 +20,7 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.network.SerializableDataTicket;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
@@ -77,11 +78,13 @@ public abstract class AbstractFieldTurretBlockEntity extends BlockEntity impleme
 
         TurretBaseBlockEntity base = getBaseEntity();
         if (base == null) {
+            setWorkingAnimation(false);
             return;
         }
 
         Direction facing = getFacing();
         if (!base.isFaceEnabled(facing)) {
+            setWorkingAnimation(false);
             return;
         }
 
@@ -89,13 +92,16 @@ public abstract class AbstractFieldTurretBlockEntity extends BlockEntity impleme
         int energyCost = base.getEnergyCostForFace(facing, getBaseEnergyCostPerTick());
         List<LivingEntity> targets = collectTargets(level, worldPosition, range, base);
         if (targets.isEmpty()) {
+            setWorkingAnimation(false);
             return;
         }
         if (base.getEnergyStored() < energyCost) {
+            setWorkingAnimation(false);
             return;
         }
 
         base.consumeEnergy(energyCost);
+        setWorkingAnimation(true);
         applyEffects(targets, base, facing);
     }
 
@@ -126,6 +132,10 @@ public abstract class AbstractFieldTurretBlockEntity extends BlockEntity impleme
         return base.getUpgradeItemCountForFace(facing, item);
     }
 
+    protected void setWorkingAnimation(boolean working) {
+        setAnimData(getWorkingDataTicket(), working);
+    }
+
     protected boolean shouldApplyEffect(LivingEntity entity, MobEffect effect, int amplifier, int duration, int refreshInterval) {
         MobEffectInstance current = entity.getEffect(effect);
         if (current == null) {
@@ -152,6 +162,8 @@ public abstract class AbstractFieldTurretBlockEntity extends BlockEntity impleme
     protected abstract int getBaseEffectDuration();
 
     protected abstract int getFireRateDurationBonusTicks();
+
+    protected abstract SerializableDataTicket<Boolean> getWorkingDataTicket();
 
     protected abstract List<LivingEntity> collectTargets(Level level, BlockPos pos, double range, TurretBaseBlockEntity base);
 

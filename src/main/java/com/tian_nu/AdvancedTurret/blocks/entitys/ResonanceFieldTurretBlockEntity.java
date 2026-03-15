@@ -7,6 +7,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import software.bernie.geckolib.network.SerializableDataTicket;
 
 import java.util.List;
 
@@ -16,6 +17,8 @@ import java.util.List;
  * <p>对范围内主人与驯服生物持续施加增益，并根据升级组件提升效果。</p>
  */
 public class ResonanceFieldTurretBlockEntity extends AbstractFieldTurretBlockEntity {
+
+    public static SerializableDataTicket<Boolean> WORKING_ACTIVE;
 
     public ResonanceFieldTurretBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.RESONANCE_FIELD_TURRET.get(), pos, state);
@@ -48,6 +51,11 @@ public class ResonanceFieldTurretBlockEntity extends AbstractFieldTurretBlockEnt
     @Override
     protected int getFireRateDurationBonusTicks() {
         return 1200;
+    }
+
+    @Override
+    protected SerializableDataTicket<Boolean> getWorkingDataTicket() {
+        return WORKING_ACTIVE;
     }
 
     @Override

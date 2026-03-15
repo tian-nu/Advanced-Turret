@@ -2,14 +2,16 @@ package com.tian_nu.AdvancedTurret;
 
 import com.mojang.logging.LogUtils;
 import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
-import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
-import com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity;
-import com.tian_nu.AdvancedTurret.blocks.entitys.RocketTurretBlockEntity;
-import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
-import com.tian_nu.AdvancedTurret.blocks.entitys.LaserTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.GrenadeLauncherTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.JunkTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.LaserTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
+import com.tian_nu.AdvancedTurret.blocks.entitys.PhaseFieldTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.ResonanceFieldTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.RocketTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
 import com.tian_nu.AdvancedTurret.items.ModCreativeModeTabs;
@@ -30,146 +32,139 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * 炮塔模组主类
- * 
+ *
  * @author tian_nu
  */
 @Mod(TurretMod.MOD_ID)
 public class TurretMod {
-    
+
     public static final String MOD_ID = "advanced_turret";
     private static final Logger LOGGER = LogUtils.getLogger();
-    
+
     /**
      * 创建资源定位器的便捷方法
      */
     public static ResourceLocation location(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
-    
+
     public TurretMod(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
-        
-        // 注册延迟注册器
+
         ModItems.register(modEventBus);
         ModCreativeModeTabs.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
         ModMenuTypes.register(modEventBus);
         ModEntities.register(modEventBus);
-        
-        // 注册事件监听器
+
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(ModCreativeModeTabs::addCreative);
-        
-        // 注册Forge事件总线
+
         MinecraftForge.EVENT_BUS.register(this);
-        
-        // 注册配置
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
-        
-        // 注册GeckoLib数据票
         registerDataTickets();
     }
-    
+
     private void registerDataTickets() {
         MachineGunTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofBoolean(location("has_target")));
+                SerializableDataTicket.ofBoolean(location("has_target")));
         MachineGunTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("target_pos_x")));
+                SerializableDataTicket.ofDouble(location("target_pos_x")));
         MachineGunTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("target_pos_y")));
+                SerializableDataTicket.ofDouble(location("target_pos_y")));
         MachineGunTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("target_pos_z")));
+                SerializableDataTicket.ofDouble(location("target_pos_z")));
 
         RailgunTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofBoolean(location("railgun_has_target")));
+                SerializableDataTicket.ofBoolean(location("railgun_has_target")));
         RailgunTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("railgun_target_pos_x")));
+                SerializableDataTicket.ofDouble(location("railgun_target_pos_x")));
         RailgunTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("railgun_target_pos_y")));
+                SerializableDataTicket.ofDouble(location("railgun_target_pos_y")));
         RailgunTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("railgun_target_pos_z")));
+                SerializableDataTicket.ofDouble(location("railgun_target_pos_z")));
 
         RocketTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofBoolean(location("rocket_has_target")));
+                SerializableDataTicket.ofBoolean(location("rocket_has_target")));
         RocketTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("rocket_target_pos_x")));
+                SerializableDataTicket.ofDouble(location("rocket_target_pos_x")));
         RocketTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("rocket_target_pos_y")));
+                SerializableDataTicket.ofDouble(location("rocket_target_pos_y")));
         RocketTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("rocket_target_pos_z")));
+                SerializableDataTicket.ofDouble(location("rocket_target_pos_z")));
 
         MissileTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofBoolean(location("missile_has_target")));
+                SerializableDataTicket.ofBoolean(location("missile_has_target")));
         MissileTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("missile_target_pos_x")));
+                SerializableDataTicket.ofDouble(location("missile_target_pos_x")));
         MissileTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("missile_target_pos_y")));
+                SerializableDataTicket.ofDouble(location("missile_target_pos_y")));
         MissileTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("missile_target_pos_z")));
+                SerializableDataTicket.ofDouble(location("missile_target_pos_z")));
 
-        // 激光炮塔数据票
         LaserTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofBoolean(location("laser_has_target")));
+                SerializableDataTicket.ofBoolean(location("laser_has_target")));
         LaserTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("laser_target_pos_x")));
+                SerializableDataTicket.ofDouble(location("laser_target_pos_x")));
         LaserTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("laser_target_pos_y")));
+                SerializableDataTicket.ofDouble(location("laser_target_pos_y")));
         LaserTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("laser_target_pos_z")));
+                SerializableDataTicket.ofDouble(location("laser_target_pos_z")));
         LaserTurretBlockEntity.BEAM_ACTIVE = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofBoolean(location("laser_beam_active")));
+                SerializableDataTicket.ofBoolean(location("laser_beam_active")));
         LaserTurretBlockEntity.FIRE_RATE_COUNT = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofInt(location("laser_fire_rate_count")));
+                SerializableDataTicket.ofInt(location("laser_fire_rate_count")));
 
-        // 榴弹发射器炮塔数据票
         GrenadeLauncherTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofBoolean(location("grenade_has_target")));
+                SerializableDataTicket.ofBoolean(location("grenade_has_target")));
         GrenadeLauncherTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("grenade_target_pos_x")));
+                SerializableDataTicket.ofDouble(location("grenade_target_pos_x")));
         GrenadeLauncherTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("grenade_target_pos_y")));
+                SerializableDataTicket.ofDouble(location("grenade_target_pos_y")));
         GrenadeLauncherTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("grenade_target_pos_z")));
+                SerializableDataTicket.ofDouble(location("grenade_target_pos_z")));
         GrenadeLauncherTurretBlockEntity.AIM_DIR_X = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("grenade_aim_dir_x")));
+                SerializableDataTicket.ofDouble(location("grenade_aim_dir_x")));
         GrenadeLauncherTurretBlockEntity.AIM_DIR_Y = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("grenade_aim_dir_y")));
+                SerializableDataTicket.ofDouble(location("grenade_aim_dir_y")));
         GrenadeLauncherTurretBlockEntity.AIM_DIR_Z = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("grenade_aim_dir_z")));
+                SerializableDataTicket.ofDouble(location("grenade_aim_dir_z")));
 
-        // 垃圾炮塔数据票
         JunkTurretBlockEntity.HAS_TARGET = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofBoolean(location("junk_has_target")));
+                SerializableDataTicket.ofBoolean(location("junk_has_target")));
         JunkTurretBlockEntity.TARGET_POS_X = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("junk_target_pos_x")));
+                SerializableDataTicket.ofDouble(location("junk_target_pos_x")));
         JunkTurretBlockEntity.TARGET_POS_Y = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("junk_target_pos_y")));
+                SerializableDataTicket.ofDouble(location("junk_target_pos_y")));
         JunkTurretBlockEntity.TARGET_POS_Z = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("junk_target_pos_z")));
+                SerializableDataTicket.ofDouble(location("junk_target_pos_z")));
         JunkTurretBlockEntity.AIM_DIR_X = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("junk_aim_dir_x")));
+                SerializableDataTicket.ofDouble(location("junk_aim_dir_x")));
         JunkTurretBlockEntity.AIM_DIR_Y = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("junk_aim_dir_y")));
+                SerializableDataTicket.ofDouble(location("junk_aim_dir_y")));
         JunkTurretBlockEntity.AIM_DIR_Z = GeckoLibUtil.addDataTicket(
-            SerializableDataTicket.ofDouble(location("junk_aim_dir_z")));
+                SerializableDataTicket.ofDouble(location("junk_aim_dir_z")));
+
+        PhaseFieldTurretBlockEntity.WORKING_ACTIVE = GeckoLibUtil.addDataTicket(
+                SerializableDataTicket.ofBoolean(location("phase_field_working")));
+        ResonanceFieldTurretBlockEntity.WORKING_ACTIVE = GeckoLibUtil.addDataTicket(
+                SerializableDataTicket.ofBoolean(location("resonance_field_working")));
     }
-    
+
     private void commonSetup(final FMLCommonSetupEvent event) {
         LOGGER.info("炮塔模组初始化中...");
-        
+
         event.enqueueWork(() -> {
             ModNetwork.register();
             LOGGER.info("网络系统注册完成");
         });
-        
+
         LOGGER.info("炮塔模组初始化完成");
     }
-    
+
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         LOGGER.info("炮塔模组服务器启动");
     }
-    
-
 }
