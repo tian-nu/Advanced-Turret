@@ -146,6 +146,8 @@ public class SmartChipConfigScreen extends Screen {
         TurretUiTheme.drawPanel(guiGraphics, panelX, panelY, PANEL_W, PANEL_H, panelAlpha);
         TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 40, PANEL_W - 20, 28, panelAlpha);
         TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 90, PANEL_W - 20, 28, panelAlpha);
+        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 146, PANEL_W - 20, 26, panelAlpha);
+        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 186, PANEL_W - 20, 26, panelAlpha);
 
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, panelY + 8, TurretUiTheme.COLOR_TEXT);
         guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.target_type"), panelX + 14, panelY + 24, TurretUiTheme.COLOR_TEXT_SUB, false);

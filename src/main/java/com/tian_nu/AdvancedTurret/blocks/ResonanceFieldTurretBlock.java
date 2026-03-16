@@ -26,12 +26,12 @@ public class ResonanceFieldTurretBlock extends AbstractFieldTurretBlock {
 
     @Override
     protected void appendFieldStats(List<Component> tooltip) {
-        tooltip.add(Component.translatable(
-                "tooltip.advanced_turret.resonance_field_turret.stats",
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.resonance_field_turret.range_energy",
                 Config.resonanceFieldRange,
-                Config.resonanceFieldEnergyPerTick,
-                Config.resonanceFieldEffectDuration
-        ).withStyle(ChatFormatting.GRAY));
+                Config.resonanceFieldEnergyPerTick);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.resonance_field_turret.duration",
+                Config.resonanceFieldEffectDuration / 20.0);
+        TurretTooltipHelper.addDarkGrayLine(tooltip, "tooltip.advanced_turret.resonance_field_turret.effect");
     }
 
     @Override

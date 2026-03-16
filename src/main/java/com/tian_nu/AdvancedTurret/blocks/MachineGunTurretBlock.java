@@ -85,13 +85,14 @@ public class MachineGunTurretBlock extends BaseEntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.advanced_turret.machine_gun_turret.stats",
-                MachineGunTurretBlockEntity.getBulletDamage(),
+        TurretTooltipHelper.addPlacementTooltip(tooltip);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.machine_gun_turret.damage",
+                MachineGunTurretBlockEntity.getBulletDamage());
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.machine_gun_turret.range_rate",
                 MachineGunTurretBlockEntity.getSearchRadius(),
-                MachineGunTurretBlockEntity.getFireRate(),
-                Config.machineGunEnergyCost
-        ).withStyle(ChatFormatting.GRAY));
+                MachineGunTurretBlockEntity.getFireRate());
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.machine_gun_turret.energy_ammo",
+                Config.machineGunEnergyCost);
         if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
             String ownerName = stack.getTag().getString("OwnerName");
             tooltip.add(Component.translatable("gui.advanced_turret.owner_tooltip", ownerName).withStyle(ChatFormatting.GOLD));

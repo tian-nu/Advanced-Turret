@@ -69,7 +69,7 @@ public abstract class AbstractFieldTurretBlock extends BaseEntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base").withStyle(ChatFormatting.GRAY));
+        TurretTooltipHelper.addPlacementTooltip(tooltip);
         appendFieldStats(tooltip);
         super.appendHoverText(stack, level, tooltip, flag);
     }

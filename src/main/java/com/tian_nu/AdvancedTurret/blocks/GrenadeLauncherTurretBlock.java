@@ -75,16 +75,16 @@ public class GrenadeLauncherTurretBlock extends BaseEntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base"));
-        tooltip.add(Component.translatable("tooltip.advanced_turret.grenade_launcher_turret.stats",
+        TurretTooltipHelper.addPlacementTooltip(tooltip);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.grenade_launcher_turret.damage",
                 GrenadeLauncherTurretBlockEntity.getDirectDamage(),
                 GrenadeLauncherTurretBlockEntity.getExplosionDamage(),
-                GrenadeLauncherTurretBlockEntity.getExplosionRadius(),
+                GrenadeLauncherTurretBlockEntity.getExplosionRadius());
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.grenade_launcher_turret.range_rate",
                 GrenadeLauncherTurretBlockEntity.getSearchRadius(),
-                GrenadeLauncherTurretBlockEntity.getFireRate() / 20.0,
-                Config.grenadeLauncherEnergyCost
-        ).withStyle(net.minecraft.ChatFormatting.GRAY));
-
+                GrenadeLauncherTurretBlockEntity.getFireRate() / 20.0);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.grenade_launcher_turret.energy_ammo",
+                Config.grenadeLauncherEnergyCost);
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

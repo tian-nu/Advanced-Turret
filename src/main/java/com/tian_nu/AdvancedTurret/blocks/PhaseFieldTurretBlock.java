@@ -26,12 +26,12 @@ public class PhaseFieldTurretBlock extends AbstractFieldTurretBlock {
 
     @Override
     protected void appendFieldStats(List<Component> tooltip) {
-        tooltip.add(Component.translatable(
-                "tooltip.advanced_turret.phase_field_turret.stats",
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.phase_field_turret.range_energy",
                 Config.phaseFieldRange,
-                Config.phaseFieldEnergyPerTick,
-                Config.phaseFieldEffectDuration
-        ).withStyle(ChatFormatting.GRAY));
+                Config.phaseFieldEnergyPerTick);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.phase_field_turret.duration",
+                Config.phaseFieldEffectDuration / 20.0);
+        TurretTooltipHelper.addDarkGrayLine(tooltip, "tooltip.advanced_turret.phase_field_turret.effect");
     }
 
     @Override

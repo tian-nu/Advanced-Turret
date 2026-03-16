@@ -68,14 +68,15 @@ public class RailgunTurretBlock extends BaseEntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.advanced_turret.railgun_turret.stats",
-                RailgunTurretBlockEntity.getBulletDamage(),
+        TurretTooltipHelper.addPlacementTooltip(tooltip);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.railgun_turret.damage",
+                RailgunTurretBlockEntity.getBulletDamage());
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.railgun_turret.range_rate",
                 RailgunTurretBlockEntity.getSearchRadius(),
-                RailgunTurretBlockEntity.getFireRate(),
-                Config.railgunEnergyCost
-        ).withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.advanced_turret.railgun_turret.ammo").withStyle(ChatFormatting.DARK_GRAY));
+                RailgunTurretBlockEntity.getFireRate());
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.railgun_turret.energy",
+                Config.railgunEnergyCost);
+        TurretTooltipHelper.addDarkGrayLine(tooltip, "tooltip.advanced_turret.railgun_turret.ammo");
         if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
             String ownerName = stack.getTag().getString("OwnerName");
             tooltip.add(Component.translatable("gui.advanced_turret.owner_tooltip", ownerName).withStyle(ChatFormatting.GOLD));

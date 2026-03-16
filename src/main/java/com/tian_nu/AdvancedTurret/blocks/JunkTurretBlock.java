@@ -75,14 +75,14 @@ public class JunkTurretBlock extends BaseEntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base"));
-        tooltip.add(Component.translatable("tooltip.advanced_turret.junk_turret.stats",
-                JunkTurretBlockEntity.getBulletDamage(),
+        TurretTooltipHelper.addPlacementTooltip(tooltip);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.junk_turret.damage",
+                JunkTurretBlockEntity.getBulletDamage());
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.junk_turret.range_rate",
                 JunkTurretBlockEntity.getSearchRadius(),
-                JunkTurretBlockEntity.getFireRate() / 20.0,
-                Config.junkTurretEnergyCost
-        ).withStyle(net.minecraft.ChatFormatting.GRAY));
-
+                JunkTurretBlockEntity.getFireRate() / 20.0);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.junk_turret.energy_ammo",
+                Config.junkTurretEnergyCost);
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

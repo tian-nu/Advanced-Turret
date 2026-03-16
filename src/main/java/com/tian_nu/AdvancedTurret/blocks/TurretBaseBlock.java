@@ -11,6 +11,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -23,6 +25,8 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * 炮塔基座方块
  * 
@@ -34,6 +38,13 @@ public class TurretBaseBlock extends BaseEntityBlock {
     
     public TurretBaseBlock(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable BlockGetter level, @NotNull List<Component> tooltip,
+                                @NotNull TooltipFlag flag) {
+        TurretTooltipHelper.addBaseTooltip(stack, tooltip);
+        super.appendHoverText(stack, level, tooltip, flag);
     }
     
     @Override

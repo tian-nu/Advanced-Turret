@@ -83,15 +83,16 @@ public class MissileTurretBlock extends BaseEntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.advanced_turret.turret.place_on_base").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.advanced_turret.missile_turret.stats",
+        TurretTooltipHelper.addPlacementTooltip(tooltip);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.missile_turret.damage",
                 MissileTurretBlockEntity.getDirectDamage(),
                 MissileTurretBlockEntity.getExplosionDamage(),
-                MissileTurretBlockEntity.getExplosionRadius(),
+                MissileTurretBlockEntity.getExplosionRadius());
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.missile_turret.range_rate",
                 MissileTurretBlockEntity.getSearchRadius(),
-                MissileTurretBlockEntity.getFireRate() / 20.0,
-                Config.missileEnergyCost
-        ).withStyle(ChatFormatting.GRAY));
+                MissileTurretBlockEntity.getFireRate() / 20.0);
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.missile_turret.energy_ammo",
+                Config.missileEnergyCost);
         if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
             String ownerName = stack.getTag().getString("OwnerName");
             tooltip.add(Component.translatable("gui.advanced_turret.owner_tooltip", ownerName).withStyle(ChatFormatting.GOLD));

@@ -122,7 +122,7 @@ public class TurretPersonalConfigScreen extends Screen {
     private void renderLabels(GuiGraphics guiGraphics, int guiX, int guiY) {
         guiGraphics.drawString(this.font, Component.translatable("gui.turret_config.background_alpha"), guiX + 22, guiY + 40, TurretUiTheme.COLOR_TEXT, false);
         guiGraphics.drawString(this.font, Component.translatable("gui.turret_config.energy_alpha"), guiX + 22, guiY + 64, TurretUiTheme.COLOR_TEXT, false);
-        guiGraphics.drawString(this.font, Component.literal("范围: 0.00 - 1.00"), guiX + 22, guiY + 92, TurretUiTheme.COLOR_TEXT_SUB, false);
+        guiGraphics.drawString(this.font, Component.translatable("gui.turret_config.alpha_range"), guiX + 22, guiY + 92, TurretUiTheme.COLOR_TEXT_SUB, false);
         guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.enabled_faces"), guiX + 22, guiY + 108, TurretUiTheme.COLOR_TEXT_SUB, false);
     }
 
@@ -212,12 +212,12 @@ public class TurretPersonalConfigScreen extends Screen {
 
         private String getFaceName() {
             return switch (direction) {
-                case UP -> "上面";
-                case DOWN -> "下面";
-                case NORTH -> "北面";
-                case SOUTH -> "南面";
-                case WEST -> "西面";
-                case EAST -> "东面";
+                case UP -> Component.translatable("gui.advanced_turret.face.up").getString();
+                case DOWN -> Component.translatable("gui.advanced_turret.face.down").getString();
+                case NORTH -> Component.translatable("gui.advanced_turret.face.north").getString();
+                case SOUTH -> Component.translatable("gui.advanced_turret.face.south").getString();
+                case WEST -> Component.translatable("gui.advanced_turret.face.west").getString();
+                case EAST -> Component.translatable("gui.advanced_turret.face.east").getString();
             };
         }
 
