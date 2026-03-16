@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "QCQ",
+    "CBC",
+    " G "
+  ],
+  "key": {
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "B": {
+      "item": "minecraft:comparator"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:smart_chip",
+    "count": 1
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " T ",
+    "CBC",
+    " F "
+  ],
+  "key": {
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "B": {
+      "item": "advanced_turret:precision_component_t2"
+    },
+    "F": {
+      "item": "advanced_turret:fire_rate_component"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:grenade_launcher_turret",
+    "count": 1
+  }
+}

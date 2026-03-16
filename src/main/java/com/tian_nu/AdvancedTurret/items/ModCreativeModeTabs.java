@@ -35,6 +35,8 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.ROCKET.get());
                         output.accept(ModItems.MISSILE.get());
                         output.accept(ModItems.GRENADE.get());
+                        output.accept(ModItems.CIRCUIT_BOARD.get());
+                        output.accept(ModItems.RADAR.get());
 
 
                         // 炮塔类型
@@ -60,6 +62,11 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.RANGE_COMPONENT.get());
                         output.accept(ModItems.ACCURACY_COMPONENT.get());
                         output.accept(ModItems.FIRE_RATE_COMPONENT.get());
+                        output.accept(ModItems.PRECISION_COMPONENT_T1.get());
+                        output.accept(ModItems.PRECISION_COMPONENT_T2.get());
+                        output.accept(ModItems.PRECISION_COMPONENT_T3.get());
+                        output.accept(ModItems.PRECISION_COMPONENT_T4.get());
+                        output.accept(ModItems.PRECISION_COMPONENT_T5.get());
                         
                         // 炮塔基座
                         output.accept(ModBlocks.TURRET_BASE_T1.get());

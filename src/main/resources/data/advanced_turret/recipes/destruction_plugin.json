@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " O ",
+    "CTC",
+    " P "
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "P": {
+      "item": "minecraft:iron_pickaxe"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:destruction_plugin",
+    "count": 1
+  }
+}

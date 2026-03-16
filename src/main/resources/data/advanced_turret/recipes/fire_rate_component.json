@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "CCC",
+    " I "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:repeater"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "I": {
+      "item": "minecraft:clock"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:fire_rate_component",
+    "count": 1
+  }
+}

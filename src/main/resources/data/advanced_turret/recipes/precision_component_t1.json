@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    "CRC",
+    " S "
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:stone"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:precision_component_t1",
+    "count": 1
+  }
+}

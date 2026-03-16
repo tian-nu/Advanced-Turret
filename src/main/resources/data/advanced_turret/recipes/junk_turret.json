@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "CBC",
+    " S "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:dropper"
+    },
+    "C": {
+      "item": "minecraft:cobblestone"
+    },
+    "B": {
+      "item": "advanced_turret:precision_component_t1"
+    },
+    "S": {
+      "item": "minecraft:string"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:junk_turret",
+    "count": 1
+  }
+}

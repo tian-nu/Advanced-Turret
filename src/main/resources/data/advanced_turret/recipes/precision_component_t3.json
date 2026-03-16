@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "PCP",
+    " G "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "P": {
+      "item": "advanced_turret:precision_component_t2"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:precision_component_t3",
+    "count": 1
+  }
+}

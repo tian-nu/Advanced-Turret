@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    "ABA",
+    " G "
+  ],
+  "key": {
+    "S": {
+      "item": "advanced_turret:smart_chip"
+    },
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "B": {
+      "item": "advanced_turret:precision_component_t4"
+    },
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:resonance_field_turret",
+    "count": 1
+  }
+}

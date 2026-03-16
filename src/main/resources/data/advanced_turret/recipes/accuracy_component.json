@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Q ",
+    "CGC",
+    " R "
+  ],
+  "key": {
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "R": {
+      "item": "minecraft:comparator"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:accuracy_component",
+    "count": 1
+  }
+}

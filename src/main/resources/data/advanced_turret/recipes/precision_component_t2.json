@@ -1,20 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "SSS",
-    "SPS",
-    "SSS"
+    " I ",
+    "PTP",
+    " I "
   ],
   "key": {
-    "S": {
-      "item": "minecraft:stone"
+    "I": {
+      "item": "minecraft:iron_ingot"
     },
     "P": {
       "item": "advanced_turret:precision_component_t1"
+    },
+    "T": {
+      "item": "advanced_turret:turret"
     }
   },
   "result": {
-    "item": "advanced_turret:turret_base_t1",
+    "item": "advanced_turret:precision_component_t2",
     "count": 1
   }
 }

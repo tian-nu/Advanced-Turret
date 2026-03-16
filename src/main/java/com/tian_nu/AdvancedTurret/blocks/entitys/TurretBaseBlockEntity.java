@@ -300,8 +300,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         return switch (getTier()) {
             case 1 -> Config.turretBaseMaxTransferRateT1 > 0 ? Config.turretBaseMaxTransferRateT1 : 100;
             case 2 -> Config.turretBaseMaxTransferRateT2 > 0 ? Config.turretBaseMaxTransferRateT2 : 200;
-            case 3 -> Config.turretBaseMaxTransferRateT3 > 0 ? Config.turretBaseMaxTransferRateT3 : 500;
-            case 4 -> Config.turretBaseMaxTransferRateT4 > 0 ? Config.turretBaseMaxTransferRateT4 : 2000;
+            case 3 -> Config.turretBaseMaxTransferRateT3 > 0 ? Config.turretBaseMaxTransferRateT3 : 600;
+            case 4 -> Config.turretBaseMaxTransferRateT4 > 0 ? Config.turretBaseMaxTransferRateT4 : 4000;
             case 5 -> Config.turretBaseMaxTransferRateT5 > 0 ? Config.turretBaseMaxTransferRateT5 : 10000;
             default -> MAX_TRANSFER_RATE;
         };

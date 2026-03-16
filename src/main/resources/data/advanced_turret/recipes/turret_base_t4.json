@@ -2,18 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "DDD",
-    "DBD",
-    "OOO"
+    "DPD",
+    "DDD"
   ],
   "key": {
     "D": {
       "item": "minecraft:diamond"
     },
-    "B": {
-      "item": "advanced_turret:turret_base_t3"
-    },
-    "O": {
-      "item": "minecraft:obsidian"
+    "P": {
+      "item": "advanced_turret:precision_component_t4"
     }
   },
   "result": {

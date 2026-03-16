@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    "CBC",
+    " S "
+  ],
+  "key": {
+    "R": {
+      "item": "advanced_turret:radar"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "B": {
+      "item": "advanced_turret:precision_component_t4"
+    },
+    "S": {
+      "item": "advanced_turret:smart_chip"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:missile_turret",
+    "count": 1
+  }
+}

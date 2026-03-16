@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " F ",
+    "CBC",
+    " R "
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:fire_charge"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "B": {
+      "item": "advanced_turret:precision_component_t3"
+    },
+    "R": {
+      "item": "advanced_turret:range_component"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:rocket_turret",
+    "count": 1
+  }
+}

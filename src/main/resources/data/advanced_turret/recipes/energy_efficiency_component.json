@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " E ",
+    "CRC",
+    " G "
+  ],
+  "key": {
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:energy_efficiency_component",
+    "count": 1
+  }
+}

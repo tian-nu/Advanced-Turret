@@ -2,6 +2,13 @@
   "replace": false,
   "values": [
     "advanced_turret:machine_gun_turret",
-    "advanced_turret:railgun_turret"
+    "advanced_turret:railgun_turret",
+    "advanced_turret:rocket_turret",
+    "advanced_turret:missile_turret",
+    "advanced_turret:laser_turret",
+    "advanced_turret:phase_field_turret",
+    "advanced_turret:resonance_field_turret",
+    "advanced_turret:grenade_launcher_turret",
+    "advanced_turret:junk_turret"
   ]
 }

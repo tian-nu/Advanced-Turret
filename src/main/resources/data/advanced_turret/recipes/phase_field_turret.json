@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    "ABA",
+    " E "
+  ],
+  "key": {
+    "S": {
+      "item": "advanced_turret:smart_chip"
+    },
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "B": {
+      "item": "advanced_turret:precision_component_t4"
+    },
+    "E": {
+      "item": "minecraft:fermented_spider_eye"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:phase_field_turret",
+    "count": 1
+  }
+}

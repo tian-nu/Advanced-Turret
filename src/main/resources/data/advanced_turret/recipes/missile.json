@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "advanced_turret:rocket"
+    },
+    {
+      "item": "advanced_turret:circuit_board"
+    },
+    {
+      "item": "advanced_turret:radar"
+    }
+  ],
+  "result": {
+    "item": "advanced_turret:missile",
+    "count": 1
+  }
+}

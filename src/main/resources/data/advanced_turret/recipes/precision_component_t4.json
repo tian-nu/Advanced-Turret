@@ -1,20 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "GGG",
-    "GPG",
-    "GGG"
+    " D ",
+    "PRP",
+    " D "
   ],
   "key": {
-    "G": {
-      "item": "minecraft:gold_ingot"
+    "D": {
+      "item": "minecraft:diamond"
     },
     "P": {
       "item": "advanced_turret:precision_component_t3"
+    },
+    "R": {
+      "item": "advanced_turret:radar"
     }
   },
   "result": {
-    "item": "advanced_turret:turret_base_t3",
+    "item": "advanced_turret:precision_component_t4",
     "count": 1
   }
 }

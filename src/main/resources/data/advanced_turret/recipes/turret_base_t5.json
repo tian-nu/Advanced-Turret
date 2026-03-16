@@ -1,19 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "NNN",
-    "NBN",
+    "OOO",
+    "OPO",
     "OOO"
   ],
   "key": {
-    "N": {
-      "item": "minecraft:netherite_ingot"
-    },
-    "B": {
-      "item": "advanced_turret:turret_base_t4"
-    },
     "O": {
       "item": "minecraft:obsidian"
+    },
+    "P": {
+      "item": "advanced_turret:precision_component_t5"
     }
   },
   "result": {

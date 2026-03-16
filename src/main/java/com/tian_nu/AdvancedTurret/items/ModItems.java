@@ -34,6 +34,10 @@ public class ModItems {
             ITEMS.register("missile", () -> describedItem("item.advanced_turret.missile.tooltip"));
     public static final RegistryObject<Item> GRENADE =
             ITEMS.register("grenade", () -> describedItem("item.advanced_turret.grenade.tooltip"));
+    public static final RegistryObject<Item> CIRCUIT_BOARD =
+            ITEMS.register("circuit_board", () -> describedItem("item.advanced_turret.circuit_board.tooltip"));
+    public static final RegistryObject<Item> RADAR =
+            ITEMS.register("radar", () -> describedItem("item.advanced_turret.radar.tooltip"));
 
     public static final RegistryObject<Item> CREATIVE_POWER_COMPONENT =
             ITEMS.register("creative_power_component", () -> describedItem("item.advanced_turret.creative_power_component.tooltip"));
@@ -59,6 +63,16 @@ public class ModItems {
             ITEMS.register("accuracy_component", () -> describedItem("item.advanced_turret.accuracy_component.tooltip"));
     public static final RegistryObject<Item> FIRE_RATE_COMPONENT =
             ITEMS.register("fire_rate_component", () -> describedItem("item.advanced_turret.fire_rate_component.tooltip"));
+    public static final RegistryObject<Item> PRECISION_COMPONENT_T1 =
+            ITEMS.register("precision_component_t1", () -> describedItem("item.advanced_turret.precision_component_t1.tooltip"));
+    public static final RegistryObject<Item> PRECISION_COMPONENT_T2 =
+            ITEMS.register("precision_component_t2", () -> describedItem("item.advanced_turret.precision_component_t2.tooltip"));
+    public static final RegistryObject<Item> PRECISION_COMPONENT_T3 =
+            ITEMS.register("precision_component_t3", () -> describedItem("item.advanced_turret.precision_component_t3.tooltip"));
+    public static final RegistryObject<Item> PRECISION_COMPONENT_T4 =
+            ITEMS.register("precision_component_t4", () -> describedItem("item.advanced_turret.precision_component_t4.tooltip"));
+    public static final RegistryObject<Item> PRECISION_COMPONENT_T5 =
+            ITEMS.register("precision_component_t5", () -> describedItem("item.advanced_turret.precision_component_t5.tooltip"));
 
     private static Item describedItem(String... tooltipKeys) {
         return new Item(new Item.Properties().stacksTo(64)) {

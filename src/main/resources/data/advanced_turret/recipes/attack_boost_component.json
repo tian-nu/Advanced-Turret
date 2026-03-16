@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "CSC",
+    " R "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:gunpowder"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "S": {
+      "item": "minecraft:iron_sword"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:attack_boost_component",
+    "count": 1
+  }
+}

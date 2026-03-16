@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " L ",
+    "CBC",
+    " A "
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:lightning_rod"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "B": {
+      "item": "advanced_turret:precision_component_t3"
+    },
+    "A": {
+      "item": "advanced_turret:accuracy_component"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:railgun_turret",
+    "count": 1
+  }
+}

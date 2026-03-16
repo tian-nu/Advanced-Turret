@@ -40,11 +40,11 @@ public class Config {
 
     public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_TRANSFER_RATE_T3 = BUILDER
             .comment("config")
-            .defineInRange("turretBaseMaxTransferRateT3", 500, 10, 100000);
+            .defineInRange("turretBaseMaxTransferRateT3", 600, 10, 100000);
 
     public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_TRANSFER_RATE_T4 = BUILDER
             .comment("config")
-            .defineInRange("turretBaseMaxTransferRateT4", 2000, 10, 100000);
+            .defineInRange("turretBaseMaxTransferRateT4", 4000, 10, 100000);
 
     public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_TRANSFER_RATE_T5 = BUILDER
             .comment("config")

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " N ",
+    "PSP",
+    " N "
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "P": {
+      "item": "advanced_turret:precision_component_t4"
+    },
+    "S": {
+      "item": "advanced_turret:smart_chip"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:precision_component_t5",
+    "count": 1
+  }
+}

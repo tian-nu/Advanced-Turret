@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "CBC",
+    " E "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "B": {
+      "item": "advanced_turret:precision_component_t3"
+    },
+    "E": {
+      "item": "advanced_turret:energy_efficiency_component"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:laser_turret",
+    "count": 1
+  }
+}

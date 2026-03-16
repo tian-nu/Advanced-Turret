@@ -1,19 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "GGG",
-    "GRG",
+    "III",
+    "IPI",
     "III"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:gold_ingot"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
     "I": {
       "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "advanced_turret:precision_component_t2"
     }
   },
   "result": {

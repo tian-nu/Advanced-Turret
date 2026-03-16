@@ -74,9 +74,8 @@ public class RailgunTurretBlock extends BaseEntityBlock {
         TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.railgun_turret.range_rate",
                 RailgunTurretBlockEntity.getSearchRadius(),
                 RailgunTurretBlockEntity.getFireRate());
-        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.railgun_turret.energy",
+        TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.railgun_turret.energy_ammo",
                 Config.railgunEnergyCost);
-        TurretTooltipHelper.addDarkGrayLine(tooltip, "tooltip.advanced_turret.railgun_turret.ammo");
         if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
             String ownerName = stack.getTag().getString("OwnerName");
             tooltip.add(Component.translatable("gui.advanced_turret.owner_tooltip", ownerName).withStyle(ChatFormatting.GOLD));
