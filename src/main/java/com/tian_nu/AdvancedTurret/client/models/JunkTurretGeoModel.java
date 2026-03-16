@@ -13,7 +13,7 @@ import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 
 /**
- * 垃圾炮塔GeoModel类
+ * 垃圾炮塔 GeoModel
  */
 public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
 
@@ -24,7 +24,6 @@ public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
 
     @Override
     public ResourceLocation getTextureResource(JunkTurretBlockEntity animatable) {
-        // 临时占位：复用机枪炮塔贴图，保证UV一致
         return TurretMod.location("textures/block/junk_turret.png");
     }
 
@@ -41,11 +40,10 @@ public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
             if (hasTarget(animatable)) {
                 Direction direction = animatable.getBlockState().getValue(JunkTurretBlock.FACING);
 
-                // 使用服务端同步的抛物线初速度方向，保证炮口朝向和真实弹道一致
                 Vector3f worldAimDirection = new Vector3f(
-                    (float) aimDirX(animatable),
-                    (float) aimDirY(animatable),
-                    (float) aimDirZ(animatable)
+                        (float) aimDirX(animatable),
+                        (float) aimDirY(animatable),
+                        (float) aimDirZ(animatable)
                 );
 
                 if (worldAimDirection.lengthSquared() < 1.0E-6f) {
@@ -58,7 +56,6 @@ public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
                 double horizontalDist = Math.sqrt(localAimDirection.x * localAimDirection.x + localAimDirection.z * localAimDirection.z);
 
                 float yRot = (float) -Math.atan2(localAimDirection.x, localAimDirection.z);
-
                 if (direction == Direction.UP || direction == Direction.EAST || direction == Direction.WEST) {
                     yRot += (float) Math.PI;
                 }
@@ -85,15 +82,14 @@ public class JunkTurretGeoModel extends GeoModel<JunkTurretBlockEntity> {
     }
 
     private Quaternionf getTransform(Direction direction) {
-        switch (direction) {
-            case NORTH -> { return new Quaternionf().rotationX((float) (-Math.PI / 2)); }
-            case EAST -> { return new Quaternionf().rotationZ((float) (-Math.PI / 2)); }
-            case SOUTH -> { return new Quaternionf().rotationX((float) (Math.PI / 2)); }
-            case WEST -> { return new Quaternionf().rotationZ((float) (Math.PI / 2)); }
-            case UP -> { return new Quaternionf().rotationZ((float) Math.PI); }
-            case DOWN -> { return new Quaternionf(); }
-        }
-        return new Quaternionf();
+        return switch (direction) {
+            case NORTH -> new Quaternionf().rotationX((float) (-Math.PI / 2));
+            case EAST -> new Quaternionf().rotationZ((float) (-Math.PI / 2));
+            case SOUTH -> new Quaternionf().rotationX((float) (Math.PI / 2));
+            case WEST -> new Quaternionf().rotationZ((float) (Math.PI / 2));
+            case UP -> new Quaternionf().rotationZ((float) Math.PI);
+            case DOWN -> new Quaternionf();
+        };
     }
 
     private float lerp(float start, float end) {

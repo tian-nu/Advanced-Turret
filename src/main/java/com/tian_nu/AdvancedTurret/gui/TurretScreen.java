@@ -225,7 +225,7 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.range_control"), x + getRangeLabelX(), y + 13, TurretUiTheme.COLOR_TEXT_SUB, false);
 
         String ownerName = menu.getBlockEntity().getResolvedOwnerName();
-        if (ownerName != null && !ownerName.isBlank()) {
+        if (!ownerName.isBlank()) {
             guiGraphics.drawString(this.font,
                 Component.translatable("gui.advanced_turret.owner_tooltip", ownerName),
                 x + OWNER_LABEL_X,

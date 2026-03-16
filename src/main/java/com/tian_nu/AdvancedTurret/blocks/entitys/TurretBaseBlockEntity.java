@@ -544,7 +544,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     public String getResolvedOwnerName() {
-        if (ownerName != null && !ownerName.isBlank()) {
+        if (!ownerName.isBlank()) {
             return ownerName;
         }
         return resolveOwnerNameFromLevel();
@@ -558,10 +558,6 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
             }
         }
         return "";
-    }
-
-    public void setOwner(java.util.UUID owner) {
-        setOwner(owner, ownerName);
     }
 
     public void setOwner(java.util.UUID owner, @Nullable String ownerName) {
