@@ -95,51 +95,52 @@ public class SmartChipConfigPacket {
         context.get().enqueueWork(() -> {
             ServerPlayer player = context.get().getSender();
             if (player == null) return;
-            
+
             ItemStack stackToUpdate = ItemStack.EMPTY;
-            
+            TurretBaseBlockEntity baseToSync = null;
+
             if (packet.pos != null) {
-                // Update BlockEntity
                 Level level = player.level();
                 if (level.isLoaded(packet.pos) && player.distanceToSqr(packet.pos.getCenter()) < 64.0) {
                     BlockEntity be = level.getBlockEntity(packet.pos);
                     if (be instanceof TurretBaseBlockEntity base) {
                         stackToUpdate = base.getPluginStack();
-                        // Mark BE as changed to sync/save
-                        base.setChanged();
+                        baseToSync = base;
                     }
                 }
             } else {
-                // Update Main Hand Item
                 ItemStack handStack = player.getItemInHand(InteractionHand.MAIN_HAND);
                 if (handStack.getItem() instanceof SmartChipItem) {
                     stackToUpdate = handStack;
                 }
             }
-            
-if (!stackToUpdate.isEmpty() && stackToUpdate.getItem() instanceof SmartChipItem) {
-			// SmartChipItem.setTargetMode(stackToUpdate, packet.targetMode); // Deprecated
-			SmartChipItem.setTargetFlags(stackToUpdate, packet.targetFlags);
-			SmartChipItem.setFriendlyFire(stackToUpdate, packet.friendlyFire);
-			SmartChipItem.setPredictiveAiming(stackToUpdate, packet.predictiveAiming);
-			SmartChipItem.setThriftyMode(stackToUpdate, packet.thriftyMode);
-			SmartChipItem.setEnabledFaces(stackToUpdate, packet.enabledFacesMask);
-                
-                // Update Lists
+
+            if (!stackToUpdate.isEmpty() && stackToUpdate.getItem() instanceof SmartChipItem) {
+                SmartChipItem.setTargetFlags(stackToUpdate, packet.targetFlags);
+                SmartChipItem.setFriendlyFire(stackToUpdate, packet.friendlyFire);
+                SmartChipItem.setPredictiveAiming(stackToUpdate, packet.predictiveAiming);
+                SmartChipItem.setThriftyMode(stackToUpdate, packet.thriftyMode);
+                SmartChipItem.setEnabledFaces(stackToUpdate, packet.enabledFacesMask);
+
                 stackToUpdate.getOrCreateTag().remove(SmartChipItem.KEY_BLACKLIST);
                 for (String s : packet.blacklist) {
                     SmartChipItem.addToBlacklist(stackToUpdate, s);
                 }
-                
+
                 stackToUpdate.getOrCreateTag().remove(SmartChipItem.KEY_WHITELIST);
                 for (String s : packet.whitelist) {
-                     addStringToTagList(stackToUpdate, SmartChipItem.KEY_WHITELIST, s);
+                    addStringToTagList(stackToUpdate, SmartChipItem.KEY_WHITELIST, s);
+                }
+
+                if (baseToSync != null) {
+                    baseToSync.setChanged();
+                    baseToSync.syncToClient();
                 }
             }
         });
         context.get().setPacketHandled(true);
     }
-    
+
     private static void addStringToTagList(ItemStack stack, String key, String value) {
         net.minecraft.nbt.CompoundTag tag = stack.getOrCreateTag();
         net.minecraft.nbt.ListTag list;

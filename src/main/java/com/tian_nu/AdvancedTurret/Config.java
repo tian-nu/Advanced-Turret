@@ -6,285 +6,305 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 /**
- * 模组配置类
- *
- * <p>使用 Forge 配置 API 管理炮塔平衡与插件参数</p>
+ * 婵☆垽绱曠划宥夋煀瀹ュ洨鏋傜紒? *
+ * <p>濞达綀娉曢弫?Forge 闂佹澘绉堕悿?API 缂佺媴绱曢幃濠囨倷椤旂⒈鏁婃鐐茬枃閵嗏偓濞戞挸瀛╄ぐ鍐╃鐠哄搫妫橀柡?/p>
  */
 @Mod.EventBusSubscriber(modid = TurretMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-    // 通用配置
+    // 闂侇偅姘ㄩ弫銈夋煀瀹ュ洨鏋?
     public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_ENERGY_T1 = BUILDER
-            .comment("T1炮塔基座最大能量存储")
+            .comment("config")
             .defineInRange("turretBaseMaxEnergyT1", 10000, 1000, 100000);
 
     public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_ENERGY_T2 = BUILDER
-            .comment("T2炮塔基座最大能量存储")
+            .comment("config")
             .defineInRange("turretBaseMaxEnergyT2", 40000, 1000, 500000);
 
     public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_ENERGY_T3 = BUILDER
-            .comment("T3炮塔基座最大能量存储")
+            .comment("config")
             .defineInRange("turretBaseMaxEnergyT3", 100000, 1000, 1000000);
 
     public static final ForgeConfigSpec.IntValue MAX_TRANSFER_RATE = BUILDER
-            .comment("能量最大传输速率 (FE/tick)")
+            .comment("config")
             .defineInRange("maxTransferRate", 1000, 100, 10000);
 
-    // 机枪炮塔
+    public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_TRANSFER_RATE_T1 = BUILDER
+            .comment("config")
+            .defineInRange("turretBaseMaxTransferRateT1", 100, 10, 100000);
+
+    public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_TRANSFER_RATE_T2 = BUILDER
+            .comment("config")
+            .defineInRange("turretBaseMaxTransferRateT2", 200, 10, 100000);
+
+    public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_TRANSFER_RATE_T3 = BUILDER
+            .comment("config")
+            .defineInRange("turretBaseMaxTransferRateT3", 500, 10, 100000);
+
+    public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_TRANSFER_RATE_T4 = BUILDER
+            .comment("config")
+            .defineInRange("turretBaseMaxTransferRateT4", 2000, 10, 100000);
+
+    public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_TRANSFER_RATE_T5 = BUILDER
+            .comment("config")
+            .defineInRange("turretBaseMaxTransferRateT5", 10000, 10, 1000000);
+
+    // 闁哄牏鍎ら悘娆撴倷椤旂⒈鏁?
     public static final ForgeConfigSpec.DoubleValue MACHINE_GUN_DAMAGE = BUILDER
-            .comment("机枪炮塔子弹伤害")
+            .comment("config")
             .defineInRange("machineGunDamage", 4.0, 0.1, 1000.0);
 
     public static final ForgeConfigSpec.DoubleValue MACHINE_GUN_RANGE = BUILDER
-            .comment("机枪炮塔搜索范围")
+            .comment("config")
             .defineInRange("machineGunRange", 32.0, 1.0, 256.0);
 
     public static final ForgeConfigSpec.IntValue MACHINE_GUN_FIRE_RATE = BUILDER
-            .comment("机枪炮塔射击间隔 (tick/发)")
+            .comment("config")
             .defineInRange("machineGunFireRate", 5, 1, 1200);
 
     public static final ForgeConfigSpec.DoubleValue MACHINE_GUN_BULLET_SPEED = BUILDER
-            .comment("机枪炮塔子弹速度")
+            .comment("config")
             .defineInRange("machineGunBulletSpeed", 3.0, 0.1, 64.0);
 
     public static final ForgeConfigSpec.IntValue MACHINE_GUN_ENERGY_COST = BUILDER
-            .comment("机枪炮塔每次射击能量消耗")
+            .comment("config")
             .defineInRange("machineGunEnergyCost", 100, 1, 100000);
 
-    // 磁轨炮
     public static final ForgeConfigSpec.DoubleValue RAILGUN_DAMAGE = BUILDER
-            .comment("磁轨炮炮塔子弹伤害")
+            .comment("config")
             .defineInRange("railgunDamage", 60.0, 0.1, 10000.0);
 
     public static final ForgeConfigSpec.DoubleValue RAILGUN_RANGE = BUILDER
-            .comment("磁轨炮炮塔搜索范围")
+            .comment("config")
             .defineInRange("railgunRange", 64.0, 1.0, 256.0);
 
     public static final ForgeConfigSpec.IntValue RAILGUN_FIRE_RATE = BUILDER
-            .comment("磁轨炮炮塔射击间隔 (tick/发)")
+            .comment("config")
             .defineInRange("railgunFireRate", 100, 1, 2400);
 
     public static final ForgeConfigSpec.DoubleValue RAILGUN_BULLET_SPEED = BUILDER
-            .comment("磁轨炮炮塔子弹速度")
+            .comment("config")
             .defineInRange("railgunBulletSpeed", 6.0, 0.1, 128.0);
 
     public static final ForgeConfigSpec.IntValue RAILGUN_ENERGY_COST = BUILDER
-            .comment("磁轨炮炮塔每次射击能量消耗")
+            .comment("config")
             .defineInRange("railgunEnergyCost", 10000, 1, 1000000);
 
     public static final ForgeConfigSpec.IntValue RAILGUN_PENETRATION = BUILDER
-            .comment("磁轨炮炮塔穿透目标数量")
+            .comment("config")
             .defineInRange("railgunPenetrationCount", 3, 1, 64);
 
-    // 激光炮塔
     public static final ForgeConfigSpec.DoubleValue LASER_DAMAGE_PER_TICK = BUILDER
-            .comment("激光炮塔每tick伤害")
+            .comment("config")
             .defineInRange("laserDamagePerTick", 2.0, 0.1, 1000.0);
 
     public static final ForgeConfigSpec.DoubleValue LASER_RANGE = BUILDER
-            .comment("激光炮塔搜索范围")
+            .comment("config")
             .defineInRange("laserRange", 32.0, 1.0, 256.0);
 
     public static final ForgeConfigSpec.IntValue LASER_ENERGY_PER_TICK = BUILDER
-            .comment("激光炮塔每tick能量消耗")
+            .comment("config")
             .defineInRange("laserEnergyPerTick", 500, 1, 100000);
 
     public static final ForgeConfigSpec.IntValue LASER_FIRE_SECONDS = BUILDER
-            .comment("激光炮塔点燃时间 (秒)")
+            .comment("config")
             .defineInRange("laserFireSeconds", 3, 0, 60);
 
     public static final ForgeConfigSpec.DoubleValue LASER_AIM_THRESHOLD = BUILDER
-            .comment("激光炮塔瞄准判定阈值")
+            .comment("config")
             .defineInRange("laserAimThreshold", 0.26, 0.01, 3.14);
 
     public static final ForgeConfigSpec.DoubleValue LASER_TURN_SPEED = BUILDER
-            .comment("激光炮塔转向速度")
+            .comment("config")
             .defineInRange("laserTurnSpeed", 0.18, 0.01, 3.14);
 
-    // 火箭炮塔
+    // 闁诲浚鍋嗛鍕倷椤旂⒈鏁?
     public static final ForgeConfigSpec.DoubleValue ROCKET_DIRECT_DAMAGE = BUILDER
-            .comment("火箭炮塔直击伤害")
+            .comment("config")
             .defineInRange("rocketDirectDamage", 10.0, 0.1, 10000.0);
 
     public static final ForgeConfigSpec.DoubleValue ROCKET_EXPLOSION_DAMAGE = BUILDER
-            .comment("火箭炮塔爆炸伤害")
+            .comment("config")
             .defineInRange("rocketExplosionDamage", 10.0, 0.0, 10000.0);
 
     public static final ForgeConfigSpec.DoubleValue ROCKET_EXPLOSION_RADIUS = BUILDER
-            .comment("火箭炮塔爆炸半径")
+            .comment("config")
             .defineInRange("rocketExplosionRadius", 4.0, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue ROCKET_RANGE = BUILDER
-            .comment("火箭炮塔搜索范围")
+            .comment("config")
             .defineInRange("rocketRange", 48.0, 1.0, 256.0);
 
     public static final ForgeConfigSpec.IntValue ROCKET_FIRE_RATE = BUILDER
-            .comment("火箭炮塔射击间隔 (tick/发)")
+            .comment("config")
             .defineInRange("rocketFireRate", 100, 1, 2400);
 
     public static final ForgeConfigSpec.DoubleValue ROCKET_BULLET_SPEED = BUILDER
-            .comment("火箭炮塔火箭初速度")
+            .comment("config")
             .defineInRange("rocketBulletSpeed", 2.0, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue ROCKET_ACCELERATION = BUILDER
-            .comment("火箭炮塔火箭加速度")
+            .comment("config")
             .defineInRange("rocketAcceleration", 0.047, 0.0, 4.0);
 
     public static final ForgeConfigSpec.IntValue ROCKET_ENERGY_COST = BUILDER
-            .comment("火箭炮塔每次射击能量消耗")
+            .comment("config")
             .defineInRange("rocketEnergyCost", 5000, 1, 1000000);
 
-    // 导弹炮塔
+    // 閻庣數鍘ч懘濠囨倷椤旂⒈鏁?
     public static final ForgeConfigSpec.DoubleValue MISSILE_DIRECT_DAMAGE = BUILDER
-            .comment("导弹炮塔直击伤害")
+            .comment("config")
             .defineInRange("missileDirectDamage", 10.0, 0.1, 10000.0);
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_EXPLOSION_DAMAGE = BUILDER
-            .comment("导弹炮塔爆炸伤害")
+            .comment("config")
             .defineInRange("missileExplosionDamage", 15.0, 0.0, 10000.0);
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_EXPLOSION_RADIUS = BUILDER
-            .comment("导弹炮塔爆炸半径")
+            .comment("config")
             .defineInRange("missileExplosionRadius", 4.0, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_RANGE = BUILDER
-            .comment("导弹炮塔搜索范围")
+            .comment("config")
             .defineInRange("missileRange", 64.0, 1.0, 256.0);
 
     public static final ForgeConfigSpec.IntValue MISSILE_FIRE_RATE = BUILDER
-            .comment("导弹炮塔射击间隔 (tick/发)")
+            .comment("config")
             .defineInRange("missileFireRate", 133, 1, 2400);
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_BULLET_SPEED = BUILDER
-            .comment("导弹炮塔导弹初速度")
+            .comment("config")
             .defineInRange("missileBulletSpeed", 1.5, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_ACCELERATION = BUILDER
-            .comment("导弹炮塔导弹加速度")
+            .comment("config")
             .defineInRange("missileAcceleration", 0.03, 0.0, 4.0);
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_TURN_RATE = BUILDER
-            .comment("导弹炮塔导弹转向速率")
+            .comment("config")
             .defineInRange("missileTurnRate", 0.3, 0.0, 1.0);
 
     public static final ForgeConfigSpec.IntValue MISSILE_ENERGY_COST = BUILDER
-            .comment("导弹炮塔每次射击能量消耗")
+            .comment("config")
             .defineInRange("missileEnergyCost", 10000, 1, 1000000);
 
-    // 榴弹炮塔
+    // 婵帗娼欓懘濠囨倷椤旂⒈鏁?
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_DIRECT_DAMAGE = BUILDER
-            .comment("榴弹炮塔直击伤害")
+            .comment("config")
             .defineInRange("grenadeLauncherDirectDamage", 5.0, 0.1, 10000.0);
 
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_EXPLOSION_DAMAGE = BUILDER
-            .comment("榴弹炮塔爆炸伤害")
+            .comment("config")
             .defineInRange("grenadeLauncherExplosionDamage", 10.0, 0.0, 10000.0);
 
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_EXPLOSION_RADIUS = BUILDER
-            .comment("榴弹炮塔爆炸半径")
+            .comment("config")
             .defineInRange("grenadeLauncherExplosionRadius", 3.0, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_RANGE = BUILDER
-            .comment("榴弹炮塔搜索范围")
+            .comment("config")
             .defineInRange("grenadeLauncherRange", 32.0, 1.0, 256.0);
 
     public static final ForgeConfigSpec.IntValue GRENADE_LAUNCHER_FIRE_RATE = BUILDER
-            .comment("榴弹炮塔射击间隔 (tick/发)")
+            .comment("config")
             .defineInRange("grenadeLauncherFireRate", 40, 1, 2400);
 
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_BULLET_SPEED = BUILDER
-            .comment("榴弹炮塔榴弹初速度")
+            .comment("config")
             .defineInRange("grenadeLauncherBulletSpeed", 1.5, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_GRAVITY = BUILDER
-            .comment("榴弹炮塔重力系数")
+            .comment("config")
             .defineInRange("grenadeLauncherGravity", 0.05, 0.001, 1.0);
 
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_MIN_ARC_HEIGHT = BUILDER
-            .comment("榴弹炮塔最小抛物线高度")
+            .comment("config")
             .defineInRange("grenadeLauncherMinArcHeight", 0.8, 0.0, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_MAX_ARC_HEIGHT = BUILDER
-            .comment("榴弹炮塔最大抛物线高度")
+            .comment("config")
             .defineInRange("grenadeLauncherMaxArcHeight", 5.0, 0.0, 128.0);
 
     public static final ForgeConfigSpec.IntValue GRENADE_LAUNCHER_ENERGY_COST = BUILDER
-            .comment("榴弹炮塔每次射击能量消耗")
+            .comment("config")
             .defineInRange("grenadeLauncherEnergyCost", 3000, 1, 1000000);
 
-    // 垃圾炮塔
+    // 闁搞劌鍟┃鍥倷椤旂⒈鏁?
     public static final ForgeConfigSpec.DoubleValue JUNK_TURRET_DAMAGE = BUILDER
-            .comment("垃圾炮塔投射物伤害")
+            .comment("config")
             .defineInRange("junkTurretDamage", 4.0, 0.1, 1000.0);
 
     public static final ForgeConfigSpec.DoubleValue JUNK_TURRET_RANGE = BUILDER
-            .comment("垃圾炮塔搜索范围")
+            .comment("config")
             .defineInRange("junkTurretRange", 16.0, 1.0, 256.0);
 
     public static final ForgeConfigSpec.IntValue JUNK_TURRET_FIRE_RATE = BUILDER
-            .comment("垃圾炮塔射击间隔 (tick/发)")
+            .comment("config")
             .defineInRange("junkTurretFireRate", 40, 1, 2400);
 
     public static final ForgeConfigSpec.DoubleValue JUNK_TURRET_BULLET_SPEED = BUILDER
-            .comment("垃圾炮塔投射物初速度")
+            .comment("config")
             .defineInRange("junkTurretBulletSpeed", 2.0, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue JUNK_TURRET_GRAVITY = BUILDER
-            .comment("垃圾炮塔重力系数")
+            .comment("config")
             .defineInRange("junkTurretGravity", 0.05, 0.001, 1.0);
 
     public static final ForgeConfigSpec.DoubleValue JUNK_TURRET_MIN_ARC_HEIGHT = BUILDER
-            .comment("垃圾炮塔最小抛物线高度")
+            .comment("config")
             .defineInRange("junkTurretMinArcHeight", 0.6, 0.0, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue JUNK_TURRET_MAX_ARC_HEIGHT = BUILDER
-            .comment("垃圾炮塔最大抛物线高度")
+            .comment("config")
             .defineInRange("junkTurretMaxArcHeight", 4.2, 0.0, 128.0);
 
     public static final ForgeConfigSpec.IntValue JUNK_TURRET_ENERGY_COST = BUILDER
-            .comment("垃圾炮塔每次射击能量消耗")
+            .comment("config")
             .defineInRange("junkTurretEnergyCost", 20, 1, 100000);
 
-    // 插件配置
+    // 闁圭粯甯婂▎銏ゆ煀瀹ュ洨鏋?
     public static final ForgeConfigSpec.IntValue SOLAR_ENERGY_GENERATION = BUILDER
-            .comment("太阳能插件发电量 (FE/tick)")
+            .comment("config")
             .defineInRange("solarEnergyGeneration", 10, 1, 500);
 
     public static final ForgeConfigSpec.DoubleValue AMMO_RECYCLE_CHANCE = BUILDER
-            .comment("弹药回收插件：不消耗弹药的概率 (0.0-1.0)")
+            .comment("config")
             .defineInRange("ammoRecycleChance", 0.2, 0.0, 1.0);
 
     public static final ForgeConfigSpec.IntValue REDSTONE_TO_ENERGY_RATIO = BUILDER
-            .comment("红石转化插件：每个红石转化能量 (FE/个)")
+            .comment("config")
             .defineInRange("redstoneToEnergyRatio", 2000, 100, 10000);
 
-    // 立场炮塔
     public static final ForgeConfigSpec.DoubleValue PHASE_FIELD_RANGE = BUILDER
-            .comment("相位立场炮塔基础作用范围")
+            .comment("config")
             .defineInRange("phaseFieldRange", 32.0, 1.0, 256.0);
     public static final ForgeConfigSpec.IntValue PHASE_FIELD_ENERGY_PER_TICK = BUILDER
-            .comment("相位立场炮塔每 tick 能量消耗")
+            .comment("config")
             .defineInRange("phaseFieldEnergyPerTick", 100, 1, 100000);
     public static final ForgeConfigSpec.IntValue PHASE_FIELD_EFFECT_DURATION = BUILDER
-            .comment("相位立场炮塔基础效果持续时间 (tick)")
+            .comment("config")
             .defineInRange("phaseFieldEffectDuration", 600, 1, 12000);
     public static final ForgeConfigSpec.DoubleValue RESONANCE_FIELD_RANGE = BUILDER
-            .comment("谐振立场炮塔基础作用范围")
+            .comment("config")
             .defineInRange("resonanceFieldRange", 64.0, 1.0, 256.0);
     public static final ForgeConfigSpec.IntValue RESONANCE_FIELD_ENERGY_PER_TICK = BUILDER
-            .comment("谐振立场炮塔每 tick 能量消耗")
+            .comment("config")
             .defineInRange("resonanceFieldEnergyPerTick", 100, 1, 100000);
     public static final ForgeConfigSpec.IntValue RESONANCE_FIELD_EFFECT_DURATION = BUILDER
-            .comment("谐振立场炮塔基础效果持续时间 (tick)")
+            .comment("config")
             .defineInRange("resonanceFieldEffectDuration", 1200, 1, 12000);
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
-    // 运行时配置值
     public static int turretBaseMaxEnergyT1;
     public static int turretBaseMaxEnergyT2;
     public static int turretBaseMaxEnergyT3;
     public static int maxTransferRate;
+    public static int turretBaseMaxTransferRateT1;
+    public static int turretBaseMaxTransferRateT2;
+    public static int turretBaseMaxTransferRateT3;
+    public static int turretBaseMaxTransferRateT4;
+    public static int turretBaseMaxTransferRateT5;
 
     public static double machineGunDamage;
     public static double machineGunRange;
@@ -365,6 +385,11 @@ public class Config {
         turretBaseMaxEnergyT2 = TURRET_BASE_MAX_ENERGY_T2.get();
         turretBaseMaxEnergyT3 = TURRET_BASE_MAX_ENERGY_T3.get();
         maxTransferRate = MAX_TRANSFER_RATE.get();
+        turretBaseMaxTransferRateT1 = TURRET_BASE_MAX_TRANSFER_RATE_T1.get();
+        turretBaseMaxTransferRateT2 = TURRET_BASE_MAX_TRANSFER_RATE_T2.get();
+        turretBaseMaxTransferRateT3 = TURRET_BASE_MAX_TRANSFER_RATE_T3.get();
+        turretBaseMaxTransferRateT4 = TURRET_BASE_MAX_TRANSFER_RATE_T4.get();
+        turretBaseMaxTransferRateT5 = TURRET_BASE_MAX_TRANSFER_RATE_T5.get();
 
         machineGunDamage = MACHINE_GUN_DAMAGE.get();
         machineGunRange = MACHINE_GUN_RANGE.get();

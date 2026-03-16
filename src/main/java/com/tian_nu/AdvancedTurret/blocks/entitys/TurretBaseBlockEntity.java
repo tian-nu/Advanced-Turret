@@ -1,9 +1,11 @@
 package com.tian_nu.AdvancedTurret.blocks.entitys;
 
+import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
 import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.items.ModItems;
+import com.tian_nu.AdvancedTurret.items.SmartChipItem;
 import com.tian_nu.AdvancedTurret.gui.TurretMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,15 +37,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * 炮塔基座方块实体
+ * 闂佺粯鍔﹂崰鏍€佸▎鎾虫槬闁告繂瀚伴悰鎾绘煛閸屾粍鍤€婵炵》绱曢埀顒€婀遍崑妯肩礊?
  * 
- * <p>管理炮塔的能量存储、物品库存和菜单交互</p>
+ * <p>缂備胶濯寸槐鏇㈠箖婵犲洦鍊锋い鏃傗拡閺佸﹪鏌ｉ妸銉ヮ伂闁稿繑锕㈤弻宀冪疀閹捐埖鎲奸梺绋胯閸斿﹪鍩€椤戣儻鍏屽褍娼″畷顐ｆ媴閸濄儲鐨戦柣搴㈢⊕閿氶柟铚傚嵆閹筹絽顭ㄩ崘銊ь槹婵炲瓨鍤庨崐鎾惰姳?/p>
  * 
  * @author tian_nu
  */
 public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
-    // ========== ContainerData 实现 ==========
+    // ========== ContainerData 闁诲骸婀遍崑鐔肩嵁?==========
     
     protected final ContainerData data = new ContainerData() {
         @Override
@@ -57,8 +59,8 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
 
         @Override
         public void set(int index, int value) {
-            // 客户端通常不需要设置能量，但如果是从网络包同步可能需要
-            // 这里主要用于Menu同步
+            // 闁诲骸绠嶉崹娲春濞戞氨鍗氭い鏍亹閸嬫挸顫濋鍌氱厬婵炴垶鎸哥粔鐟般€掗崜浣瑰暫濞达絿鐡旈崯搴ｇ磽閸愭儳鏋﹂柛蹇旓耿閺屽矁绠涢妷褏顦繛杈剧到濡銆呰瀵顭ㄩ崟顑箑霉閻樺弶鎹ｇ紓宥咁槺缁辨帒顭ㄩ崘銊ф▉闂佸憡鑹鹃張顒勵敆閻愬搫鐭楁い鏍ㄧ箓閸樻挳姊婚崶锝呬壕闁?
+            // 闁哄鏅滈悷鈺呭闯闁垮鈻旈柡鍕禋濞诧綁鏌ｉ～顒€濡虹紒銊ф値enu闂佸憡鑹鹃張顒勵敆?
         }
 
         @Override
@@ -67,21 +69,21 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
     };
 
-    // ========== 常量定义 ==========
+    // ========== 闁汇埄鍨遍幃鍌炲闯閾忓厜鍋撶憴鍕叝缂?==========
     
-    /** 各等级炮塔能量容量 (T1..T5) */
+    /** 闂佸憡鑹剧€氼噣鎮洪幋鐘垫／鐟滃繘宕戦弽銊х畽闁哄啫娲ら崢鎾⒑閹绘帞绠版い鏃€鍔欓弻?(T1..T5) */
     public static final int[] MAX_ENERGIES = {10000, 40000, 100000, 250000, 500000};
-    /** 最大能量传输速率 */
+    /** 闂佸搫鐗冮崑鎾愁熆閸棗妫楅崢鎾⒑閹绘帞绠ｇ紒杈煐濞煎繘骞橀悜鈺佷壕闁绘柨鎼懞?*/
     public static final int MAX_TRANSFER_RATE = 1000;
     
-    /** 弹药槽位数量（全等级一致） */
+    /** 閻庢鍠氶、濠傜暤閸屾锝夊箣閹烘梻孝闂佽桨妞掗崡鎶藉闯濞差亝鏅柛顐ｇ箓瀵法绱掑☉姗嗘Ш濡ょ姴娲︾粙澶愬焵椤掑嫭鍤婇弶鍫濆⒔缁€?*/
     public static final int AMMO_SLOTS = 9;
-    /** 最大功能插件槽位数量（T4/T5支持双槽） */
+    /** 闂佸搫鐗冮崑鎾愁熆閸棗鍟～鐘绘煠鐎圭姴袚鐟滄澘鍟粋鎺楁嚋閺佸矈鍋呴幏鍛吋閸℃ɑ顔嶉梻浣瑰絻妤犲繒妲愬?/T5闂佽　鍋撴い鏍ㄧ☉閻︻噣鏌涘▎蹇旀拱閾﹀酣鏌?*/
     public static final int MAX_PLUGIN_SLOTS = 2;
-    /** 每个面的最大升级槽位数量（为未来 T5 预留） */
+    /** 濠殿噯绲界换瀣煂濠婂牊顥堥柕蹇嬪灪閻ｉ亶鏌￠崼姘壕婵犮垹鐖㈤崘銊э紦缂備胶瀚忛崟鎴亝閹峰懎顓奸崱妯活啀闂備焦褰冩蹇曟濞嗘劗鈻旈柣鎴炆戝鎾绘煛?T5 婵☆偅婢樼€氼噣寮抽埀顒勬煥?*/
     public static final int MAX_UPGRADE_SLOTS_PER_FACE = 3;
     
-    // ========== 炮塔类型枚举 ==========
+    // ========== 闂佺粯鍔﹂崰鏍€佸▎鎴犲暗閻犲洩灏欓埀顒傚厴瀵顫濋銏╂喘 ==========
     
     public enum TurretType {
         NONE,
@@ -89,39 +91,42 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         RAILGUN
     }
     
-    // ========== 字段 ==========
+    // ========== 闁诲孩绋掗〃鍡涱敊?==========
     
-    // ========== 插件配置 ==========
+    // ========== 闂佸湱绮敮濠傗枎閵忋倖鐓€鐎广儱娲ㄩ弸?==========
     
-    // 使用位掩码存储启用的面 (0-63)，默认全开
-    // 这个保留在基座上，因为是基座的硬件开关
-    // 如果用户希望这也随插件移动，则应移至插件NBT
-    // 根据需求6：配置需要保存在插件里。所以这里也应该改为从插件读取。
-    // 但是，如果没有插件，默认行为是什么？
-    // 假设没有插件时，默认全开。
+    // 婵炶揪缍€濞夋洟寮妶鍡樺鐎广儱妫楃拹鐔兼煟椤旇崵顦﹂柣掳鍔戝畷鎺楀Ω閵夛箑鍓婚梺娲绘娇閸斿骸鈻撻幋锔筋棃?(0-63)闂佹寧绋戦惌鍌滃垝椤栨粍濯奸柕鍫濇噹瀵法鈧鍠掗崑?
+    // 闁哄鏅滈悷銈夋煂濠婂嫮鈹嶆繝闈涚墛濞堝矂鏌涢敂鍝勫闁绘柡鍋撻柟鐓庢捶閸屾粎鎲梺鎸庣☉閼活垰煤濠婂嫮鈻旈柣鎴炆戠瑧闂佺硶鏅涢幖顐ｎ殽閸ヮ剚鍎嶉柛鏇ㄥ幐閳ь剚鐗楃粋鎺旀崉閾忓湱锛涢梺?
+    // 婵犵鈧啿鈧綊鎮樻径鎰仺闁靛绠戦悡鏇㈡偨椤栨碍婀版繝鈧鍕氦婵炲棗娴烽惁宥夋⒒閸涱厾绠茬憸鏉垮暞缁傛帡宕滄担鍥ｆ櫊瀹曟繈鈥﹂幒鏃傤槷闂佸憡甯楅悷銉ц姳閼碱剛鐭撻柡鍕箰濞堥箖鏌熺紒妯虹瑐婵炲棭鏁禕T
+    // 闂佸搫绉烽～澶婄暤娓氣偓濡線鍩€椤掆偓鏁?闂佹寧绋掑畝鎼佸储閵堝洨纾炬い鏇楀亾婵炴挸澧庨幉鐗堟媴妞嬪海顔旈柣搴㈢⊕閿氭繝鈧鍫濈闁瑰搫绉甸浠嬫⒑閹绘帟顫﹂柍褜鍓欓崐瑙勬櫠瀹ュ棛顩烽柕澶堝妿缁犲綊姊洪幓鎺戭殭缂佲€冲暞閹棃寮崶璺烘畽闂佽　鍋撻梺顐ｇ缁€瀣归悩鎻掝劉鐟滄澘鍟粋鎺楀箚闁箑娈洪梺鍛婄懄閻楁捇鍩€?
+    // 婵炶揪绲藉Λ娆徫ｉ幖浣规櫖閻忕偟鐡斿ú銈夋煛鐎ｎ偆鐭嬮柣銉ユ嚇瀵灚寰勭€ｎ亞绁锋繛瀵稿Ь椤旀劗妲愬┑鍥舵付婵☆垱顑欓崥鍥偠濞戞ê顨欓悹鎰枛瀵即顢涘▎鎴犵劶婵炴垶鏌ㄩ悧鐐垫?
+    // 闂佺顑呭ú鈺咁敊閺囩偐鏌﹂柍鈺佸暞缁犳帡鏌熺紒妯虹瑐婵炲棎鍨藉顔炬媼閸︻厾顦慨鎺撶⊕椤牓顢樻繝姘闁靛鍎崇壕濠氭煏?
     
     private java.util.UUID owner;
-    /** 基座面的启用状态位掩码，默认六面全开。 */
+    /** 闂佺硶鏅涢幖顐ｎ殽閸ヮ剚顥堥柕蹇嬪灪閻ｉ亶鏌涘鐓庣仯闁轰降鍊濋幃鈺呮嚋绾版ê浜惧ù锝夘棑缁夋挳鏌熺悰鈩冩珖闁绘牗绮撻弫宥呯暆閸曨厼绗￠柣鐘遍檷閸婃洟宕ｅ鑸殿棃闁靛繒濮村璺ㄢ偓娈垮枓閸嬫捇鏌?*/
     private byte enabledFacesMask = 0b111111;
-    /** 手动限制攻击范围，<= 0 表示不限制。 */
+    /** 闂佸綊娼ч鍛叏閳哄懏鈷旈柟閭﹀墮閻撴垿鏌￠埀顒傛嫚閹绘帗鐦栭梺鑲╁帶閸燁偄煤閸ф鏅?= 0 闁荤偞绋忛崝搴ㄥΦ濮橆厾鈻旂€广儱顦伴娆撴煕閹烘洜鍫柍?*/
     private double manualRangeLimit = 0.0D;
+    /** T5 闁糕晛鎼鍥礃閸涱垳鏋傞柡鍛寸細閸忔﹢鎳為婊冾暬闁挎稑鐬煎﹢锛勨偓鍦仩婵亶鎮ч崶锔惧枠闁稿繐鐗愰々顐︽儎閺嶃儮鍋?*/
+    private ItemStack builtInSmartChip = ItemStack.EMPTY;
 
-	// ========== 厉行节约 - 目标伤害预约系统 ==========
+	// ========== 闂佸憡锚椤︽娊銆侀幋锔藉殟闁稿本绮岄?- 闂佺儵鏅╅崰妤呮偉閿濆棗顕遍柕鍫濇媼閸炲搫螞閺夊灝顏悗鐟扮－閸栨牠鎳￠妶鍥х厷 ==========
 	
-	/** 目标实体ID -> 已预约伤害值 */
+	/** 闂佺儵鏅╅崰妤呮偉閿濆洠鍋撻崷顓炰粧缂傚秴鈹塂 -> 閻庣懓鎲￠悡锟犮€傞埡鍐／闁挎梹瀵х缓娲倵閻熸澘鏆遍柍?*/
 	private final Map<Integer, Float> reservedDamage = new HashMap<>();
-	/** 目标实体ID -> 预约时间戳（用于过期清理） */
+	/** 闂佺儵鏅╅崰妤呮偉閿濆洠鍋撻崷顓炰粧缂傚秴鈹塂 -> 婵☆偅婢樼€氼喚鈧濞婂顕€宕奸弴鐕傜吹闂佺懓顕鑼濞嗘挻鍋ㄩ柕濞垮€楅懝楣冨级閳轰焦澶勬繝鈧垾鐐解偓鎺楀川椤栨稑鈧偤鏌?*/
 	private final Map<Integer, Long> reservationTime = new HashMap<>();
-	/** 预约超时时间（tick），超过此时间未攻击则自动释放预约 */
-	private static final long RESERVATION_TIMEOUT = 200; // 10秒
+	/** 婵☆偅婢樼€氼喚鈧懓纾幖楣冨川椤旂瓔妲梺鍝勫暙閻栫厧螞閸ф鏅柛褏婀坈k闂佹寧绋戦¨鈧紒杈ㄧ箘閹奸箖宕ㄩ幍顔剧暫濠殿喗绺块崐鏍ь渻閸岀偞鈷掗悗娑櫳戝鎾绘煛閳ь剛鎷犻幓鎺撶槚闂佸憡甯楅悷銊╁吹濠婂牆绀夐柕濞炬櫅濞呯偤鏌￠埀顒併偅閸愮偓娈ㄧ紓?*/
+	private static final long RESERVATION_TIMEOUT = 200; // 10缂?
 
-	// ========== 能量存储 ==========
+	// ========== 闂佺厧鍘栫划娆撳闯閾忓厜鍋撳☉娅亪宕?==========
     
-    private BaseEnergyStorage energyStorage = createEnergyStorage(getMaxEnergyForTier());
+    private int currentTransferRate = getMaxTransferRateForTier();
+    private BaseEnergyStorage energyStorage = createEnergyStorage(getMaxEnergyForTier(), currentTransferRate);
     
     private final LazyOptional<IEnergyStorage> energyCapability = LazyOptional.of(() -> energyStorage);
     
-    // ========== 物品存储 ==========
+    // ========== 闂佺粯銇涢弲娑㈠箹瑜忛埀顒佺⊕閿氶柛?==========
     
     private final ItemStackHandler ammoInventory = new ItemStackHandler(AMMO_SLOTS) {
         @Override
@@ -136,7 +141,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
     };
     
-    // 使用最大槽位数量，实际可用槽位由getPluginSlotCount()决定
+    // 婵炶揪缍€濞夋洟寮妶澶婂珘闁逞屽墯瀵板嫯顦抽摝搴∶归敐鍛ｉ柡鍡欏枛閺屽矁绠涢妷褏顦柣搴℃贡閸嬨倕顬婇鐐茬煑妞ゆ牗绮嶉弳蹇斾繆閸欏鐏婄紓宥呮嚇閹粙鎯囨總绨峆luginSlotCount()闂佸憡鍔曢崯鍧楁偩?
     private final ItemStackHandler basePluginSlot = new ItemStackHandler(MAX_PLUGIN_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -152,7 +157,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
 
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            // 只允许在等级允许的槽位范围内放入物品
+            // 闂佸憡鐟禍婊堝储閹寸姵濯肩紒瀣闊剛绱掑☉姗嗘Ш濡ょ姴娲畷妤佹媴缁涘鏅犻梺姹囧妼鐎氼叀娼曟繛杈剧到缁夐鈧灚鐗犲畷鍫曞级閹存繃鏆ラ梺琛″亾闁诡垎鍐ㄦ辈闂佺粯銇涢弲娑㈠箹?
             if (slot >= getPluginSlotCount()) return false;
             return hasPluginSlot() && isPluginItem(stack);
         }
@@ -252,13 +257,13 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     private final LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> combinedInventory);
     
-    // ========== 构造函数 ==========
+    // ========== 闂佸搫顑呯€氫即鍩€椤掑倸孝闁搞倝浜跺?==========
     
     public TurretBaseBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TURRET_BASE.get(), pos, state);
     }
     
-    // ========== 公共方法 ==========
+    // ========== 闂佺娴氶崜娆撳矗閿熺姴妫橀悷娆忓閵?==========
     
     public int getTier() {
         BlockState state = getBlockState();
@@ -276,17 +281,44 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         return MAX_ENERGIES[idx];
     }
 
-    private BaseEnergyStorage createEnergyStorage(int capacity) {
-        return new BaseEnergyStorage(capacity, MAX_TRANSFER_RATE, MAX_TRANSFER_RATE);
+    private BaseEnergyStorage createEnergyStorage(int capacity, int transferRate) {
+        return new BaseEnergyStorage(capacity, transferRate, transferRate);
     }
 
     private void ensureEnergyCapacity() {
         int desired = getMaxEnergyForTier();
-        if (energyStorage.getMaxEnergyStored() == desired) return;
+        int transferRate = getMaxTransferRateForTier();
+        if (energyStorage.getMaxEnergyStored() == desired && currentTransferRate == transferRate) return;
         int stored = energyStorage.getEnergyStored();
-        BaseEnergyStorage next = createEnergyStorage(desired);
+        BaseEnergyStorage next = createEnergyStorage(desired, transferRate);
         next.setEnergyStored(Math.min(stored, desired));
         energyStorage = next;
+        currentTransferRate = transferRate;
+    }
+
+    private int getMaxTransferRateForTier() {
+        return switch (getTier()) {
+            case 1 -> Config.turretBaseMaxTransferRateT1 > 0 ? Config.turretBaseMaxTransferRateT1 : 100;
+            case 2 -> Config.turretBaseMaxTransferRateT2 > 0 ? Config.turretBaseMaxTransferRateT2 : 200;
+            case 3 -> Config.turretBaseMaxTransferRateT3 > 0 ? Config.turretBaseMaxTransferRateT3 : 500;
+            case 4 -> Config.turretBaseMaxTransferRateT4 > 0 ? Config.turretBaseMaxTransferRateT4 : 2000;
+            case 5 -> Config.turretBaseMaxTransferRateT5 > 0 ? Config.turretBaseMaxTransferRateT5 : 10000;
+            default -> MAX_TRANSFER_RATE;
+        };
+    }
+
+    public boolean hasBuiltInSmartChip() {
+        return getTier() >= 5;
+    }
+
+    private ItemStack getOrCreateBuiltInSmartChip() {
+        if (!hasBuiltInSmartChip()) {
+            return ItemStack.EMPTY;
+        }
+        if (builtInSmartChip.isEmpty() || !(builtInSmartChip.getItem() instanceof SmartChipItem)) {
+            builtInSmartChip = new ItemStack(ModItems.SMART_CHIP.get());
+        }
+        return builtInSmartChip;
     }
 
     public int getUpgradeSlotsPerFace() {
@@ -301,16 +333,16 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     /**
-     * 获取插件槽位数量
-     * T1: 无插件槽
-     * T2-T3: 1个插件槽
-     * T4-T5: 2个插件槽
+     * 闂佸吋鍎抽崲鑼躲亹閸ヮ剙绠甸柟鍝勭У椤愯姤淇婇崣澶婄亰缂傚秴鎳樺顐ｅ閺夋垶顏?
+     * T1: 闂佸搫鍟版慨浣冦亹閸愨晝顩烽柤鍛婃櫕?
+     * T2-T3: 1婵炴垶鎼╂禍婵娿亹閸愨晝顩烽柤鍛婃櫕?
+     * T4-T5: 2婵炴垶鎼╂禍婵娿亹閸愨晝顩烽柤鍛婃櫕?
      */
     public int getPluginSlotCount() {
         return switch (getTier()) {
             case 1 -> 0;
             case 2, 3 -> 1;
-            case 4, 5 -> 2;  // T4/T5双槽
+            case 4, 5 -> 2;  // T4/T5闂佸憡鐟ラ張顒冩綍
             default -> 0;
         };
     }
@@ -336,14 +368,14 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     /**
-     * 获取当前存储的能量
+     * 闂佸吋鍎抽崲鑼躲亹閸ヮ亗浜归柟鎯у暱椤ゅ懘鎮楀☉娅亪宕戝澶嬪剭闁告洦鍠栭崢鎾⒑?
      */
     public int getEnergyStored() {
         return energyStorage.getEnergyStored();
     }
     
     /**
-     * 获取最大能量存储
+     * 闂佸吋鍎抽崲鑼躲亹閸ヮ剙瀚夐柍褜鍓氬鍕樁闁稿繑锕㈤弻宀冪疀閹捐埖鎲奸梺?
      */
     public int getMaxEnergyStored() {
         ensureEnergyCapacity();
@@ -360,24 +392,22 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     public ItemStack getPluginStack() {
-        // 遍历所有可用的插件槽，返回第一个智能芯片
-        // 使用实际槽数量兼容旧存档
+        // 閸忓牐顕伴惇鐔风杽閼侯垳澧栭敍瀛? 濞屸剝婀侀惇鐔风杽閼侯垳澧栭弮璺哄晙閸ョ偤鈧偓閸掓澘鍞寸純顔垮П閻楀洢鈧?
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
         for (int i = 0; i < slotCount; i++) {
             ItemStack stack = basePluginSlot.getStackInSlot(i);
-            if (!stack.isEmpty() && stack.getItem() instanceof com.tian_nu.AdvancedTurret.items.SmartChipItem) {
+            if (!stack.isEmpty() && stack.getItem() instanceof SmartChipItem) {
                 return stack;
             }
         }
-        return ItemStack.EMPTY;
+        return getOrCreateBuiltInSmartChip();
     }
     
     /**
-     * 获取所有插件（用于多插件叠加功能）
+     * 闁兼儳鍢茶ぐ鍥箥閳ь剟寮垫径瀣祷濞寸姾顔愮槐娆撴偨閵娿倗鑹惧鑸电瑜板啯绂掔捄鍝勭秾闁告梻濮存慨娑㈡嚄閺傘倗绀?
      */
     public java.util.List<ItemStack> getAllPluginStacks() {
         java.util.List<ItemStack> plugins = new java.util.ArrayList<>();
-        // 使用实际槽数量兼容旧存档
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
         for (int i = 0; i < slotCount; i++) {
             ItemStack stack = basePluginSlot.getStackInSlot(i);
@@ -385,19 +415,22 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
                 plugins.add(stack);
             }
         }
+        if (!hasRealSmartChip() && hasBuiltInSmartChip()) {
+            plugins.add(getOrCreateBuiltInSmartChip());
+        }
         return plugins;
     }
 
-    // 获取所有有效的插件（如果需要多插件叠加逻辑）
-    // 目前逻辑是：只要有一个插件开启了某功能，该功能就生效？
-    // 或者只读取第一个？
-    // 根据用户反馈 "3个插件槽实际上只有最后一个可以生效"，说明用户期望所有插件都生效，或者至少能用。
-    // 这里的逻辑：getPluginStack 返回第一个找到的。
-    // 如果用户想要多插件叠加（例如一个负责友伤，一个负责黑名单），我们需要合并逻辑。
-    // 但目前 NBT 都在一个芯片上。
-    // 简单起见，我们优先使用第一个找到的芯片。
-    // 如果用户想让3个槽都生效，可能意图是放不同的芯片？
-    // 假设目前只有 SmartChipItem。
+    private boolean hasRealSmartChip() {
+        int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
+        for (int i = 0; i < slotCount; i++) {
+            ItemStack stack = basePluginSlot.getStackInSlot(i);
+            if (!stack.isEmpty() && stack.getItem() instanceof SmartChipItem) {
+                return true;
+            }
+        }
+        return false;
+    }
     
     public boolean isFriendlyFire() {
         ItemStack stack = getPluginStack();
@@ -522,13 +555,13 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     /**
-     * 请求客户端更新
+     * 闁荤姴娲弨閬嶆儑閹殿喒鍋撻獮鍨仾闁糕晜绋撶划鈺咁敍濞戞瑧鍑介梺?
      */
     public void requestClientUpdate() {
         syncToClient();
     }
     
-    // ========== 游戏逻辑 ==========
+    // ========== 濠电偞鎸搁幉锟犲垂濞嗘挻鐒婚柡鍕箳鐢?==========
     
     public static void tick(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity blockEntity) {
         if (level.isClientSide) return;
@@ -537,20 +570,20 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         
         boolean changed = false;
         
-        // 检查创造能量组件
+        // 濠碘槅鍋€閸嬫捇鏌＄仦璇插姎闁搞劑浜堕弻鍛存偐閸濆嫬骞嬮梻浣瑰絻缁绘帞鍒掑鍡欘浄?
         if (blockEntity.hasCreativePowerComponent()) {
             int maxEnergy = blockEntity.energyStorage.getMaxEnergyStored();
             if (blockEntity.energyStorage.getEnergyStored() < maxEnergy) {
-                // 直接设置满电（绕过receiveEnergy的maxReceive限制）
+                // 闂佺儵鏅涢悺銊ф暜鐎靛憡濯奸柛鎾楀懏鐎┑鐘差煭缁辨洟寮幖浣规櫖闁割偁鍨婚幖蹇涘级閳轰焦顎檈ceiveEnergy闂佹眹鍔岄崺鎻硏Receive闂傚倸瀚崝鏇㈠春濡ゅ懏鏅?
                 blockEntity.setEnergyFull();
                 changed = true;
             }
         } else {
-            // 太阳能插件发电
-            // 条件：白天 且 炮塔位置上方可以看到天空
+            // 婵犮垽顤傛禍顏勎ｆ總鍛婂殑闁兼亽鍎辩徊璇裁归悩鐑樼【鐟滄澘鍊块幃?
+            // 闂佸搫顦埀顒€寮堕浠嬫煥濞戞瑦鐨戞繛鍛囧嫬绶?婵?闂佺粯鍔﹂崰鏍€佸▎鎰鐎广儱娲ㄩ弸鍌氣槈閹剧鏀婚柡宀€鍠栧畷锝夘敍濞嗗海闉嶉梺娲讳簻椤戝懘宕虹仦鎯х窞闁冲搫鍟犻弫?
             if (blockEntity.hasSolarPlugin()) {
-                boolean isDaytime = level.getDayTime() % 24000 < 12000; // 0-12000是白天
-                // 检查基座上方一格是否能看到天空（因为基座上方可能有炮塔）
+                boolean isDaytime = level.getDayTime() % 24000 < 12000; // 0-12000闂佸搫瀚烽崹鍐测枍瑜庡?
+                // 濠碘槅鍋€閸嬫捇鏌＄仦璇插姎闁绘柡鍋撻柟鐓庢捶閸屾粎鎲梺鍝勫€块埀顒佺〒椤忛亶鏌″鍛倯婵″弶鎮傚畷銉╂晝娴ｇ骞嬮梺娲讳簻椤戝懘宕虹仦鎯х窞闁冲搫鍟犻弫鍕煥濞戞澧曟繛鍙夌矋缁嬪宕崟顓炴暏闁圭厧娲烽崒婊呮啰闂佸搫鍊婚幊鎾广亹閺屻儲鍤勯柤鎭掑劜缁犳帡鏌ｉ幇闈涙灈妞ゃ垺鐟╅弫?
                 boolean canSeeSky = level.canSeeSky(pos.above());
                 if (isDaytime && canSeeSky) {
                     int generated = com.tian_nu.AdvancedTurret.Config.solarEnergyGeneration;
@@ -561,15 +594,15 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
                 }
             }
             
-            // 红石转化插件：从弹药槽消耗红石/红石块转换为能量
+            // 缂備椒鍕橀崹濠氭偂閼稿灚濮滄い鎺嗗亾閻庡灚鐓￠獮鎾诲箳瀹ュ棭鍋ㄩ梺鎸庣⊕閻喚鍒掗悩宸殨缁绢厼鎳庣粊鈺備繆閼艰泛袚缂佸鍏橀幊鎾澄旈崘顭戝妷闂?缂備椒鍕橀崹濠氭偂閸洖閿ゆ俊銈呭缁侇噣鏌熺拠鈩冪窔閻犳劗鍠栭幊妤佺鐎ｎ亝顏?
             if (blockEntity.hasRedstoneConversionPlugin()) {
                 int energyPerRedstone = com.tian_nu.AdvancedTurret.Config.redstoneToEnergyRatio;
-                int energyPerRedstoneBlock = 18000; // 红石块转化能量
+                int energyPerRedstoneBlock = 18000; // 缂備椒鍕橀崹濠氭偂閸洖閿ゆ俊銈呭缁侇噣鏌涢弽銊у⒊闁稿繑锕㈤弻?
                 int maxEnergy = blockEntity.energyStorage.getMaxEnergyStored();
                 int currentEnergy = blockEntity.energyStorage.getEnergyStored();
                 int space = maxEnergy - currentEnergy;
                 
-                // 优先消耗红石块（能量更多）
+                // 婵炴潙鍚嬮敋闁告ɑ绋戦埥澶愬醇閿濆倸浜炬俊銈呭暙椤掋垽鏌ｉ鐐叉毐婵炵》绻濋弫宥夊醇閿濆懎骞嬮梻浣瑰絻缁绘垵煤閹稿骸绶炴慨妯哄⒔缁€?
                 if (space >= energyPerRedstoneBlock) {
                     for (int i = 0; i < blockEntity.ammoInventory.getSlots(); i++) {
                         net.minecraft.world.item.ItemStack stack = blockEntity.ammoInventory.getStackInSlot(i);
@@ -582,7 +615,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
                     }
                 }
                 
-                // 再消耗红石粉
+                // 闂佸憡鍔曠粔鐢电矓閻戣姤鍤€婵°倕鍟銏ゆ煟椤撶偟锛嶉柣?
                 if (!changed && space >= energyPerRedstone) {
                     for (int i = 0; i < blockEntity.ammoInventory.getSlots(); i++) {
                         net.minecraft.world.item.ItemStack stack = blockEntity.ammoInventory.getStackInSlot(i);
@@ -597,10 +630,10 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
             }
         }
         
-// 炮塔逻辑现在由独立的炮塔方块实体处理
-		// 基座只负责提供能量
+// 闂佺粯鍔﹂崰鏍€佸▎鎾寸劵闁哄嫬绻掔敮鍡涙煟濠婂嫭绶叉繝鈧鍫熷仺閺夊牃鏅涢顏嗙磼閺傛鍎戞繛鍫熷灴閹瑩顢欑喊杈ㄦ櫓闂佸搫鍊婚幊鎾愁焽閿涘嫧鍋撻崷顓炰粧缂傚秴顑嗗鍕礋椤撶喎鈧?
+		// 闂佺硶鏅涢幖顐ｎ殽閸ヮ剙鐭楁い蹇撴川椤︿即鎮归幇鍓佺ɑ鐟滈鐒︾粭鐔封槈濠婂啫骞嬮梻?
 
-		// 清理过期的伤害预约
+		// 濠电偞鎸搁幊鎰板箖婵犲啯浜ら柛銉ｅ妽閸╁倿鏌ｉ妸銉ヮ仹婵犵鍋撻柣搴ゎ潐婵炲﹪銆傞埡鍐／?
 		blockEntity.clearExpiredReservations(level.getGameTime());
 
 		if (changed) {
@@ -609,7 +642,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
     
-    // ========== 插件检查方法 ==========
+    // ========== 闂佸湱绮敮濠傗枎閵忕姈娑㈠焵椤掑嫬钃熼柕澶涢檮閻撴瑦绻?==========
     
     private boolean hasCreativePowerComponent() {
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
@@ -623,7 +656,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     /**
-     * 检查是否有太阳能插件
+     * 濠碘槅鍋€閸嬫捇鏌＄仦璇插姕婵″弶鎮傚畷銉╂晜閼恒儳鐣虫繝銏ゎ杺娴滎亜危婵傚憡鍤勯柤鎭掑劚缁茶霉?
      */
     public boolean hasSolarPlugin() {
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
@@ -637,7 +670,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     /**
-     * 检查是否有弹药回收插件
+     * 濠碘槅鍋€閸嬫捇鏌＄仦璇插姕婵″弶鎮傚畷銉╂晜閼恒儳鐣抽悗娈垮枤椤㈠﹤鐣甸崒鐐茬倞闁绘劕鐡ㄩ弳顏堟煙缂佹ê绗傛繛?
      */
     public boolean hasAmmoRecyclingPlugin() {
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
@@ -651,7 +684,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     /**
-     * 检查是否有红石转化插件
+     * 濠碘槅鍋€閸嬫捇鏌＄仦璇插姕婵″弶鎮傚畷銉╂晜閼恒儳鐣崇紓浣峰嫎閸ㄥ鎮￠懜鍨妞ゆ巻鍋撻悗鍨叀楠炴捇骞掑鍡╁仺
      */
     public boolean hasRedstoneConversionPlugin() {
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
@@ -665,7 +698,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
     
     /**
-     * 检查是否有破坏插件
+     * 濠碘槅鍋€閸嬫捇鏌＄仦璇插姕婵″弶鎮傚畷銉╂晜閼恒儳鐣抽梺娲诲枟濞兼瑥顭囬弽顓炵闁瑰搫绉甸?
      */
 public boolean hasDestructionPlugin() {
 		int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
@@ -679,7 +712,7 @@ public boolean hasDestructionPlugin() {
 	}
 
 	/**
-	 * 检查是否启用了厉行节约模式
+	 * 濠碘槅鍋€閸嬫捇鏌＄仦璇插姕婵″弶鎮傚畷銉╂晝閳ь剟骞嗘惔銊﹀仺闁靛鍊楅崯濠囨煕濡警妲兼い銏″灴閹崇偤宕掑鍐惧敽濠碘槅鍨埀顒€纾涵鈧?
 	 */
 	public boolean isThriftyMode() {
 		ItemStack stack = getPluginStack();
@@ -689,65 +722,65 @@ public boolean hasDestructionPlugin() {
 		return false;
 	}
 
-	// ========== 厉行节约 - 目标伤害预约系统方法 ==========
+	// ========== 闂佸憡锚椤︽娊銆侀幋锔藉殟闁稿本绮岄?- 闂佺儵鏅╅崰妤呮偉閿濆棗顕遍柕鍫濇媼閸炲搫螞閺夊灝顏悗鐟扮－閸栨牠鎳￠妶鍥х厷闂佸搫鍊介～澶屾兜?==========
 
 /**
-	 * 预约目标伤害
-	 * @param entityId 目标实体ID
-	 * @param damage 预计伤害
-	 * @param currentHealth 目标当前生命值
-	 * @param gameTime 当前游戏时间
-	 * @return 预约后目标的剩余有效生命值（负数表示目标已被击杀）
+	 * 婵☆偅婢樼€氼喚鈧濞婇幆鍕敊閻ｅ苯鐏辨繛瀵割儠閸婃洟顢?
+	 * @param entityId 闂佺儵鏅╅崰妤呮偉閿濆洠鍋撻崷顓炰粧缂傚秴鈹塂
+	 * @param damage 婵☆偅婢樼€氼垶顢橀崨濠傤嚤闁靛牆鎷嬮崬?
+	 * @param currentHealth 闂佺儵鏅╅崰妤呮偉閿濆牄浜归柟鎯у暱椤ゅ懘鏌ｉ姀銏犳瀻闁圭绻濆畷?
+	 * @param gameTime 閻熸粎澧楅幐鍛婃櫠閻樺眰鈧帡宕ㄦ繝鍌滀簽闂佸搫鍟悥鐓幬?
+	 * @return 婵☆偅婢樼€氼喚鈧濞婂畷銉︽償閿濆棛鐛ラ梺鍝勭Т濞层劌鈻撻幋锕€绀堥柍琛″亾缂傚秵鍨垮鍨緞鐎ｎ偅鐝￠梺姹囧灮閸犲酣骞婇敓鐘茬９缁绢參顥撶粈鍕偣閹邦喖鏋戦柡鍡欏枔閹即濡歌娴犳盯鏌ｉ埡濠傛灍闁绘牭绲介蹇涙嚑妫版繃钑夐梺鍛婂灩缁垰顭囬崘顔芥櫖?
 	 */
 	public float reserveDamage(int entityId, float damage, float currentHealth, long gameTime) {
-		// 累积预约伤害，而不是覆盖（支持多炮塔同时瞄准同一目标）
+		// 缂備線纭搁崹瀹犫叾婵☆偅婢樼€氼喚鈧娅曠€靛ジ濡堕崪浣告暯闂佹寧绋戦惌渚€鍩€椤掆偓婵傛梻绮径鎰強妞ゆ牗绻嶅ú顒勬煟閳哄倻澹勭紒杈ㄧ懇瀵劑顢涘☉妯兼Х婵犮垼鍩栧銊╁磻閺嶃劎绠欓柡鍌涘閸婇亶鏌￠崘銊ヮ暢闁诲寒鍨跺畷娆撳幢濡や礁鈧崬鈽夐幘顖氫壕闂佺儵鏅╅崰妤呮偉閿濆鏅?
 		float existing = reservedDamage.getOrDefault(entityId, 0.0f);
 		float totalReserved = existing + damage;
 		
 		reservedDamage.put(entityId, totalReserved);
 		reservationTime.put(entityId, gameTime);
 
-		// 计算预约后的剩余生命值
+		// 闁荤姳绶ょ槐鏇㈡偩缂佹﹫绱ｉ柛鏇ㄥ幖椤斿﹪鏌涘顒佹崳婵炲牊鍨垮畷婊堝煛閳ь剛绱為幋锔藉仺闁绘棃鏀遍崵鎺楁煕?
 		float remainingHealth = currentHealth - totalReserved;
 		return remainingHealth;
 	}
 
 	/**
-	 * 尝试为炮塔预约目标伤害（如果目标已被其他炮塔预约，则返回false）
-	 * @param entityId 目标实体ID
-	 * @param damage 预计伤害
-	 * @param currentHealth 目标当前生命值
-	 * @param gameTime 当前游戏时间
-	 * @return 如果成功预约返回true，如果目标已被其他炮塔预约击杀返回false
+	 * 闁诲繐绻戠换鍡涙儊椤栨稓鈻旈柧蹇曟嚀娴犲繐鈹戞径瀣棃妞わ絺鏅濋惀顏堟晜閻愵剛鐛ラ梺鍝勭Т濞诧絽鈹戦埀顒勬倵閸︻収鍔滅紒杈ㄧ懄娣囧﹪宕掑☉姘嚱闂佺儵鏅╅崰妤呮偉閿濆拋鍟呴柤濂割杺濞煎爼鏌涜箛鏃€鏋勭紒顕呭墴閹瑩顢欑喊杈ㄦ櫓婵☆偅婢樼€氼喚鈧濞婇弫宥囦沪閽樺浠ч柡澶嗘櫆閺屻劌煤閺夊崋lse闂?
+	 * @param entityId 闂佺儵鏅╅崰妤呮偉閿濆洠鍋撻崷顓炰粧缂傚秴鈹塂
+	 * @param damage 婵☆偅婢樼€氼垶顢橀崨濠傤嚤闁靛牆鎷嬮崬?
+	 * @param currentHealth 闂佺儵鏅╅崰妤呮偉閿濆牄浜归柟鎯у暱椤ゅ懘鏌ｉ姀銏犳瀻闁圭绻濆畷?
+	 * @param gameTime 閻熸粎澧楅幐鍛婃櫠閻樺眰鈧帡宕ㄦ繝鍌滀簽闂佸搫鍟悥鐓幬?
+	 * @return 婵犵鈧啿鈧綊鎮樻径鎰闁归偊鍓欓～鐘参涢弶鍨伀閻庣娅曞濠氬棘閹稿海顦rue闂佹寧绋戦懟顖炪€呰瀵顭ㄩ崨顔剧崶闂佸搫绉村ú銈夊礄閿涘嫭鍋栨い鎰╁灩瀵版挸霉閻樺磭澧遍柛瀣墬缁诲懘寮崼顐ｆ缂備焦鎷濈粻鎴﹀吹椤曗偓瀵爼鍩€椤掍焦浜ら柡鍌涘缁€鈧琭alse
 	 */
 	public boolean tryReserveDamage(int entityId, float damage, float currentHealth, long gameTime) {
-		// 检查是否已有预约
+		// 濠碘槅鍋€閸嬫捇鏌＄仦璇插姕婵″弶鎮傚畷銉╂晝閳ь剟宕欓敓鐘插珘濠㈣埖鍔﹂弳鏇犵磼?
 		float existingReservation = reservedDamage.getOrDefault(entityId, 0.0f);
 		float existingRemainingHealth = currentHealth - existingReservation;
 		
-		// 如果已有预约导致目标"死亡"，则不能预约
+		// 婵犵鈧啿鈧綊鎮樻径濠庡晠闁告瑥顦扮粻鎺懳涢弶鍨伀閻庣懓纾埀顑跨祷婢瑰牓宕佃閹嫰顢欓悾灞界伇"濠殿喗绻嗛濠冾殽?闂佹寧绋戦懟顖炲垂椤栨稓鈻旂€广儱鐗嗛崢鏉懳涢弶鍨伀閻?
 		if (existingRemainingHealth <= 0) {
 			return false;
 		}
 		
-		// 预约成功
+		// 婵☆偅婢樼€氼喚鈧濞婇獮瀣箛椤掆偓椤?
 		reservedDamage.put(entityId, damage);
 		reservationTime.put(entityId, gameTime);
 		return true;
 	}
 
 	/**
-	 * 获取目标已预约的伤害
-	 * @param entityId 目标实体ID
-	 * @return 已预约的伤害值
+	 * 闂佸吋鍎抽崲鑼躲亹閸ヮ剚鍎庢い鏃傛櫕閸ㄨ偐鈧懓鎲￠悡锟犮€傞埡鍐／闁挎梻鍋撻悾鍗灻圭粭鍝勨偓鏇㈩敊?
+	 * @param entityId 闂佺儵鏅╅崰妤呮偉閿濆洠鍋撻崷顓炰粧缂傚秴鈹塂
+	 * @return 閻庣懓鎲￠悡锟犮€傞埡鍐／闁挎梻鍋撻悾鍗灻圭粭鍝勨偓鏇㈩敊婵犲洤纾?
 	 */
 	public float getReservedDamage(int entityId) {
 		return reservedDamage.getOrDefault(entityId, 0.0f);
 	}
 
 	/**
-	 * 取消伤害预约（目标丢失或死亡时调用）
-	 * @param entityId 目标实体ID
+	 * 闂佸憡鐟﹂悧妤冪矓闁垮顕遍柕鍫濇媼閸炲搫螞閺夊灝顏悗瑙勫▕閺佸秹宕奸姀锛勭崶闂佸搫绉村ú锝呪槈椤忓懎绶為弶鍫涘妼閻忔鎱ㄥ┑濠庡敽濡ょ姵鎮傚顕€骞嗛幍顔筋啀闂佹眹鍩勯悡澶屾?
+	 * @param entityId 闂佺儵鏅╅崰妤呮偉閿濆洠鍋撻崷顓炰粧缂傚秴鈹塂
 	 */
 	public void cancelReservation(int entityId) {
 		reservedDamage.remove(entityId);
@@ -755,25 +788,25 @@ public boolean hasDestructionPlugin() {
 	}
 
 	/**
-	 * 确认伤害已造成（攻击命中后调用，释放预约）
-	 * @param entityId 目标实体ID
-	 * @param damage 实际造成的伤害
+	 * 缂佺虎鍙庨崰娑㈩敇缂佹ê顕遍柕鍫濇媼閸炶櫣鈧懓鎲￠悡锟犲焵椤掑倸校闁搞劍宀搁弫宥夊醇閻斿憡姣庨梺鍛婂灱椤曆囧箠閳╁啰鈻旀い鎾跺仦閸婄敻鎮圭€ｎ亜鏆熼柡浣靛€濋弫宥呯暆閸曨偅鐝甸梺琛″亾濡わ絽鍠氶弳鏇犵磼閹惧懓顓虹紒?
+	 * @param entityId 闂佺儵鏅╅崰妤呮偉閿濆洠鍋撻崷顓炰粧缂傚秴鈹塂
+	 * @param damage 闁诲骸婀遍崑銈咁瀶椤栫偞鐒婚柣妯哄暱閻忓洭鏌ｉ妸銉ヮ仹婵犵鍋撻柣?
 	 */
 	public void confirmDamage(int entityId, float damage) {
 		float reserved = reservedDamage.getOrDefault(entityId, 0.0f);
 		if (reserved <= damage) {
-			// 预约的伤害已全部造成，清除预约
+			// 婵☆偅婢樼€氼喚鈧濞婇幆鍐礋椤忓懐璐熼柣搴ｆ嚀閸熷潡宕欓敓鐘茬闁靛ň鏅涢崝銉╂⒑椤愩倕校闁搞劍宀搁弫宥囦沪閸撗屼紩闂傚倸瀚ㄩ崐婵嬨€傞埡鍐／?
 			reservedDamage.remove(entityId);
 			reservationTime.remove(entityId);
 		} else {
-			// 部分伤害造成，更新剩余预约
+			// 闂備緡鍠撻崝宀勫垂鎼淬垹顕遍柕鍫濇媼閸炴椽姊洪銈呅ｉ柛銊﹀哺閺佸秶浠﹂悙顒傚嚱闂佸搫鍊瑰妯绘櫠閹稿孩濯存繛鍡樻惄閺嗘洜绱?
 			reservedDamage.put(entityId, reserved - damage);
 		}
 	}
 
 	/**
-	 * 清理过期的伤害预约
-	 * @param currentTime 当前游戏时间
+	 * 濠电偞鎸搁幊鎰板箖婵犲啯浜ら柛銉ｅ妽閸╁倿鏌ｉ妸銉ヮ仹婵犵鍋撻柣搴ゎ潐婵炲﹪銆傞埡鍐／?
+	 * @param currentTime 閻熸粎澧楅幐鍛婃櫠閻樺眰鈧帡宕ㄦ繝鍌滀簽闂佸搫鍟悥鐓幬?
 	 */
 	private void clearExpiredReservations(long currentTime) {
 		Iterator<Map.Entry<Integer, Long>> iterator = reservationTime.entrySet().iterator();
@@ -788,20 +821,20 @@ public boolean hasDestructionPlugin() {
 	}
 
 	/**
-	 * 检查目标是否值得攻击（厉行节约逻辑）
-	 * @param entityId 目标实体ID
-	 * @param currentHealth 目标当前生命值
-	 * @return 如果目标仍然值得攻击返回true
+	 * 濠碘槅鍋€閸嬫捇鏌＄仦璇插姢婵炶弓鍗冲浠嬪炊閵娤€锕傛煕濮樺墽鐣遍柍褜鍓涢崢褏娆㈤柆宥呯哗閻犲洦褰冨В濠囨煥濞戞澧曢悽顖楀亾闁荤偞绋戦惌浣逛繆椤撶姷妫柨鏇炲€甸崑鎾诲及韫囨洖绔奸梺?
+	 * @param entityId 闂佺儵鏅╅崰妤呮偉閿濆洠鍋撻崷顓炰粧缂傚秴鈹塂
+	 * @param currentHealth 闂佺儵鏅╅崰妤呮偉閿濆牄浜归柟鎯у暱椤ゅ懘鏌ｉ姀銏犳瀻闁圭绻濆畷?
+	 * @return 婵犵鈧啿鈧綊鎮樻径鎰剮妞ゆ梻鏅崹鐓幟归悩鑼ら柛鏂炲洤纾归柣鎾虫捣缁讳線鏌￠埀顒傛嫚閹绘帗鐦栭柡澶嗘櫆閺屻劌煤閺夘晿ue
 	 */
 	public boolean isTargetWorthAttacking(int entityId, float currentHealth) {
 		if (!isThriftyMode()) {
-			return true; // 未启用厉行节约，始终返回true
+			return true; // 闂佸搫鐗滄禍婊堝箚鎼淬劍鍋ㄩ柕濞垮劚缁旀挳鎮跺☉妯肩劮濠碘槅鍘鹃惀顏堟晜閼测晝顦繝娈垮枛椤戝洨鍒掗幘瀛樹氦闁哄倹瀵х粈鈧瑃rue
 		}
 		
 		float reserved = getReservedDamage(entityId);
 		float remainingHealth = currentHealth - reserved;
 		
-		// 剩余生命值大于0才值得攻击
+		// 闂佸憡鎸撮弲娆戠礊閹达附鍋ㄩ柣鏃堟敱閸ゆ帡鏌涙繝鍕付闁靛洤娲︾粋?闂佸綊娼х粔鎾焵椤掑倸甯剁紒鍫曚憾瀵劎鎷犻幓鎺撶槚
 		return remainingHealth > 0;
 	}
 
@@ -812,7 +845,7 @@ public boolean hasDestructionPlugin() {
     }
     
     /**
-     * 直接设置满电（用于创造能量组件）
+     * 闂佺儵鏅涢悺銊ф暜鐎靛憡濯奸柛鎾楀懏鐎┑鐘差煭缁辨洟寮幖浣规櫖闁割偁鍨洪弳蹇撁瑰鍐€楅柛銊╀憾閺屽懘鎮╅崫鍕箣闂備焦褰冪换鎺斿垝瀹ュ棛顩烽悹浣告贡缁€?
      */
     private void setEnergyFull() {
         if (energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
@@ -823,9 +856,9 @@ public boolean hasDestructionPlugin() {
     }
     
     /**
-     * 直接增加能量（绕过maxReceive限制）
-     * @param amount 增加的能量值
-     * @return 实际增加的能量
+     * 闂佺儵鏅涢悺銊ф暜鐎涙ɑ娅犻柣鎰絻椤綁鏌ら崗鍛煓闁革絾妞介弫宥夊醇閵忋垺鎮橀柡澶嗘櫅濡剧瀽xReceive闂傚倸瀚崝鏇㈠春濡ゅ懏鏅?
+     * @param amount 婵犫拃鍛粶濠殿喚鍋ら幆鍐礋椤旂厧骞嬮梻浣瑰絻缁绘劙鍩€?
+     * @return 闁诲骸婀遍崑銈咁瀶椤栨稒娅犻柣鎰絻椤綁鏌ｉ妸銉ヮ伂闁稿繑锕㈤弻?
      */
     private int addEnergyDirectly(int amount) {
         int maxEnergy = energyStorage.getMaxEnergyStored();
@@ -840,7 +873,7 @@ public boolean hasDestructionPlugin() {
         return toAdd;
     }
     
-    // ========== 能力系统 ==========
+    // ========== 闂佺厧鐤囧Λ鍕叏韫囨洖瀵查柤濮愬€楅崺?==========
     
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
@@ -890,7 +923,7 @@ public boolean hasDestructionPlugin() {
         }
     }
     
-    // ========== 数据持久化 ==========
+    // ========== 闂佽桨鑳舵晶妤€鐣垫笟鈧獮鎰媴妞嬪海鏆梺?==========
     
     @Override
     protected void saveAdditional(CompoundTag tag) {
@@ -906,13 +939,16 @@ public boolean hasDestructionPlugin() {
         }
         tag.put("FaceUpgradeSlots", faces);
         
-        // 插件配置现在存储在 PluginSlot 的物品 NBT 中，不需要单独保存
+        // 闂佸湱绮敮濠傗枎閵忋倖鐓€鐎广儱娲ㄩ弸鍌炴煟濠婂嫭绶叉繝鈧鍡忓亾濞戞顏堝磻瀹ュ鎹?PluginSlot 闂佹眹鍔岀€氼喗鏅堕崸妤€浼?NBT 婵炴垶鎼╅崣蹇曟濠靛洨鈻旂€广儱顦版禒姗€鎮烽弴姘鳖槮鐎规洜鍠栭幃顏堫敄鐠恒劎顔旈柣?
         
         if (owner != null) {
             tag.putUUID("Owner", owner);
         }
         tag.putByte("EnabledFacesMask", enabledFacesMask);
         tag.putDouble("ManualRangeLimit", manualRangeLimit);
+        if (hasBuiltInSmartChip() && !builtInSmartChip.isEmpty()) {
+            tag.put("BuiltInSmartChip", builtInSmartChip.save(new CompoundTag()));
+        }
     }
     
     @Override
@@ -977,6 +1013,14 @@ public boolean hasDestructionPlugin() {
         } else {
             manualRangeLimit = 0.0D;
         }
+        if (tag.contains("BuiltInSmartChip")) {
+            builtInSmartChip = ItemStack.of(tag.getCompound("BuiltInSmartChip"));
+        } else if (hasBuiltInSmartChip()) {
+            builtInSmartChip = new ItemStack(ModItems.SMART_CHIP.get());
+        } else {
+            builtInSmartChip = ItemStack.EMPTY;
+        }
+        currentTransferRate = getMaxTransferRateForTier();
     }
 
     private boolean isUpgradeComponent(ItemStack stack) {
@@ -1060,7 +1104,7 @@ public boolean hasDestructionPlugin() {
 
     public double getSearchRadiusForFace(Direction face, double baseRadius) {
         int count = countUpgradeItems(face, ModItems.RANGE_COMPONENT.get());
-        // 每个范围组件增加8格，上限为基础范围+32格
+        // 濠殿噯绲界换瀣煂濠婂牊鍤戦柛鎰╁妽缁绢垳绱撴担绋款仹婵炲棎鍨洪弲鍫曟倷閹绘帩娼?闂佸搫绉堕妴瀣濠靛洨鈻斿┑鐘叉处椤庢瑥鈽夐幘铏儓闁绘柡鍋撶紒缁㈠幐閸嬫捇鏌ら悡搴℃殭婵?32闂?
         double upgradedRadius = Math.min(baseRadius + 32.0, baseRadius + count * 8);
         if (manualRangeLimit > 0.0D) {
             return Math.max(1.0D, Math.min(upgradedRadius, manualRangeLimit));
@@ -1096,7 +1140,7 @@ public boolean hasDestructionPlugin() {
         return total;
     }
     
-    // ========== 网络同步 ==========
+    // ========== 缂傚倸鍟崹鍦垝閸洖瑙﹂悘鐐佃檸閸?==========
     
     @Override
     public CompoundTag getUpdateTag() {
@@ -1125,7 +1169,7 @@ public boolean hasDestructionPlugin() {
     }
     
     /**
-     * 同步数据到客户端
+     * 闂佸憡鑹鹃張顒勵敆閻愬搫鏋侀柣妤€鐗嗙粊锕傛煕閹烘挻绶叉い鎾崇秺楠炲顦版惔顔荤磽
      */
     public void syncToClient() {
         if (level != null && !level.isClientSide) {
