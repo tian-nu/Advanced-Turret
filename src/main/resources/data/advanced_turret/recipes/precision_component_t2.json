@@ -1,8 +1,8 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " T ",
-    "IPI",
+    " R ",
+    "ITI",
     " P "
   ],
   "key": {
@@ -11,6 +11,9 @@
     },
     "P": {
       "item": "advanced_turret:precision_component_t1"
+    },
+    "R": {
+      "item": "minecraft:redstone"
     },
     "T": {
       "item": "advanced_turret:turret"
