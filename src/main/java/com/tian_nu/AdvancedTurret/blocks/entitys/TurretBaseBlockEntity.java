@@ -1135,8 +1135,8 @@ public boolean hasDestructionPlugin() {
 
     public double getSearchRadiusForFace(Direction face, double baseRadius) {
         int count = countUpgradeItems(face, ModItems.RANGE_COMPONENT.get());
-        // 濠殿噯绲界换瀣煂濠婂牊鍤戦柛鎰╁妽缁绢垳绱撴担绋款仹婵炲棎鍨洪弲鍫曟倷閹绘帩娼?闂佸搫绉堕妴瀣濠靛洨鈻斿┑鐘叉处椤庢瑥鈽夐幘铏儓闁绘柡鍋撶紒缁㈠幐閸嬫捇鏌ら悡搴℃殭婵?32闂?
-        double upgradedRadius = Math.min(baseRadius + 32.0, baseRadius + count * 8);
+        // 普通炮塔的范围组件统一按每个 +1 格半径计算。
+        double upgradedRadius = baseRadius + count;
         if (manualRangeLimit > 0.0D) {
             return Math.max(1.0D, Math.min(upgradedRadius, manualRangeLimit));
         }

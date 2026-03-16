@@ -344,6 +344,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
         MissileEntity missile = new MissileEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, directDamage);
         missile.setOwner(null);
         missile.setSourcePos(pos);
+        missile.setMaxTravelDistance(base.getSearchRadiusForFace(facing, getSearchRadius()) * 1.5D);
         missile.setBasePos(pos.relative(facing.getOpposite()));
         missile.setExplosionDamage(explosionDamage);
         missile.setExplosionRadius(getExplosionRadius());

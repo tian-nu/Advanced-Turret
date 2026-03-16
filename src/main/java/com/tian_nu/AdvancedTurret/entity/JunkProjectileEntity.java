@@ -101,6 +101,9 @@ public class JunkProjectileEntity extends TurretProjectileEntity {
         Vec3 movement = this.getDeltaMovement();
         Vec3 currentPos = this.position();
         Vec3 nextPos = currentPos.add(movement);
+        if (shouldDiscardForFlightLimits(nextPos)) {
+            return;
+        }
 
         if (!this.level().isClientSide) {
             // 1. 检测实体碰撞（优先）

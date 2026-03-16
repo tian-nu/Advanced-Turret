@@ -338,6 +338,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
         RocketEntity rocket = new RocketEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, directDamage);
         rocket.setOwner(null);
         rocket.setSourcePos(pos);
+        rocket.setMaxTravelDistance(base.getSearchRadiusForFace(facing, getSearchRadius()) * 1.5D);
         rocket.setBasePos(pos.relative(facing.getOpposite()));
         rocket.setExplosionDamage(explosionDamage);
         rocket.setExplosionRadius(getExplosionRadius());

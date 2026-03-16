@@ -255,6 +255,7 @@ private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base,
 		RailgunBulletEntity bullet = new RailgunBulletEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
         bullet.setOwner(null);
         bullet.setSourcePos(pos);
+        bullet.setMaxTravelDistance(base.getSearchRadiusForFace(facing, getSearchRadius()) * 1.5D);
         bullet.setBasePos(pos.relative(facing.getOpposite())); // 设置基座位置
         bullet.setPenetrationCount(getPenetrationCount()); // 穿透目标数量可配置
         bullet.shoot(direction, getBulletSpeed());

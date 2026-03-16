@@ -205,6 +205,10 @@ public class RocketEntity extends TurretProjectileEntity {
 
         Vec3 currentPos = this.position();
         Vec3 nextPos = currentPos.add(this.getDeltaMovement());
+        if (shouldDiscardForFlightLimits(nextPos)) {
+            allowDeltaMovementChange = false;
+            return;
+        }
 
         if (!this.level().isClientSide) {
             // 1. 检测实体碰撞（优先）

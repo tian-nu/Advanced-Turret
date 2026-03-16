@@ -246,6 +246,10 @@ public class MissileEntity extends TurretProjectileEntity {
         }
 
         Vec3 nextPos = currentPos.add(movement);
+        if (shouldDiscardForFlightLimits(nextPos)) {
+            allowDeltaMovementChange = false;
+            return;
+        }
 
         // ========== 碰撞检测（分离检测） ==========
         if (!this.level().isClientSide) {

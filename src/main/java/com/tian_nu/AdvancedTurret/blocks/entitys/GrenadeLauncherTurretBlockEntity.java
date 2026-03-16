@@ -332,6 +332,7 @@ public class GrenadeLauncherTurretBlockEntity extends BlockEntity implements Geo
         GrenadeEntity grenade = new GrenadeEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, directDamage);
         grenade.setOwner(null);
         grenade.setSourcePos(pos);
+        grenade.setMaxTravelDistance(base.getSearchRadiusForFace(facing, getSearchRadius()) * 1.5D);
         grenade.setBasePos(pos.relative(facing.getOpposite()));
         grenade.setExplosionDamage(explosionDamage);
         grenade.setExplosionRadius(getExplosionRadius());

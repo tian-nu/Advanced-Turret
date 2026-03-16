@@ -37,10 +37,11 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
     private static final int ENERGY_BAR_Y = 19;
     private static final int ENERGY_BAR_WIDTH = 14;
     private static final int ENERGY_BAR_HEIGHT = 50;
-    private static final int RANGE_INPUT_X = 80;
+    private static final int RANGE_INPUT_X = 79;
     private static final int RANGE_INPUT_Y = 22;
-    private static final int RANGE_INPUT_WIDTH = 28;
+    private static final int RANGE_INPUT_WIDTH = 38;
     private static final int RANGE_INPUT_HEIGHT = 16;
+    private static final int RANGE_LABEL_X = 79;
     private static final int OWNER_LABEL_X = 8;
     private static final int OWNER_LABEL_Y = 13;
 
@@ -88,7 +89,7 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         ).bounds(guiLeft + this.imageWidth + 8, guiTop + 72, 84, 20).build();
         addRenderableWidget(this.personalConfigButton);
 
-        int rangeInputX = guiLeft + getRangeInputX();
+        int rangeInputX = guiLeft + RANGE_INPUT_X;
         this.rangeInput = new EditBox(this.font, rangeInputX, guiTop + RANGE_INPUT_Y, getRangeInputWidth(), getRangeInputHeight(),
             Component.translatable("gui.advanced_turret.range_control"));
         this.rangeInput.setMaxLength(3);
@@ -222,7 +223,7 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         guiGraphics.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.range_control"), x + getRangeLabelX(), y + 13, TurretUiTheme.COLOR_TEXT_SUB, false);
+        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.range_control"), x + RANGE_LABEL_X, y + 13, TurretUiTheme.COLOR_TEXT_SUB, false);
 
         String ownerName = menu.getBlockEntity().getResolvedOwnerName();
         if (!ownerName.isBlank()) {
@@ -286,28 +287,7 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         return calcSlotRect(AMMO_SLOT_COUNT, pluginSlotCount, 1);
     }
 
-    private int getRangeInputX() {
-        Rect pluginRect = getPluginRect();
-        if (pluginRect != null) {
-            return pluginRect.x;
-        }
-        return RANGE_INPUT_X;
-    }
-
-    private int getRangeLabelX() {
-        Rect pluginRect = getPluginRect();
-        if (pluginRect != null) {
-            return pluginRect.x;
-        }
-        return getRangeInputX() - 6;
-    }
-
-
     private int getRangeInputWidth() {
-        Rect pluginRect = getPluginRect();
-        if (pluginRect != null) {
-            return pluginRect.w;
-        }
         return RANGE_INPUT_WIDTH;
     }
 

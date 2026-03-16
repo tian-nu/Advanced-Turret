@@ -317,6 +317,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 		bullet.setOwner(null);
 		bullet.setSourcePos(pos);
 		bullet.setBasePos(pos.relative(facing.getOpposite())); // 设置基座位置
+		bullet.setMaxTravelDistance(base.getSearchRadiusForFace(facing, getSearchRadius()) * 1.5D);
 		bullet.shoot(direction, getBulletSpeed());
 
 		boolean spawned = level.addFreshEntity(bullet);

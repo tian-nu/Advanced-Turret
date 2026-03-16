@@ -334,6 +334,7 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
         JunkProjectileEntity junk = new JunkProjectileEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, damage);
         junk.setOwner(null);
         junk.setSourcePos(pos);
+        junk.setMaxTravelDistance(base.getSearchRadiusForFace(facing, getSearchRadius()) * 1.5D);
         junk.setBasePos(pos.relative(facing.getOpposite()));
         junk.setAmmoItem(ammoStack.copy());
         junk.setDeltaMovement(velocity);

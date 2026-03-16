@@ -70,6 +70,9 @@ public abstract class TurretProjectileEntity extends Projectile {
     /** 跳过炮塔自身碰撞的tick数 */
     protected int ignoreSourceBlockTicks = 2;
     
+    /** 最大飞行距离，<= 0 表示不额外限制。 */
+    protected double maxTravelDistance = -1.0D;
+    
     // ==================== 构造函数 ====================
     
     public TurretProjectileEntity(EntityType<? extends TurretProjectileEntity> type, Level level) {
@@ -90,6 +93,14 @@ public abstract class TurretProjectileEntity extends Projectile {
     
     public void setLifetime(int ticks) { this.lifetime = ticks; }
     public int getLifetime() { return this.lifetime; }
+    
+    public void setMaxTravelDistance(double distance) {
+        this.maxTravelDistance = distance > 0.0D ? distance : -1.0D;
+    }
+    
+    public double getMaxTravelDistance() {
+        return this.maxTravelDistance;
+    }
     
     // ==================== 数据同步 ====================
     
@@ -142,6 +153,35 @@ public abstract class TurretProjectileEntity extends Projectile {
         return entity instanceof LivingEntity living
                 && living.isAlive()
                 && !entity.equals(this.getOwner());
+    }
+    
+    /**
+     * 服务端统一处理异常飞行情况，避免弹体长时间滞留。
+     */
+    protected boolean shouldDiscardForFlightLimits(Vec3 nextPos) {
+        if (this.level().isClientSide) {
+            return false;
+        }
+        if (nextPos != null && !this.level().hasChunkAt(BlockPos.containing(nextPos))) {
+            this.discard();
+            return true;
+        }
+        if (sourcePos != null && maxTravelDistance > 0.0D) {
+            Vec3 sourceCenter = Vec3.atCenterOf(sourcePos);
+            if (nextPos.distanceToSqr(sourceCenter) > maxTravelDistance * maxTravelDistance) {
+                this.discard();
+                return true;
+            }
+        }
+        if (nextPos != null) {
+            double minY = this.level().getMinBuildHeight() - 16.0D;
+            double maxY = this.level().getMaxBuildHeight() + 16.0D;
+            if (nextPos.y < minY || nextPos.y > maxY) {
+                this.discard();
+                return true;
+            }
+        }
+        return false;
     }
     
     @Override
@@ -286,6 +326,9 @@ public abstract class TurretProjectileEntity extends Projectile {
             tag.putInt("BaseY", basePos.getY());
             tag.putInt("BaseZ", basePos.getZ());
         }
+        if (maxTravelDistance > 0.0D) {
+            tag.putDouble("MaxTravelDistance", maxTravelDistance);
+        }
     }
     
     @Override
@@ -299,6 +342,11 @@ public abstract class TurretProjectileEntity extends Projectile {
         }
         if (tag.contains("BaseX")) {
             basePos = new BlockPos(tag.getInt("BaseX"), tag.getInt("BaseY"), tag.getInt("BaseZ"));
+        }
+        if (tag.contains("MaxTravelDistance")) {
+            maxTravelDistance = tag.getDouble("MaxTravelDistance");
+        } else {
+            maxTravelDistance = -1.0D;
         }
     }
     
