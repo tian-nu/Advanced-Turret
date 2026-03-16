@@ -3,6 +3,7 @@ package com.tian_nu.AdvancedTurret.blocks;
 import com.tian_nu.AdvancedTurret.Config;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -44,6 +45,34 @@ public final class TurretTooltipHelper {
 
         if (tier >= 5) {
             addDarkGrayLine(tooltip, "tooltip.advanced_turret.turret_base.builtin_smart_chip");
+        }
+
+        addOwnerTooltip(stack, tooltip);
+    }
+
+    public static String getOwnerNameFromStack(ItemStack stack) {
+        if (!stack.hasTag()) {
+            return "";
+        }
+
+        CompoundTag tag = stack.getTag();
+        if (tag != null && tag.contains("OwnerName")) {
+            return tag.getString("OwnerName");
+        }
+
+        CompoundTag blockEntityTag = stack.getTagElement("BlockEntityTag");
+        if (blockEntityTag != null && blockEntityTag.contains("OwnerName")) {
+            return blockEntityTag.getString("OwnerName");
+        }
+
+        return "";
+    }
+
+    public static void addOwnerTooltip(ItemStack stack, List<Component> tooltip) {
+        String ownerName = getOwnerNameFromStack(stack);
+        if (!ownerName.isEmpty()) {
+            tooltip.add(Component.translatable("gui.advanced_turret.owner_tooltip", ownerName)
+                    .withStyle(ChatFormatting.GOLD));
         }
     }
 

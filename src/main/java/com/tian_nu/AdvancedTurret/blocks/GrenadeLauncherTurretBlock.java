@@ -67,7 +67,7 @@ public class GrenadeLauncherTurretBlock extends BaseEntityBlock {
             if (be instanceof GrenadeLauncherTurretBlockEntity turret) {
                 TurretBaseBlockEntity base = turret.getBaseEntity();
                 if (base != null && base.getOwner() == null) {
-                    base.setOwner(player.getUUID());
+                    base.setOwner(player.getUUID(), player.getName().getString());
                 }
             }
         }
@@ -85,6 +85,7 @@ public class GrenadeLauncherTurretBlock extends BaseEntityBlock {
                 GrenadeLauncherTurretBlockEntity.getFireRate() / 20.0);
         TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.grenade_launcher_turret.energy_ammo",
                 Config.grenadeLauncherEnergyCost);
+        TurretTooltipHelper.addOwnerTooltip(stack, tooltip);
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

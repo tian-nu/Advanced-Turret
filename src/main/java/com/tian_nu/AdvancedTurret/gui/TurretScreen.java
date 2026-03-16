@@ -41,6 +41,8 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
     private static final int RANGE_INPUT_Y = 22;
     private static final int RANGE_INPUT_WIDTH = 28;
     private static final int RANGE_INPUT_HEIGHT = 16;
+    private static final int OWNER_LABEL_X = 8;
+    private static final int OWNER_LABEL_Y = 13;
 
     private float backgroundAlpha = ConfigManager.getBackgroundAlpha();
     private float energyBarAlpha = ConfigManager.getEnergyBarAlpha();
@@ -221,6 +223,16 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.range_control"), x + getRangeLabelX(), y + 13, TurretUiTheme.COLOR_TEXT_SUB, false);
+
+        String ownerName = menu.getBlockEntity().getResolvedOwnerName();
+        if (ownerName != null && !ownerName.isBlank()) {
+            guiGraphics.drawString(this.font,
+                Component.translatable("gui.advanced_turret.owner_tooltip", ownerName),
+                x + OWNER_LABEL_X,
+                y + OWNER_LABEL_Y,
+                TurretUiTheme.COLOR_TEXT_SUB,
+                false);
+        }
 
         Rect ammoRect = calcSlotRect(0, AMMO_SLOT_COUNT, 3);
         if (ammoRect != null) {

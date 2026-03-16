@@ -67,7 +67,7 @@ public class JunkTurretBlock extends BaseEntityBlock {
             if (be instanceof JunkTurretBlockEntity turret) {
                 TurretBaseBlockEntity base = turret.getBaseEntity();
                 if (base != null && base.getOwner() == null) {
-                    base.setOwner(player.getUUID());
+                    base.setOwner(player.getUUID(), player.getName().getString());
                 }
             }
         }
@@ -83,6 +83,7 @@ public class JunkTurretBlock extends BaseEntityBlock {
                 JunkTurretBlockEntity.getFireRate() / 20.0);
         TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.junk_turret.energy_ammo",
                 Config.junkTurretEnergyCost);
+        TurretTooltipHelper.addOwnerTooltip(stack, tooltip);
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

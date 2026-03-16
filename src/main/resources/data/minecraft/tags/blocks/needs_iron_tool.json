@@ -1,5 +1,5 @@
 {
-  "replace": "false",
+  "replace": false,
   "values": [
     "advanced_turret:turret_base_t1",
     "advanced_turret:turret_base_t2",

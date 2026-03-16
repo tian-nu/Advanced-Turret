@@ -103,6 +103,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     // 闂佺顑呭ú鈺咁敊閺囩偐鏌﹂柍鈺佸暞缁犳帡鏌熺紒妯虹瑐婵炲棎鍨藉顔炬媼閸︻厾顦慨鎺撶⊕椤牓顢樻繝姘闁靛鍎崇壕濠氭煏?
     
     private java.util.UUID owner;
+    private String ownerName = "";
     /** 闂佺硶鏅涢幖顐ｎ殽閸ヮ剚顥堥柕蹇嬪灪閻ｉ亶鏌涘鐓庣仯闁轰降鍊濋幃鈺呮嚋绾版ê浜惧ù锝夘棑缁夋挳鏌熺悰鈩冩珖闁绘牗绮撻弫宥呯暆閸曨厼绗￠柣鐘遍檷閸婃洟宕ｅ鑸殿棃闁靛繒濮村璺ㄢ偓娈垮枓閸嬫捇鏌?*/
     private byte enabledFacesMask = 0b111111;
     /** 闂佸綊娼ч鍛叏閳哄懏鈷旈柟閭﹀墮閻撴垿鏌￠埀顒傛嫚閹绘帗鐦栭梺鑲╁帶閸燁偄煤閸ф鏅?= 0 闁荤偞绋忛崝搴ㄥΦ濮橆厾鈻旂€广儱顦伴娆撴煕閹烘洜鍫柍?*/
@@ -538,9 +539,34 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         return owner;
     }
 
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public String getResolvedOwnerName() {
+        if (ownerName != null && !ownerName.isBlank()) {
+            return ownerName;
+        }
+        return resolveOwnerNameFromLevel();
+    }
+
+    private String resolveOwnerNameFromLevel() {
+        if (owner != null && level != null) {
+            Player player = level.getPlayerByUUID(owner);
+            if (player != null) {
+                return player.getName().getString();
+            }
+        }
+        return "";
+    }
 
     public void setOwner(java.util.UUID owner) {
+        setOwner(owner, ownerName);
+    }
+
+    public void setOwner(java.util.UUID owner, @Nullable String ownerName) {
         this.owner = owner;
+        this.ownerName = ownerName == null ? "" : ownerName;
         setChanged();
         syncToClient();
     }
@@ -944,6 +970,10 @@ public boolean hasDestructionPlugin() {
         if (owner != null) {
             tag.putUUID("Owner", owner);
         }
+        String resolvedOwnerName = ownerName.isEmpty() ? resolveOwnerNameFromLevel() : ownerName;
+        if (!resolvedOwnerName.isEmpty()) {
+            tag.putString("OwnerName", resolvedOwnerName);
+        }
         tag.putByte("EnabledFacesMask", enabledFacesMask);
         tag.putDouble("ManualRangeLimit", manualRangeLimit);
         if (hasBuiltInSmartChip() && !builtInSmartChip.isEmpty()) {
@@ -1002,6 +1032,11 @@ public boolean hasDestructionPlugin() {
         }
         if (tag.contains("Owner")) {
             owner = tag.getUUID("Owner");
+        }
+        if (tag.contains("OwnerName")) {
+            ownerName = tag.getString("OwnerName");
+        } else {
+            ownerName = "";
         }
         if (tag.contains("EnabledFacesMask")) {
             enabledFacesMask = tag.getByte("EnabledFacesMask");

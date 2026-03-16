@@ -61,7 +61,7 @@ public abstract class AbstractFieldTurretBlock extends BaseEntityBlock {
             if (be instanceof com.tian_nu.AdvancedTurret.blocks.entitys.AbstractFieldTurretBlockEntity turret) {
                 TurretBaseBlockEntity base = turret.getBaseEntity();
                 if (base != null && base.getOwner() == null) {
-                    base.setOwner(player.getUUID());
+                    base.setOwner(player.getUUID(), player.getName().getString());
                 }
             }
         }
@@ -71,6 +71,7 @@ public abstract class AbstractFieldTurretBlock extends BaseEntityBlock {
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
         TurretTooltipHelper.addPlacementTooltip(tooltip);
         appendFieldStats(tooltip);
+        TurretTooltipHelper.addOwnerTooltip(stack, tooltip);
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

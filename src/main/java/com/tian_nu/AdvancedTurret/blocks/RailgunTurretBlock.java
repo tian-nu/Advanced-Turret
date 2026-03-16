@@ -4,7 +4,6 @@ import com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
 import com.tian_nu.AdvancedTurret.Config;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -60,7 +59,7 @@ public class RailgunTurretBlock extends BaseEntityBlock {
             if (be instanceof RailgunTurretBlockEntity turret) {
                 TurretBaseBlockEntity base = turret.getBaseEntity();
                 if (base != null && base.getOwner() == null) {
-                    base.setOwner(player.getUUID());
+                    base.setOwner(player.getUUID(), player.getName().getString());
                 }
             }
         }
@@ -76,10 +75,7 @@ public class RailgunTurretBlock extends BaseEntityBlock {
                 RailgunTurretBlockEntity.getFireRate());
         TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.railgun_turret.energy_ammo",
                 Config.railgunEnergyCost);
-        if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
-            String ownerName = stack.getTag().getString("OwnerName");
-            tooltip.add(Component.translatable("gui.advanced_turret.owner_tooltip", ownerName).withStyle(ChatFormatting.GOLD));
-        }
+        TurretTooltipHelper.addOwnerTooltip(stack, tooltip);
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

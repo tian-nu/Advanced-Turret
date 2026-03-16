@@ -11,7 +11,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "advanced_turret:turret_base_t1",
+          "name": "advanced_turret:grenade_launcher_turret",
           "functions": [
             {
               "function": "minecraft:copy_nbt",
@@ -28,10 +28,6 @@
                   "op": "replace"
                 }
               ]
-            },
-            {
-              "function": "minecraft:copy_name",
-              "source": "block_entity"
             }
           ]
         }
@@ -39,5 +35,5 @@
       "rolls": 1.0
     }
   ],
-  "random_sequence": "advanced_turret:blocks/turret_base_t1"
+  "random_sequence": "advanced_turret:blocks/grenade_launcher_turret"
 }

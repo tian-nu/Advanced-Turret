@@ -1,9 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " D ",
-    "PRP",
-    " D "
+    " R ",
+    "DTD",
+    " P "
   ],
   "key": {
     "D": {
@@ -14,6 +14,9 @@
     },
     "R": {
       "item": "advanced_turret:radar"
+    },
+    "T": {
+      "item": "advanced_turret:turret"
     }
   },
   "result": {

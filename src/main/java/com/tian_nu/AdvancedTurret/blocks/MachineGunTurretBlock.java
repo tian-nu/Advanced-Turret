@@ -32,7 +32,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.network.chat.Component;
 import java.util.List;
-import net.minecraft.ChatFormatting;
 import com.tian_nu.AdvancedTurret.Config;
 
 import net.minecraft.world.entity.LivingEntity;
@@ -71,7 +70,7 @@ public class MachineGunTurretBlock extends BaseEntityBlock {
             if (be instanceof MachineGunTurretBlockEntity turret) {
                 TurretBaseBlockEntity base = turret.getBaseEntity();
                 if (base != null && base.getOwner() == null) {
-                    base.setOwner(player.getUUID());
+                    base.setOwner(player.getUUID(), player.getName().getString());
                 }
                 
                 // 将所有者信息保存到方块实体中，以便在被破坏时恢复到掉落物
@@ -93,10 +92,7 @@ public class MachineGunTurretBlock extends BaseEntityBlock {
                 MachineGunTurretBlockEntity.getFireRate());
         TurretTooltipHelper.addGrayLine(tooltip, "tooltip.advanced_turret.machine_gun_turret.energy_ammo",
                 Config.machineGunEnergyCost);
-        if (stack.hasTag() && stack.getTag().contains("OwnerName")) {
-            String ownerName = stack.getTag().getString("OwnerName");
-            tooltip.add(Component.translatable("gui.advanced_turret.owner_tooltip", ownerName).withStyle(ChatFormatting.GOLD));
-        }
+        TurretTooltipHelper.addOwnerTooltip(stack, tooltip);
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

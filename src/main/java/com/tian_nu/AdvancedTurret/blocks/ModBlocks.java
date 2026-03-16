@@ -2,6 +2,7 @@ package com.tian_nu.AdvancedTurret.blocks;
 
 import com.tian_nu.AdvancedTurret.TurretMod;
 import com.tian_nu.AdvancedTurret.items.ModItems;
+import com.tian_nu.AdvancedTurret.items.TooltipBlockItem;
 import com.tian_nu.AdvancedTurret.blocks.entitys.LaserTurretBlockEntity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -80,7 +81,7 @@ public class ModBlocks {
             registerBlock("missile_turret", () -> new MissileTurretBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .noOcclusion()
-                    .strength(1.0f, 6.0f)));
+                    .strength(1.0f, 1200.0f)));
 
     // 激光炮塔
     public static final RegistryObject<Block> LASER_TURRET =
@@ -114,7 +115,7 @@ public class ModBlocks {
                     .strength(1.0f, 6.0f)));
 
     private static <T extends Block> void registerBlockItems(String name, RegistryObject<T> block) {
-        ModItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
+        ModItems.ITEMS.register(name, () -> new TooltipBlockItem(block.get(), new Item.Properties()));
     }
 
     private static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> block) {

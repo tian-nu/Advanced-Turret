@@ -76,7 +76,7 @@ public class LaserTurretBlock extends BaseEntityBlock {
             if (be instanceof LaserTurretBlockEntity turret) {
                 TurretBaseBlockEntity base = turret.getBaseEntity();
                 if (base != null && base.getOwner() == null) {
-                    base.setOwner(player.getUUID());
+                    base.setOwner(player.getUUID(), player.getName().getString());
                 }
             }
         }
@@ -91,6 +91,7 @@ public class LaserTurretBlock extends BaseEntityBlock {
                 LaserTurretBlockEntity.getSearchRadius(),
                 Config.laserEnergyPerTick);
         TurretTooltipHelper.addDarkGrayLine(tooltip, "tooltip.advanced_turret.laser_turret.ammo");
+        TurretTooltipHelper.addOwnerTooltip(stack, tooltip);
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

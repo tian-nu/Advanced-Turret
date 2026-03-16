@@ -1,9 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " G ",
-    "PCP",
-    " G "
+    " C ",
+    "GTG",
+    " P "
   ],
   "key": {
     "G": {
@@ -14,6 +14,9 @@
     },
     "C": {
       "item": "advanced_turret:circuit_board"
+    },
+    "T": {
+      "item": "advanced_turret:turret"
     }
   },
   "result": {

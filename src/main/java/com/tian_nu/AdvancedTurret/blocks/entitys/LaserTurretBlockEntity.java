@@ -520,6 +520,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
+        TurretOwnerHelper.saveOwnerNameFromBase(tag, getBaseEntity());
         tag.putFloat("YRot0", yRot0);
         tag.putFloat("XRot0", xRot0);
         tag.putFloat("TargetYRot", targetYRot);

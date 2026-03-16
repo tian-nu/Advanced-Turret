@@ -1,9 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " I ",
-    "PTP",
-    " I "
+    " T ",
+    "IPI",
+    " P "
   ],
   "key": {
     "I": {

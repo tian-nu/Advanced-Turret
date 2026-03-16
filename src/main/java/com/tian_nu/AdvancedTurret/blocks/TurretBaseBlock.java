@@ -56,6 +56,10 @@ public class TurretBaseBlock extends BaseEntityBlock {
         
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof TurretBaseBlockEntity turretEntity && player instanceof ServerPlayer serverPlayer) {
+            if (turretEntity.getOwner() != null && (turretEntity.getOwnerName() == null || turretEntity.getOwnerName().isBlank())
+                    && turretEntity.getOwner().equals(player.getUUID())) {
+                turretEntity.setOwner(player.getUUID(), player.getName().getString());
+            }
             if (player.isShiftKeyDown()) {
                 NetworkHooks.openScreen(
                         serverPlayer,
@@ -96,7 +100,7 @@ public class TurretBaseBlock extends BaseEntityBlock {
         if (placer instanceof Player player) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof TurretBaseBlockEntity base) {
-                base.setOwner(player.getUUID());
+                base.setOwner(player.getUUID(), player.getName().getString());
             }
         }
     }

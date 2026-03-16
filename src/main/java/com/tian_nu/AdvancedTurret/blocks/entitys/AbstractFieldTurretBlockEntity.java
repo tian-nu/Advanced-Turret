@@ -194,6 +194,7 @@ public abstract class AbstractFieldTurretBlockEntity extends BlockEntity impleme
     @Override
     protected void saveAdditional(@NotNull net.minecraft.nbt.CompoundTag tag) {
         super.saveAdditional(tag);
+        TurretOwnerHelper.saveOwnerNameFromBase(tag, getBaseEntity());
     }
 
     @Override
