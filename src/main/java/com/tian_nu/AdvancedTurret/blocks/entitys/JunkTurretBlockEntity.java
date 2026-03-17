@@ -589,7 +589,6 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        TurretOwnerHelper.saveOwnerNameFromBase(tag, getBaseEntity());
         tag.putInt("Cooldown", cooldown);
     }
 

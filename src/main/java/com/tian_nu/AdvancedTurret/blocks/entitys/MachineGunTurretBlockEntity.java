@@ -461,7 +461,6 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
-        TurretOwnerHelper.saveOwnerNameFromBase(tag, getBaseEntity());
         tag.putInt("Cooldown", cooldown);
         tag.putFloat("YRot0", yRot0);
         tag.putFloat("XRot0", xRot0);

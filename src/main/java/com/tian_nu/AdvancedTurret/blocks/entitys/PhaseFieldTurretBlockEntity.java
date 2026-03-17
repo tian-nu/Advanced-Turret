@@ -27,6 +27,9 @@ public class PhaseFieldTurretBlockEntity extends AbstractFieldTurretBlockEntity 
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, PhaseFieldTurretBlockEntity blockEntity) {
+        if (level.isClientSide) {
+            return;
+        }
         blockEntity.tickServer();
     }
 

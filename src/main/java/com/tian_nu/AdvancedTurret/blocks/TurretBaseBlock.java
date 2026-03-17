@@ -93,6 +93,18 @@ public class TurretBaseBlock extends BaseEntityBlock {
                                                                             @NotNull BlockEntityType<T> type) {
         return level.isClientSide ? null : createTickerHelper(type, ModBlockEntities.TURRET_BASE.get(), TurretBaseBlockEntity::tick);
     }
+
+    @Override
+    public void onRemove(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
+                         @NotNull BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock())) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof TurretBaseBlockEntity baseEntity) {
+                baseEntity.dropStoredItems(level, pos);
+            }
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
+    }
     
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable net.minecraft.world.entity.LivingEntity placer, ItemStack stack) {

@@ -62,6 +62,14 @@ public class SmartChipItem extends Item {
         super(properties);
     }
 
+    /**
+     * 纯读取标签，避免只读查询时顺手创建空 NBT，导致物品状态被意外改脏。
+     */
+    @Nullable
+    private static CompoundTag getReadOnlyTag(ItemStack stack) {
+        return stack.getTag();
+    }
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (level.isClientSide) {
@@ -129,8 +137,8 @@ public class SmartChipItem extends Item {
     }
     
     public static int getTargetFlags(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        if (!tag.contains(KEY_TARGET_FLAGS)) {
+        CompoundTag tag = getReadOnlyTag(stack);
+        if (tag == null || !tag.contains(KEY_TARGET_FLAGS)) {
             // Default to HOSTILE if not set
             return FLAG_HOSTILE;
         }
@@ -144,7 +152,8 @@ public class SmartChipItem extends Item {
     }
 
     public static TargetMode getTargetMode(ItemStack stack) {
-        return TargetMode.byId(stack.getOrCreateTag().getInt(KEY_TARGET_MODE));
+        CompoundTag tag = getReadOnlyTag(stack);
+        return TargetMode.byId(tag == null ? 0 : tag.getInt(KEY_TARGET_MODE));
     }
 
     public static void setFriendlyFire(ItemStack stack, boolean enabled) {
@@ -152,7 +161,8 @@ public class SmartChipItem extends Item {
     }
 
     public static boolean isFriendlyFire(ItemStack stack) {
-        return stack.getOrCreateTag().getBoolean(KEY_FRIENDLY_FIRE);
+        CompoundTag tag = getReadOnlyTag(stack);
+        return tag != null && tag.getBoolean(KEY_FRIENDLY_FIRE);
     }
 
     public static void setPredictiveAiming(ItemStack stack, boolean enabled) {
@@ -160,7 +170,8 @@ public class SmartChipItem extends Item {
     }
 
     public static boolean isPredictiveAiming(ItemStack stack) {
-        return stack.getOrCreateTag().getBoolean(KEY_PREDICTIVE_AIMING);
+        CompoundTag tag = getReadOnlyTag(stack);
+        return tag != null && tag.getBoolean(KEY_PREDICTIVE_AIMING);
     }
 
     public static void setEnabledFaces(ItemStack stack, byte mask) {
@@ -168,15 +179,15 @@ public class SmartChipItem extends Item {
     }
 
     public static byte getEnabledFaces(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        if (!tag.contains(KEY_ENABLED_FACES)) return 0b111111; // Default all enabled
+        CompoundTag tag = getReadOnlyTag(stack);
+        if (tag == null || !tag.contains(KEY_ENABLED_FACES)) return 0b111111; // Default all enabled
         return tag.getByte(KEY_ENABLED_FACES);
     }
 
     public static List<String> getBlacklist(ItemStack stack) {
         List<String> list = new ArrayList<>();
-        CompoundTag tag = stack.getOrCreateTag();
-        if (tag.contains(KEY_BLACKLIST)) {
+        CompoundTag tag = getReadOnlyTag(stack);
+        if (tag != null && tag.contains(KEY_BLACKLIST)) {
             ListTag tagList = tag.getList(KEY_BLACKLIST, Tag.TAG_STRING);
             for (int i = 0; i < tagList.size(); i++) {
                 list.add(tagList.getString(i));
@@ -203,8 +214,8 @@ public class SmartChipItem extends Item {
 
 public static List<String> getWhitelist(ItemStack stack) {
 		List<String> list = new ArrayList<>();
-		CompoundTag tag = stack.getOrCreateTag();
-		if (tag.contains(KEY_WHITELIST)) {
+		CompoundTag tag = getReadOnlyTag(stack);
+		if (tag != null && tag.contains(KEY_WHITELIST)) {
 			ListTag tagList = tag.getList(KEY_WHITELIST, Tag.TAG_STRING);
 			for (int i = 0; i < tagList.size(); i++) {
 				list.add(tagList.getString(i));
@@ -230,6 +241,7 @@ public static List<String> getWhitelist(ItemStack stack) {
 	 * @return 是否启用厉行节约
 	 */
 	public static boolean isThriftyMode(ItemStack stack) {
-		return stack.getOrCreateTag().getBoolean(KEY_THRIFTY_MODE);
+		CompoundTag tag = getReadOnlyTag(stack);
+		return tag != null && tag.getBoolean(KEY_THRIFTY_MODE);
 	}
 }

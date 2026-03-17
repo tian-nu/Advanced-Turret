@@ -44,7 +44,7 @@ public class MissileEntity extends TurretProjectileEntity {
     /** 是否破坏方块（由破坏插件控制） */
     private boolean destroyBlocks = false;
 
-    /** 加速度 (每tick速度增加 - 线性增长) */
+    /** 加速度系数（指数增长） */
     private double acceleration = 0.03;
 
     /** 转向速率 (每tick转向插值系数 0.0-1.0) */
@@ -219,10 +219,10 @@ public class MissileEntity extends TurretProjectileEntity {
             Vec3 avoidance = checkObstacleAvoidance(currentPos, movement.normalize(), lookAheadDist);
 
             Vec3 newDir;
-            if (avoidance != null) {
+            if (avoidance != null && distanceToTarget > 8.0D) {
                 // 有障碍物，混合避障方向和目标方向
                 // 距离目标越远，避障权重越高
-                double avoidanceWeight = Math.min(0.8, distanceToTarget / 20.0);
+                double avoidanceWeight = Math.min(0.45, distanceToTarget / 32.0);
                 newDir = targetDir.scale(1.0 - avoidanceWeight).add(avoidance.scale(avoidanceWeight)).normalize();
             } else {
                 // 无障碍物，正常追踪目标
@@ -239,7 +239,7 @@ public class MissileEntity extends TurretProjectileEntity {
         // ========== 越飞越快 ==========
         currentSpeed = movement.length();
         if (currentSpeed > 0.001) {
-            double newSpeed = currentSpeed + acceleration;
+            double newSpeed = currentSpeed * (1.0 + acceleration);
             Vec3 direction = movement.normalize();
             this.setDeltaMovement(direction.scale(newSpeed));
             movement = this.getDeltaMovement();
@@ -324,8 +324,8 @@ public class MissileEntity extends TurretProjectileEntity {
             rotateY(moveDir, -30),             // 左偏30°
             rotateY(moveDir, 60),              // 右偏60°
             rotateY(moveDir, -60),             // 左偏60°
-            moveDir.add(0, 0.5, 0).normalize(), // 上偏
-            moveDir.add(0, -0.5, 0).normalize() // 下偏
+            moveDir.add(0, 0.35, 0).normalize(), // ?????????????
+            moveDir.add(0, 0.7, 0).normalize()   // ?????????????
         };
 
         Vec3 bestAvoidanceDir = null;

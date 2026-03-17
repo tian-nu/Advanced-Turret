@@ -25,6 +25,9 @@ public class ResonanceFieldTurretBlockEntity extends AbstractFieldTurretBlockEnt
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ResonanceFieldTurretBlockEntity blockEntity) {
+        if (level.isClientSide) {
+            return;
+        }
         blockEntity.tickServer();
     }
 

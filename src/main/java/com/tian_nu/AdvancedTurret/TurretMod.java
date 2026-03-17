@@ -31,9 +31,7 @@ import software.bernie.geckolib.network.SerializableDataTicket;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * 炮塔模组主类
- *
- * @author tian_nu
+ * 炮塔模组主类。
  */
 @Mod(TurretMod.MOD_ID)
 public class TurretMod {
@@ -42,7 +40,7 @@ public class TurretMod {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     /**
-     * 创建资源定位器的便捷方法
+     * 创建资源定位器。
      */
     public static ResourceLocation location(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);

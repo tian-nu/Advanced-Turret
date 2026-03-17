@@ -20,6 +20,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.Containers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -262,6 +263,9 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     public TurretBaseBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TURRET_BASE.get(), pos, state);
+        if (getTier() >= 5) {
+            builtInSmartChip = new ItemStack(ModItems.SMART_CHIP.get());
+        }
     }
     
     // ========== 闂佺娴氶崜娆撳矗閿熺姴妫橀悷娆忓閵?==========
@@ -318,6 +322,16 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
         if (builtInSmartChip.isEmpty() || !(builtInSmartChip.getItem() instanceof SmartChipItem)) {
             builtInSmartChip = new ItemStack(ModItems.SMART_CHIP.get());
+        }
+        return builtInSmartChip;
+    }
+
+    private ItemStack getBuiltInSmartChipIfPresent() {
+        if (!hasBuiltInSmartChip()) {
+            return ItemStack.EMPTY;
+        }
+        if (builtInSmartChip.isEmpty() || !(builtInSmartChip.getItem() instanceof SmartChipItem)) {
+            return ItemStack.EMPTY;
         }
         return builtInSmartChip;
     }
@@ -401,7 +415,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
                 return stack;
             }
         }
-        return getOrCreateBuiltInSmartChip();
+        return getBuiltInSmartChipIfPresent();
     }
     
     /**
@@ -416,8 +430,9 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
                 plugins.add(stack);
             }
         }
-        if (!hasRealSmartChip() && hasBuiltInSmartChip()) {
-            plugins.add(getOrCreateBuiltInSmartChip());
+        ItemStack builtInChip = getBuiltInSmartChipIfPresent();
+        if (!hasRealSmartChip() && !builtInChip.isEmpty()) {
+            plugins.add(builtInChip);
         }
         return plugins;
     }
@@ -505,6 +520,9 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     // Setters now update the ItemStack (Update the FIRST found chip)
     public void setFriendlyFire(boolean friendlyFire) {
         ItemStack stack = getPluginStack();
+        if (stack.isEmpty() && hasBuiltInSmartChip()) {
+            stack = getOrCreateBuiltInSmartChip();
+        }
         if (!stack.isEmpty()) {
             com.tian_nu.AdvancedTurret.items.SmartChipItem.setFriendlyFire(stack, friendlyFire);
             setChanged();
@@ -513,6 +531,9 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
 
     public void setPredictiveAiming(boolean predictiveAiming) {
         ItemStack stack = getPluginStack();
+        if (stack.isEmpty() && hasBuiltInSmartChip()) {
+            stack = getOrCreateBuiltInSmartChip();
+        }
         if (!stack.isEmpty()) {
             com.tian_nu.AdvancedTurret.items.SmartChipItem.setPredictiveAiming(stack, predictiveAiming);
             setChanged();
@@ -544,6 +565,13 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     public String getResolvedOwnerName() {
+        if (!ownerName.isBlank()) {
+            return ownerName;
+        }
+        return resolveOwnerNameFromLevel();
+    }
+
+    public String getCachedOwnerName() {
         if (!ownerName.isBlank()) {
             return ownerName;
         }
@@ -966,9 +994,9 @@ public boolean hasDestructionPlugin() {
         if (owner != null) {
             tag.putUUID("Owner", owner);
         }
-        String resolvedOwnerName = ownerName.isEmpty() ? resolveOwnerNameFromLevel() : ownerName;
-        if (!resolvedOwnerName.isEmpty()) {
-            tag.putString("OwnerName", resolvedOwnerName);
+        String cachedOwnerName = getCachedOwnerName();
+        if (!cachedOwnerName.isEmpty()) {
+            tag.putString("OwnerName", cachedOwnerName);
         }
         tag.putByte("EnabledFacesMask", enabledFacesMask);
         tag.putDouble("ManualRangeLimit", manualRangeLimit);
@@ -1205,6 +1233,25 @@ public boolean hasDestructionPlugin() {
     public void syncToClient() {
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+    }
+
+    public void dropStoredItems(Level level, BlockPos pos) {
+        dropHandlerItems(level, pos, ammoInventory);
+        dropHandlerItems(level, pos, basePluginSlot);
+        for (ItemStackHandler faceUpgradeSlot : faceUpgradeSlots) {
+            dropHandlerItems(level, pos, faceUpgradeSlot);
+        }
+    }
+
+    private void dropHandlerItems(Level level, BlockPos pos, ItemStackHandler handler) {
+        for (int slot = 0; slot < handler.getSlots(); slot++) {
+            ItemStack stack = handler.getStackInSlot(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack.copy());
+            handler.setStackInSlot(slot, ItemStack.EMPTY);
         }
     }
     

@@ -405,6 +405,5 @@ level.playSound(null, pos, SoundEvents.CROSSBOW_SHOOT, SoundSource.BLOCKS, 1.0F,
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
-        TurretOwnerHelper.saveOwnerNameFromBase(tag, getBaseEntity());
     }
 }
