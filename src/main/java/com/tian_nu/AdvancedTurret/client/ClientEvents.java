@@ -1,4 +1,5 @@
 package com.tian_nu.AdvancedTurret.client;
+
 import com.tian_nu.AdvancedTurret.TurretMod;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.client.renderer.GrenadeRenderer;
@@ -17,11 +18,13 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+
 /**
- * ????????
+ * Client-only setup for menus and renderers.
  */
 @Mod.EventBusSubscriber(modid = TurretMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientEvents {
+
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
@@ -30,6 +33,7 @@ public class ClientEvents {
             com.tian_nu.AdvancedTurret.ConfigManager.loadConfig();
         });
     }
+
     @SubscribeEvent
     public static void registerBlockEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.MACHINE_GUN_TURRET.get(), MachineGunTurretGeoRenderer::new);
@@ -42,6 +46,7 @@ public class ClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.GRENADE_LAUNCHER_TURRET.get(), GrenadeLauncherTurretGeoRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.JUNK_TURRET.get(), JunkTurretGeoRenderer::new);
     }
+
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.TURRET_BULLET.get(), TurretBulletRenderer::new);

@@ -31,7 +31,7 @@ import software.bernie.geckolib.network.SerializableDataTicket;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * 炮塔模组主类。
+ * Main entry point for the turret mod.
  */
 @Mod(TurretMod.MOD_ID)
 public class TurretMod {
@@ -40,7 +40,7 @@ public class TurretMod {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     /**
-     * 创建资源定位器。
+     * Creates a namespaced resource location under this mod id.
      */
     public static ResourceLocation location(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
@@ -151,18 +151,18 @@ public class TurretMod {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        LOGGER.info("炮塔模组初始化中...");
+        LOGGER.info("Initializing Advanced Turret...");
 
         event.enqueueWork(() -> {
             ModNetwork.register();
-            LOGGER.info("网络系统注册完成");
+            LOGGER.info("Network channel registered");
         });
 
-        LOGGER.info("炮塔模组初始化完成");
+        LOGGER.info("Advanced Turret initialization complete");
     }
 
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        LOGGER.info("炮塔模组服务器启动");
+        LOGGER.info("Advanced Turret server starting");
     }
 }

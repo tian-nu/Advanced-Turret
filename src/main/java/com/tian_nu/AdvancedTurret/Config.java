@@ -6,14 +6,13 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 /**
- * 婵☆垽绱曠划宥夋煀瀹ュ洨鏋傜紒? *
- * <p>濞达綀娉曢弫?Forge 闂佹澘绉堕悿?API 缂佺媴绱曢幃濠囨倷椤旂⒈鏁婃鐐茬枃閵嗏偓濞戞挸瀛╄ぐ鍐╃鐠哄搫妫橀柡?/p>
+ * Forge config values for turret stats, energy, plugins, and field effects.
  */
 @Mod.EventBusSubscriber(modid = TurretMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-    // 闂侇偅姘ㄩ弫銈夋煀瀹ュ洨鏋?
+    // Base energy storage and transfer
     public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_ENERGY_T1 = BUILDER
             .comment("config")
             .defineInRange("turretBaseMaxEnergyT1", 10000, 1000, 100000);
@@ -50,7 +49,7 @@ public class Config {
             .comment("config")
             .defineInRange("turretBaseMaxTransferRateT5", 10000, 10, 1000000);
 
-    // 闁哄牏鍎ら悘娆撴倷椤旂⒈鏁?
+    // Machine gun turret stats
     public static final ForgeConfigSpec.DoubleValue MACHINE_GUN_DAMAGE = BUILDER
             .comment("config")
             .defineInRange("machineGunDamage", 4.0, 0.1, 1000.0);
@@ -119,7 +118,6 @@ public class Config {
             .comment("config")
             .defineInRange("laserTurnSpeed", 0.18, 0.01, 3.14);
 
-    // 闁诲浚鍋嗛鍕倷椤旂⒈鏁?
     public static final ForgeConfigSpec.DoubleValue ROCKET_DIRECT_DAMAGE = BUILDER
             .comment("config")
             .defineInRange("rocketDirectDamage", 10.0, 0.1, 10000.0);
@@ -152,7 +150,6 @@ public class Config {
             .comment("config")
             .defineInRange("rocketEnergyCost", 5000, 1, 1000000);
 
-    // 閻庣數鍘ч懘濠囨倷椤旂⒈鏁?
     public static final ForgeConfigSpec.DoubleValue MISSILE_DIRECT_DAMAGE = BUILDER
             .comment("config")
             .defineInRange("missileDirectDamage", 10.0, 0.1, 10000.0);
@@ -189,7 +186,6 @@ public class Config {
             .comment("config")
             .defineInRange("missileEnergyCost", 10000, 1, 1000000);
 
-    // 婵帗娼欓懘濠囨倷椤旂⒈鏁?
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_DIRECT_DAMAGE = BUILDER
             .comment("config")
             .defineInRange("grenadeLauncherDirectDamage", 5.0, 0.1, 10000.0);
@@ -230,7 +226,6 @@ public class Config {
             .comment("config")
             .defineInRange("grenadeLauncherEnergyCost", 3000, 1, 1000000);
 
-    // 闁搞劌鍟┃鍥倷椤旂⒈鏁?
     public static final ForgeConfigSpec.DoubleValue JUNK_TURRET_DAMAGE = BUILDER
             .comment("config")
             .defineInRange("junkTurretDamage", 4.0, 0.1, 1000.0);
@@ -263,7 +258,6 @@ public class Config {
             .comment("config")
             .defineInRange("junkTurretEnergyCost", 20, 1, 100000);
 
-    // 闁圭粯甯婂▎銏ゆ煀瀹ュ洨鏋?
     public static final ForgeConfigSpec.IntValue SOLAR_ENERGY_GENERATION = BUILDER
             .comment("config")
             .defineInRange("solarEnergyGeneration", 10, 1, 500);
@@ -459,7 +453,5 @@ public class Config {
         solarEnergyGeneration = SOLAR_ENERGY_GENERATION.get();
         ammoRecycleChance = AMMO_RECYCLE_CHANCE.get();
         redstoneToEnergyRatio = REDSTONE_TO_ENERGY_RATIO.get();
-
-
     }
 }

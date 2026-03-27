@@ -1,0 +1,211 @@
+#config
+#Range: 1000 ~ 100000
+turretBaseMaxEnergyT1 = 10000
+#config
+#Range: 1000 ~ 500000
+turretBaseMaxEnergyT2 = 40000
+#config
+#Range: 1000 ~ 1000000
+turretBaseMaxEnergyT3 = 100000
+#config
+#Range: 100 ~ 10000
+maxTransferRate = 1000
+#config
+#Range: 10 ~ 100000
+turretBaseMaxTransferRateT1 = 100
+#config
+#Range: 10 ~ 100000
+turretBaseMaxTransferRateT2 = 200
+#config
+#Range: 10 ~ 100000
+turretBaseMaxTransferRateT3 = 600
+#config
+#Range: 10 ~ 100000
+turretBaseMaxTransferRateT4 = 4000
+#config
+#Range: 10 ~ 1000000
+turretBaseMaxTransferRateT5 = 10000
+#config
+#Range: 0.1 ~ 1000.0
+machineGunDamage = 4.0
+#config
+#Range: 1.0 ~ 256.0
+machineGunRange = 32.0
+#config
+#Range: 1 ~ 1200
+machineGunFireRate = 5
+#config
+#Range: 0.1 ~ 64.0
+machineGunBulletSpeed = 3.0
+#config
+#Range: 1 ~ 100000
+machineGunEnergyCost = 100
+#config
+#Range: 0.1 ~ 10000.0
+railgunDamage = 60.0
+#config
+#Range: 1.0 ~ 256.0
+railgunRange = 64.0
+#config
+#Range: 1 ~ 2400
+railgunFireRate = 100
+#config
+#Range: 0.1 ~ 128.0
+railgunBulletSpeed = 6.0
+#config
+#Range: 1 ~ 1000000
+railgunEnergyCost = 10000
+#config
+#Range: 1 ~ 64
+railgunPenetrationCount = 3
+#config
+#Range: 0.1 ~ 1000.0
+laserDamagePerTick = 2.0
+#config
+#Range: 1.0 ~ 256.0
+laserRange = 32.0
+#config
+#Range: 1 ~ 100000
+laserEnergyPerTick = 500
+#config
+#Range: 0 ~ 60
+laserFireSeconds = 3
+#config
+#Range: 0.01 ~ 3.14
+laserAimThreshold = 0.26
+#config
+#Range: 0.01 ~ 3.14
+laserTurnSpeed = 0.18
+#config
+#Range: 0.1 ~ 10000.0
+rocketDirectDamage = 10.0
+#config
+#Range: 0.0 ~ 10000.0
+rocketExplosionDamage = 10.0
+#config
+#Range: 0.1 ~ 64.0
+rocketExplosionRadius = 4.0
+#config
+#Range: 1.0 ~ 256.0
+rocketRange = 48.0
+#config
+#Range: 1 ~ 2400
+rocketFireRate = 100
+#config
+#Range: 0.1 ~ 64.0
+rocketBulletSpeed = 2.0
+#config
+#Range: 0.0 ~ 4.0
+rocketAcceleration = 0.047
+#config
+#Range: 1 ~ 1000000
+rocketEnergyCost = 5000
+#config
+#Range: 0.1 ~ 10000.0
+missileDirectDamage = 10.0
+#config
+#Range: 0.0 ~ 10000.0
+missileExplosionDamage = 15.0
+#config
+#Range: 0.1 ~ 64.0
+missileExplosionRadius = 4.0
+#config
+#Range: 1.0 ~ 256.0
+missileRange = 64.0
+#config
+#Range: 1 ~ 2400
+missileFireRate = 133
+#config
+#Range: 0.1 ~ 64.0
+missileBulletSpeed = 1.5
+#config
+#Range: 0.0 ~ 4.0
+missileAcceleration = 0.03
+#config
+#Range: 0.0 ~ 1.0
+missileTurnRate = 0.3
+#config
+#Range: 1 ~ 1000000
+missileEnergyCost = 10000
+#config
+#Range: 0.1 ~ 10000.0
+grenadeLauncherDirectDamage = 5.0
+#config
+#Range: 0.0 ~ 10000.0
+grenadeLauncherExplosionDamage = 10.0
+#config
+#Range: 0.1 ~ 64.0
+grenadeLauncherExplosionRadius = 3.0
+#config
+#Range: 1.0 ~ 256.0
+grenadeLauncherRange = 32.0
+#config
+#Range: 1 ~ 2400
+grenadeLauncherFireRate = 40
+#config
+#Range: 0.1 ~ 64.0
+grenadeLauncherBulletSpeed = 1.5
+#config
+#Range: 0.001 ~ 1.0
+grenadeLauncherGravity = 0.05
+#config
+#Range: 0.0 ~ 64.0
+grenadeLauncherMinArcHeight = 0.8
+#config
+#Range: 0.0 ~ 128.0
+grenadeLauncherMaxArcHeight = 5.0
+#config
+#Range: 1 ~ 1000000
+grenadeLauncherEnergyCost = 3000
+#config
+#Range: 0.1 ~ 1000.0
+junkTurretDamage = 4.0
+#config
+#Range: 1.0 ~ 256.0
+junkTurretRange = 16.0
+#config
+#Range: 1 ~ 2400
+junkTurretFireRate = 40
+#config
+#Range: 0.1 ~ 64.0
+junkTurretBulletSpeed = 2.0
+#config
+#Range: 0.001 ~ 1.0
+junkTurretGravity = 0.05
+#config
+#Range: 0.0 ~ 64.0
+junkTurretMinArcHeight = 0.6
+#config
+#Range: 0.0 ~ 128.0
+junkTurretMaxArcHeight = 4.2
+#config
+#Range: 1 ~ 100000
+junkTurretEnergyCost = 20
+#config
+#Range: 1 ~ 500
+solarEnergyGeneration = 10
+#config
+#Range: 0.0 ~ 1.0
+ammoRecycleChance = 0.2
+#config
+#Range: 100 ~ 10000
+redstoneToEnergyRatio = 2000
+#config
+#Range: 1.0 ~ 256.0
+phaseFieldRange = 32.0
+#config
+#Range: 1 ~ 100000
+phaseFieldEnergyPerTick = 100
+#config
+#Range: 1 ~ 12000
+phaseFieldEffectDuration = 600
+#config
+#Range: 1.0 ~ 256.0
+resonanceFieldRange = 64.0
+#config
+#Range: 1 ~ 100000
+resonanceFieldEnergyPerTick = 100
+#config
+#Range: 1 ~ 12000
+resonanceFieldEffectDuration = 1200
+
