@@ -1,10 +1,12 @@
 package com.tian_nu.AdvancedTurret.entity;
 
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.GrenadeLauncherTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.JunkTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.MachineGunTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.RocketTurretBlockEntity;
-import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -274,6 +276,10 @@ public abstract class TurretProjectileEntity extends Projectile {
         } else if (be instanceof RocketTurretBlockEntity turret) {
             return turret.getBaseEntity();
         } else if (be instanceof MissileTurretBlockEntity turret) {
+            return turret.getBaseEntity();
+        } else if (be instanceof GrenadeLauncherTurretBlockEntity turret) {
+            return turret.getBaseEntity();
+        } else if (be instanceof JunkTurretBlockEntity turret) {
             return turret.getBaseEntity();
         }
         return null;

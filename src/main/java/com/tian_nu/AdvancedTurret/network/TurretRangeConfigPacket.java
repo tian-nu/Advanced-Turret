@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
@@ -37,8 +38,16 @@ public record TurretRangeConfigPacket(BlockPos pos, double manualRangeLimit) {
             if (player.distanceToSqr(packet.pos.getCenter()) > 64.0D) {
                 return;
             }
+            if (!canEditBase(player, base)) {
+                return;
+            }
             base.setManualRangeLimit(packet.manualRangeLimit);
         });
         context.setPacketHandled(true);
+    }
+
+    private static boolean canEditBase(ServerPlayer player, TurretBaseBlockEntity base) {
+        UUID owner = base.getOwner();
+        return owner == null || owner.equals(player.getUUID());
     }
 }

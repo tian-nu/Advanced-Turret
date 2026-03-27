@@ -96,12 +96,12 @@ public class SmartChipItem extends Item {
                 return InteractionResult.FAIL;
             }
 
-            ItemStack existingPlugin = base.getBasePluginSlot().getStackInSlot(0);
-            if (existingPlugin.isEmpty()) {
+            int targetSlot = findFirstEmptyPluginSlot(base);
+            if (targetSlot >= 0) {
                 if (!level.isClientSide) {
                     ItemStack toInsert = heldStack.copy();
                     toInsert.setCount(1);
-                    base.getBasePluginSlot().insertItem(0, toInsert, false);
+                    base.getBasePluginSlot().insertItem(targetSlot, toInsert, false);
                     heldStack.shrink(1);
                     player.displayClientMessage(Component.translatable("message.advanced_turret.chip_installed").withStyle(ChatFormatting.GREEN), true);
                 }
@@ -121,11 +121,10 @@ public class SmartChipItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         tooltipComponents.add(Component.translatable("item.advanced_turret.smart_chip.tooltip").withStyle(ChatFormatting.GRAY));
         
-        CompoundTag tag = stack.getOrCreateTag();
-        TargetMode mode = TargetMode.byId(tag.getInt(KEY_TARGET_MODE));
-        tooltipComponents.add(Component.translatable("gui.advanced_turret.target_mode." + mode.name().toLowerCase()).withStyle(ChatFormatting.BLUE));
-        
-        if (tag.getBoolean(KEY_FRIENDLY_FIRE)) {
+        tooltipComponents.add(getTargetSummary(stack).copy().withStyle(ChatFormatting.BLUE));
+
+        CompoundTag tag = getReadOnlyTag(stack);
+        if (tag != null && tag.getBoolean(KEY_FRIENDLY_FIRE)) {
             tooltipComponents.add(Component.translatable("gui.advanced_turret.friendly_fire.enabled").withStyle(ChatFormatting.GREEN));
         }
         
@@ -139,8 +138,7 @@ public class SmartChipItem extends Item {
     public static int getTargetFlags(ItemStack stack) {
         CompoundTag tag = getReadOnlyTag(stack);
         if (tag == null || !tag.contains(KEY_TARGET_FLAGS)) {
-            // Default to HOSTILE if not set
-            return FLAG_HOSTILE;
+            return flagsFromLegacyMode(getTargetMode(stack));
         }
         return tag.getInt(KEY_TARGET_FLAGS);
     }
@@ -244,4 +242,78 @@ public static List<String> getWhitelist(ItemStack stack) {
 		CompoundTag tag = getReadOnlyTag(stack);
 		return tag != null && tag.getBoolean(KEY_THRIFTY_MODE);
 	}
+
+    public static TargetMode legacyModeFromFlags(int flags) {
+        if (flags == 0) {
+            return TargetMode.BLACKLIST_ONLY;
+        }
+        if (flags == FLAG_HOSTILE) {
+            return TargetMode.HOSTILE;
+        }
+        if (flags == FLAG_NEUTRAL) {
+            return TargetMode.NEUTRAL;
+        }
+        if (flags == FLAG_FRIENDLY) {
+            return TargetMode.FRIENDLY;
+        }
+        if (flags == FLAG_PLAYERS) {
+            return TargetMode.PLAYERS;
+        }
+        return TargetMode.ALL;
+    }
+
+    private static int flagsFromLegacyMode(TargetMode mode) {
+        return switch (mode) {
+            case HOSTILE -> FLAG_HOSTILE;
+            case NEUTRAL -> FLAG_NEUTRAL;
+            case FRIENDLY -> FLAG_FRIENDLY;
+            case PLAYERS -> FLAG_PLAYERS;
+            case BLACKLIST_ONLY -> 0;
+            case ALL -> FLAG_HOSTILE | FLAG_NEUTRAL | FLAG_FRIENDLY | FLAG_PLAYERS;
+        };
+    }
+
+    private static Component getTargetSummary(ItemStack stack) {
+        int flags = getTargetFlags(stack);
+        if (flags == 0) {
+            return Component.translatable("gui.advanced_turret.target_mode.blacklist_only");
+        }
+        if (flags == (FLAG_HOSTILE | FLAG_NEUTRAL | FLAG_FRIENDLY | FLAG_PLAYERS)) {
+            return Component.translatable("gui.advanced_turret.target_mode.all");
+        }
+
+        List<Component> parts = new ArrayList<>();
+        if ((flags & FLAG_HOSTILE) != 0) {
+            parts.add(Component.translatable("gui.advanced_turret.target_mode.hostile"));
+        }
+        if ((flags & FLAG_NEUTRAL) != 0) {
+            parts.add(Component.translatable("gui.advanced_turret.target_mode.neutral"));
+        }
+        if ((flags & FLAG_FRIENDLY) != 0) {
+            parts.add(Component.translatable("gui.advanced_turret.target_mode.friendly"));
+        }
+        if ((flags & FLAG_PLAYERS) != 0) {
+            parts.add(Component.translatable("gui.advanced_turret.target_mode.players"));
+        }
+
+        if (parts.isEmpty()) {
+            return Component.translatable("gui.advanced_turret.target_mode.blacklist_only");
+        }
+
+        Component summary = parts.get(0);
+        for (int i = 1; i < parts.size(); i++) {
+            summary = summary.copy().append(", ").append(parts.get(i));
+        }
+        return summary;
+    }
+
+    private static int findFirstEmptyPluginSlot(TurretBaseBlockEntity base) {
+        int slotCount = Math.min(base.getPluginSlotCount(), base.getBasePluginSlot().getSlots());
+        for (int i = 0; i < slotCount; i++) {
+            if (base.getBasePluginSlot().getStackInSlot(i).isEmpty()) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }

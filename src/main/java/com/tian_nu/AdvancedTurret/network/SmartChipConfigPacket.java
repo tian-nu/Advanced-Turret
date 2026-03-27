@@ -14,6 +14,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class SmartChipConfigPacket {
@@ -104,6 +105,9 @@ public class SmartChipConfigPacket {
                 if (level.isLoaded(packet.pos) && player.distanceToSqr(packet.pos.getCenter()) < 64.0) {
                     BlockEntity be = level.getBlockEntity(packet.pos);
                     if (be instanceof TurretBaseBlockEntity base) {
+                        if (!canEditBase(player, base)) {
+                            return;
+                        }
                         stackToUpdate = base.getPluginStack();
                         baseToSync = base;
                     }
@@ -117,6 +121,7 @@ public class SmartChipConfigPacket {
 
             if (!stackToUpdate.isEmpty() && stackToUpdate.getItem() instanceof SmartChipItem) {
                 SmartChipItem.setTargetFlags(stackToUpdate, packet.targetFlags);
+                SmartChipItem.setTargetMode(stackToUpdate, SmartChipItem.legacyModeFromFlags(packet.targetFlags));
                 SmartChipItem.setFriendlyFire(stackToUpdate, packet.friendlyFire);
                 SmartChipItem.setPredictiveAiming(stackToUpdate, packet.predictiveAiming);
                 SmartChipItem.setThriftyMode(stackToUpdate, packet.thriftyMode);
@@ -139,6 +144,11 @@ public class SmartChipConfigPacket {
             }
         });
         context.get().setPacketHandled(true);
+    }
+
+    private static boolean canEditBase(ServerPlayer player, TurretBaseBlockEntity base) {
+        UUID owner = base.getOwner();
+        return owner == null || owner.equals(player.getUUID());
     }
 
     private static void addStringToTagList(ItemStack stack, String key, String value) {
