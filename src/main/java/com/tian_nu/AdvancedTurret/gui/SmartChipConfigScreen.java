@@ -6,8 +6,6 @@ import com.tian_nu.AdvancedTurret.items.SmartChipItem.TargetMode;
 import com.tian_nu.AdvancedTurret.network.ModNetwork;
 import com.tian_nu.AdvancedTurret.network.SmartChipConfigPacket;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -34,14 +32,14 @@ public class SmartChipConfigScreen extends Screen {
     private EditBox blacklistInput;
     private EditBox whitelistInput;
 
-    private Checkbox friendlyFireCheckbox;
-    private Checkbox predictiveAimingCheckbox;
-    private Checkbox thriftyModeCheckbox;
+    private TechCheckbox friendlyFireCheckbox;
+    private TechCheckbox predictiveAimingCheckbox;
+    private TechCheckbox thriftyModeCheckbox;
 
-    private Checkbox hostileCheckbox;
-    private Checkbox neutralCheckbox;
-    private Checkbox friendlyCheckbox;
-    private Checkbox playersCheckbox;
+    private TechCheckbox hostileCheckbox;
+    private TechCheckbox neutralCheckbox;
+    private TechCheckbox friendlyCheckbox;
+    private TechCheckbox playersCheckbox;
 
     private int panelX;
     private int panelY;
@@ -65,13 +63,13 @@ public class SmartChipConfigScreen extends Screen {
         panelY = (this.height - PANEL_H) / 2;
 
         int flagsY = panelY + 44;
-        this.hostileCheckbox = new Checkbox(panelX + 14, flagsY, 74, 20,
+        this.hostileCheckbox = new TechCheckbox(panelX + 14, flagsY, 74, 20,
             Component.translatable("gui.advanced_turret.target_mode.hostile"), (targetFlags & SmartChipItem.FLAG_HOSTILE) != 0);
-        this.neutralCheckbox = new Checkbox(panelX + 96, flagsY, 74, 20,
+        this.neutralCheckbox = new TechCheckbox(panelX + 96, flagsY, 74, 20,
             Component.translatable("gui.advanced_turret.target_mode.neutral"), (targetFlags & SmartChipItem.FLAG_NEUTRAL) != 0);
-        this.friendlyCheckbox = new Checkbox(panelX + 178, flagsY, 74, 20,
+        this.friendlyCheckbox = new TechCheckbox(panelX + 178, flagsY, 74, 20,
             Component.translatable("gui.advanced_turret.target_mode.friendly"), (targetFlags & SmartChipItem.FLAG_FRIENDLY) != 0);
-        this.playersCheckbox = new Checkbox(panelX + 260, flagsY, 74, 20,
+        this.playersCheckbox = new TechCheckbox(panelX + 260, flagsY, 74, 20,
             Component.translatable("gui.advanced_turret.target_mode.players"), (targetFlags & SmartChipItem.FLAG_PLAYERS) != 0);
         addRenderableWidget(hostileCheckbox);
         addRenderableWidget(neutralCheckbox);
@@ -79,11 +77,11 @@ public class SmartChipConfigScreen extends Screen {
         addRenderableWidget(playersCheckbox);
 
         int togglesY = panelY + 94;
-        this.friendlyFireCheckbox = new Checkbox(panelX + 14, togglesY, 108, 20,
+        this.friendlyFireCheckbox = new TechCheckbox(panelX + 14, togglesY, 108, 20,
             Component.translatable("gui.advanced_turret.friendly_fire"), friendlyFire);
-        this.predictiveAimingCheckbox = new Checkbox(panelX + 128, togglesY, 108, 20,
+        this.predictiveAimingCheckbox = new TechCheckbox(panelX + 128, togglesY, 108, 20,
             Component.translatable("gui.advanced_turret.predictive_aiming"), predictiveAiming);
-        this.thriftyModeCheckbox = new Checkbox(panelX + 242, togglesY, 104, 20,
+        this.thriftyModeCheckbox = new TechCheckbox(panelX + 242, togglesY, 104, 20,
             Component.translatable("gui.advanced_turret.thrifty_mode"), thriftyMode);
         addRenderableWidget(friendlyFireCheckbox);
         addRenderableWidget(predictiveAimingCheckbox);
@@ -101,7 +99,7 @@ public class SmartChipConfigScreen extends Screen {
         this.whitelistInput.setValue(String.join(",", SmartChipItem.getWhitelist(stack)));
         addRenderableWidget(whitelistInput);
 
-        addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> saveAndClose())
+        addRenderableWidget(TechButton.builder(Component.translatable("gui.done"), b -> saveAndClose())
             .bounds(panelX + PANEL_W - 80, panelY + PANEL_H - 24, 66, 18)
             .build());
     }

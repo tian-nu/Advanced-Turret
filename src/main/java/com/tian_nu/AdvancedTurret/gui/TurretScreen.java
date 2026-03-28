@@ -71,7 +71,7 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         int guiLeft = (this.width - this.imageWidth) / 2;
         int guiTop = (this.height - this.imageHeight) / 2;
 
-        this.smartConfigButton = Button.builder(Component.translatable("gui.advanced_turret.smart_config"), b -> {
+        this.smartConfigButton = TechButton.builder(Component.translatable("gui.advanced_turret.smart_config"), b -> {
             ItemStack stack = getPluginStack();
             if (!stack.isEmpty()) {
                 Minecraft.getInstance().setScreen(new SmartChipConfigScreen(stack, menu.getBlockEntity().getBlockPos()));
@@ -79,12 +79,12 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         }).bounds(guiLeft + this.imageWidth + 8, guiTop + 22, 84, 20).build();
         addRenderableWidget(this.smartConfigButton);
 
-        this.faceConfigButton = Button.builder(Component.translatable("gui.advanced_turret.face_config"), b ->
+        this.faceConfigButton = TechButton.builder(Component.translatable("gui.advanced_turret.face_config"), b ->
             ModNetwork.CHANNEL.sendToServer(new TurretOpenFaceConfigPacket(menu.getBlockEntity().getBlockPos()))
         ).bounds(guiLeft + this.imageWidth + 8, guiTop + 47, 84, 20).build();
         addRenderableWidget(this.faceConfigButton);
 
-        this.personalConfigButton = Button.builder(Component.translatable("gui.turret_personal_config.button"), b ->
+        this.personalConfigButton = TechButton.builder(Component.translatable("gui.turret_personal_config.button"), b ->
             openConfigScreen()
         ).bounds(guiLeft + this.imageWidth + 8, guiTop + 72, 84, 20).build();
         addRenderableWidget(this.personalConfigButton);

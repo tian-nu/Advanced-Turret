@@ -7,7 +7,6 @@ import com.tian_nu.AdvancedTurret.network.ModNetwork;
 import com.tian_nu.AdvancedTurret.network.TurretFaceEnableConfigPacket;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -60,11 +59,13 @@ public class TurretPersonalConfigScreen extends Screen {
     private void createInputFields(int guiX, int guiY) {
         backgroundAlphaField = new EditBox(this.font, guiX + 148, guiY + 36, 48, 18, Component.empty());
         backgroundAlphaField.setMaxLength(4);
+        backgroundAlphaField.setFilter(this::isValidAlphaInput);
         backgroundAlphaField.setValue(formatAlpha(config.getBackgroundAlpha()));
         this.addRenderableWidget(backgroundAlphaField);
 
         energyAlphaField = new EditBox(this.font, guiX + 148, guiY + 60, 48, 18, Component.empty());
         energyAlphaField.setMaxLength(4);
+        energyAlphaField.setFilter(this::isValidAlphaInput);
         energyAlphaField.setValue(formatAlpha(config.getEnergyBarAlpha()));
         this.addRenderableWidget(energyAlphaField);
     }
@@ -84,17 +85,17 @@ public class TurretPersonalConfigScreen extends Screen {
     }
 
     private void createActionButtons(int guiX, int guiY) {
-        this.addRenderableWidget(Button.builder(
+        this.addRenderableWidget(TechButton.builder(
             Component.translatable("gui.done"),
             button -> applyChanges()
         ).bounds(guiX + 28, guiY + GUI_HEIGHT - 30, 60, 20).build());
 
-        this.addRenderableWidget(Button.builder(
+        this.addRenderableWidget(TechButton.builder(
             Component.translatable("gui.reset"),
             button -> resetToDefault()
         ).bounds(guiX + 96, guiY + GUI_HEIGHT - 30, 60, 20).build());
 
-        this.addRenderableWidget(Button.builder(
+        this.addRenderableWidget(TechButton.builder(
             Component.translatable("gui.cancel"),
             button -> onClose()
         ).bounds(guiX + 164, guiY + GUI_HEIGHT - 30, 60, 20).build());
@@ -148,19 +149,16 @@ public class TurretPersonalConfigScreen extends Screen {
     }
 
     private void applyChanges() {
-        try {
-            float bgAlpha = Math.max(0.0F, Math.min(1.0F, Float.parseFloat(backgroundAlphaField.getValue())));
-            float energyAlpha = Math.max(0.0F, Math.min(1.0F, Float.parseFloat(energyAlphaField.getValue())));
+        float bgAlpha = parseAlphaOrDefault(backgroundAlphaField, config.getBackgroundAlpha());
+        float energyAlpha = parseAlphaOrDefault(energyAlphaField, config.getEnergyBarAlpha());
 
-            config.setBackgroundAlpha(bgAlpha);
-            config.setEnergyBarAlpha(energyAlpha);
+        config.setBackgroundAlpha(bgAlpha);
+        config.setEnergyBarAlpha(energyAlpha);
 
-            parentScreen.setBackgroundAlpha(bgAlpha);
-            parentScreen.setEnergyBarAlpha(energyAlpha);
-            syncEnabledFaces();
-            onClose();
-        } catch (NumberFormatException ignored) {
-        }
+        parentScreen.setBackgroundAlpha(bgAlpha);
+        parentScreen.setEnergyBarAlpha(energyAlpha);
+        syncEnabledFaces();
+        onClose();
     }
 
     private void syncEnabledFaces() {
@@ -176,6 +174,37 @@ public class TurretPersonalConfigScreen extends Screen {
 
     private String formatAlpha(float value) {
         return String.format(Locale.ROOT, "%.2f", value);
+    }
+
+    private boolean isValidAlphaInput(String value) {
+        if (value.isEmpty()) {
+            return true;
+        }
+        if (!value.matches("\\d?(\\.\\d{0,2})?")) {
+            return false;
+        }
+        try {
+            return Float.parseFloat(value) <= 1.0F;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
+    }
+
+    private float parseAlphaOrDefault(EditBox field, float fallback) {
+        String raw = field.getValue().trim();
+        if (raw.isEmpty()) {
+            field.setValue(formatAlpha(fallback));
+            return fallback;
+        }
+        try {
+            float parsed = Float.parseFloat(raw);
+            float clamped = Math.max(0.0F, Math.min(1.0F, parsed));
+            field.setValue(formatAlpha(clamped));
+            return clamped;
+        } catch (NumberFormatException ignored) {
+            field.setValue(formatAlpha(fallback));
+            return fallback;
+        }
     }
 
     @Override
@@ -224,14 +253,22 @@ public class TurretPersonalConfigScreen extends Screen {
         @Override
         protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
             boolean enabled = isFaceEnabled();
-            int baseColor = enabled ? 0xFF245F48 : 0xFF2A2A2A;
-            int borderColor = enabled ? 0xFF6BE08D : 0xFF666666;
-            int hoverOverlay = this.isHoveredOrFocused() ? 0x22FFFFFF : 0x00000000;
-            int textColor = enabled ? TurretUiTheme.COLOR_TEXT : 0xFF9A9A9A;
+            boolean hovered = this.isHoveredOrFocused();
+
+            int baseColor = enabled ? 0x8800FFCC : (hovered ? 0x662A898E : 0x440D141C);
+            int borderColor = enabled ? TurretUiTheme.COLOR_ACCENT : (hovered ? 0xAA2A898E : 0x662A898E);
+            int textColor = enabled ? TurretUiTheme.COLOR_ACCENT : (hovered ? 0xFFFFFFFF : TurretUiTheme.COLOR_TEXT_SUB);
 
             guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, baseColor);
-            guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, hoverOverlay);
             TurretUiTheme.drawBorder(guiGraphics, this.getX(), this.getY(), this.width, this.height, borderColor);
+
+            if (enabled) {
+                guiGraphics.fill(this.getX(), this.getY(), this.getX() + 4, this.getY() + 1, TurretUiTheme.COLOR_ACCENT);
+                guiGraphics.fill(this.getX(), this.getY(), this.getX() + 1, this.getY() + 4, TurretUiTheme.COLOR_ACCENT);
+            } else if (hovered) {
+                guiGraphics.fill(this.getX(), this.getY(), this.getX() + 4, this.getY() + 1, 0xFFFFFFFF);
+            }
+
             guiGraphics.drawCenteredString(TurretPersonalConfigScreen.this.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + 6, textColor);
         }
 
