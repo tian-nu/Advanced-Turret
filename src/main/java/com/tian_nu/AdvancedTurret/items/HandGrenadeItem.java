@@ -20,7 +20,8 @@ import java.util.List;
 
 public class HandGrenadeItem extends Item {
 
-    private static final float THROW_SPEED = 0.9F;
+    private static final float THROW_SPEED = 1.0F;
+    private static final float THROW_ANGLE_OFFSET = 4.0F;
 
     public HandGrenadeItem(Properties properties) {
         super(properties);
@@ -37,7 +38,7 @@ public class HandGrenadeItem extends Item {
             grenade.setExplosionDamage((float) Config.grenadeLauncherExplosionDamage);
             grenade.setExplosionRadius((float) Config.grenadeLauncherExplosionRadius);
             grenade.setDestroyBlocks(false);
-            grenade.shootFromRotation(player, player.getXRot() - 4.0F, player.getYRot(), 0.0F, THROW_SPEED, 0.5F);
+            grenade.shootFromRotation(player, player.getXRot() - THROW_ANGLE_OFFSET, player.getYRot(), 0.0F, THROW_SPEED, 0.5F);
             level.addFreshEntity(grenade);
 
             level.playSound(null, player.getX(), player.getY(), player.getZ(),
