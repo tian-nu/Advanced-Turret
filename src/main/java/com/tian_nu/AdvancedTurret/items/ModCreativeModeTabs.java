@@ -40,6 +40,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.AMMUNITION_LAUNCHER.get());
                         output.accept(ModItems.CIRCUIT_BOARD.get());
                         output.accept(ModItems.RADAR.get());
+                        output.accept(ModItems.REMOTE_TERMINAL.get());
                         output.accept(ModItems.ENTITY_ANALYZER.get());
 
 

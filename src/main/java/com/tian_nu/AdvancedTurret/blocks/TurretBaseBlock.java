@@ -2,6 +2,7 @@ package com.tian_nu.AdvancedTurret.blocks;
 
 import com.tian_nu.AdvancedTurret.blocks.entitys.ModBlockEntities;
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
+import com.tian_nu.AdvancedTurret.data.RemoteTerminalBaseIndex;
 import com.tian_nu.AdvancedTurret.gui.TurretFaceConfigMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -101,6 +102,9 @@ public class TurretBaseBlock extends BaseEntityBlock {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof TurretBaseBlockEntity baseEntity) {
                 baseEntity.dropStoredItems(level, pos);
+                if (!level.isClientSide && level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+                    RemoteTerminalBaseIndex.get(serverLevel.getServer()).remove(serverLevel, pos);
+                }
             }
         }
         super.onRemove(state, level, pos, newState, isMoving);
@@ -113,6 +117,9 @@ public class TurretBaseBlock extends BaseEntityBlock {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof TurretBaseBlockEntity base) {
                 base.setOwner(player.getUUID(), player.getName().getString());
+                if (stack.hasCustomHoverName()) {
+                    base.setCustomName(stack.getHoverName());
+                }
             }
         }
     }

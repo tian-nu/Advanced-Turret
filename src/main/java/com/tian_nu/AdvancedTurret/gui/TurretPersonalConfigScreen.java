@@ -30,8 +30,8 @@ public class TurretPersonalConfigScreen extends Screen {
     private static final int GUI_WIDTH = 250;
     private static final int GUI_HEIGHT = 220;
 
-    private EditBox backgroundAlphaField;
-    private EditBox energyAlphaField;
+    private TechEditBox backgroundAlphaField;
+    private TechEditBox energyAlphaField;
     private byte enabledFacesMask;
 
     public TurretPersonalConfigScreen(TurretScreen parentScreen, TurretBaseBlockEntity blockEntity) {
@@ -57,13 +57,13 @@ public class TurretPersonalConfigScreen extends Screen {
     }
 
     private void createInputFields(int guiX, int guiY) {
-        backgroundAlphaField = new EditBox(this.font, guiX + 148, guiY + 36, 48, 18, Component.empty());
+        backgroundAlphaField = new TechEditBox(this.font, guiX + 148, guiY + 36, 48, 18, Component.empty());
         backgroundAlphaField.setMaxLength(4);
         backgroundAlphaField.setFilter(this::isValidAlphaInput);
         backgroundAlphaField.setValue(formatAlpha(config.getBackgroundAlpha()));
         this.addRenderableWidget(backgroundAlphaField);
 
-        energyAlphaField = new EditBox(this.font, guiX + 148, guiY + 60, 48, 18, Component.empty());
+        energyAlphaField = new TechEditBox(this.font, guiX + 148, guiY + 60, 48, 18, Component.empty());
         energyAlphaField.setMaxLength(4);
         energyAlphaField.setFilter(this::isValidAlphaInput);
         energyAlphaField.setValue(formatAlpha(config.getEnergyBarAlpha()));

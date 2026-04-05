@@ -10,6 +10,12 @@ public class TechCheckbox extends Checkbox {
         super(x, y, width, height, message, selected);
     }
 
+    public void setChecked(boolean checked) {
+        if (this.selected() != checked) {
+            this.onPress();
+        }
+    }
+
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         boolean hovered = this.isHoveredOrFocused();

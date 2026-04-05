@@ -66,5 +66,37 @@ public class ModNetwork {
                 TurretFaceEnableConfigPacket::decode,
                 TurretFaceEnableConfigPacket::handle
         );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                RemoteTerminalQueryPacket.class,
+                RemoteTerminalQueryPacket::encode,
+                RemoteTerminalQueryPacket::decode,
+                RemoteTerminalQueryPacket::handle
+        );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                RemoteTerminalApplyPacket.class,
+                RemoteTerminalApplyPacket::encode,
+                RemoteTerminalApplyPacket::decode,
+                RemoteTerminalApplyPacket::handle
+        );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                RemoteTerminalBaseListPacket.class,
+                RemoteTerminalBaseListPacket::encode,
+                RemoteTerminalBaseListPacket::decode,
+                RemoteTerminalBaseListPacket::handle
+        );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                RemoteTerminalOperationResultPacket.class,
+                RemoteTerminalOperationResultPacket::encode,
+                RemoteTerminalOperationResultPacket::decode,
+                RemoteTerminalOperationResultPacket::handle
+        );
     }
 }

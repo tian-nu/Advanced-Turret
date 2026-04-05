@@ -6,8 +6,14 @@ import net.minecraft.network.chat.Component;
 
 public class TechButton extends Button {
 
+    private boolean isSelected = false;
+
     protected TechButton(int x, int y, int width, int height, Component message, OnPress onPress, CreateNarration createNarration) {
         super(x, y, width, height, message, onPress, createNarration);
+    }
+
+    public void setSelected(boolean selected) {
+        this.isSelected = selected;
     }
 
     public static Button.Builder builder(Component message, Button.OnPress onPress) {
@@ -23,6 +29,6 @@ public class TechButton extends Button {
     @Override
     protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         boolean hovered = this.isHoveredOrFocused();
-        TurretUiTheme.drawTechyButton(guiGraphics, this.getX(), this.getY(), this.width, this.height, hovered, this.getMessage());
+        TurretUiTheme.drawTechyButton(guiGraphics, this.getX(), this.getY(), this.width, this.height, hovered, this.isSelected, this.active, this.getMessage());
     }
 }

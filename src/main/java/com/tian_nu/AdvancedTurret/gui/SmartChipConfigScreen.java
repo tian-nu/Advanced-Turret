@@ -30,8 +30,8 @@ public class SmartChipConfigScreen extends Screen {
     private boolean predictiveAiming;
     private boolean thriftyMode;
 
-    private EditBox blacklistInput;
-    private EditBox whitelistInput;
+    private TechEditBox blacklistInput;
+    private TechEditBox whitelistInput;
 
     private TechCheckbox friendlyFireCheckbox;
     private TechCheckbox predictiveAimingCheckbox;
@@ -70,7 +70,7 @@ public class SmartChipConfigScreen extends Screen {
         panelX = (this.width - PANEL_W) / 2;
         panelY = (this.height - PANEL_H) / 2;
 
-        int flagsY = panelY + 44;
+        int flagsY = panelY + 42;
         this.hostileCheckbox = new TechCheckbox(panelX + 14, flagsY, 74, 20,
             Component.translatable("gui.advanced_turret.target_mode.hostile"), (targetFlags & SmartChipItem.FLAG_HOSTILE) != 0);
         this.neutralCheckbox = new TechCheckbox(panelX + 96, flagsY, 74, 20,
@@ -100,36 +100,36 @@ public class SmartChipConfigScreen extends Screen {
             recentScanIndex = Math.max(0, Math.min(recentScanIndex, recentScans.size() - 1));
         }
 
-        int recentY = panelY + 132;
+        int recentY = panelY + 146;
         this.recentPrevButton = addRenderableWidget(TechButton.builder(Component.translatable("gui.advanced_turret.entity_analyzer.prev"), b -> {
             if (!recentScans.isEmpty()) {
                 recentScanIndex = (recentScanIndex - 1 + recentScans.size()) % recentScans.size();
                 refreshRecentButtons();
             }
-        }).bounds(panelX + 14, recentY, 50, 18).build());
+        }).bounds(panelX + 150, recentY, 44, 18).build());
 
         this.recentNextButton = addRenderableWidget(TechButton.builder(Component.translatable("gui.advanced_turret.entity_analyzer.next"), b -> {
             if (!recentScans.isEmpty()) {
                 recentScanIndex = (recentScanIndex + 1) % recentScans.size();
                 refreshRecentButtons();
             }
-        }).bounds(panelX + 70, recentY, 50, 18).build());
+        }).bounds(panelX + 198, recentY, 44, 18).build());
 
         this.addRecentToBlacklistButton = addRenderableWidget(TechButton.builder(Component.translatable("gui.advanced_turret.add_to_blacklist"), b -> addSelectedRecentToInput(blacklistInput))
-            .bounds(panelX + 136, recentY, 104, 18)
+            .bounds(panelX + 246, recentY, 48, 18)
             .build());
 
         this.addRecentToWhitelistButton = addRenderableWidget(TechButton.builder(Component.translatable("gui.advanced_turret.add_to_whitelist"), b -> addSelectedRecentToInput(whitelistInput))
-            .bounds(panelX + 246, recentY, 100, 18)
+            .bounds(panelX + 298, recentY, 48, 18)
             .build());
 
-        this.blacklistInput = new EditBox(this.font, panelX + 14, panelY + 186, PANEL_W - 28, 18,
+        this.blacklistInput = new TechEditBox(this.font, panelX + 14, panelY + 204, 156, 18,
             Component.translatable("gui.advanced_turret.blacklist_label"));
         this.blacklistInput.setMaxLength(1024);
         this.blacklistInput.setValue(String.join(",", SmartChipItem.getBlacklist(stack)));
         addRenderableWidget(blacklistInput);
 
-        this.whitelistInput = new EditBox(this.font, panelX + 14, panelY + 226, PANEL_W - 28, 18,
+        this.whitelistInput = new TechEditBox(this.font, panelX + 190, panelY + 204, 156, 18,
             Component.translatable("gui.advanced_turret.whitelist_label"));
         this.whitelistInput.setMaxLength(1024);
         this.whitelistInput.setValue(String.join(",", SmartChipItem.getWhitelist(stack)));
@@ -180,26 +180,26 @@ public class SmartChipConfigScreen extends Screen {
 
         float panelAlpha = Math.max(0.15F, ConfigManager.getBackgroundAlpha());
         TurretUiTheme.drawPanel(guiGraphics, panelX, panelY, PANEL_W, PANEL_H, panelAlpha);
-        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 40, PANEL_W - 20, 28, panelAlpha);
-        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 90, PANEL_W - 20, 28, panelAlpha);
-        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 128, PANEL_W - 20, 46, panelAlpha);
-        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 182, PANEL_W - 20, 26, panelAlpha);
-        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 222, PANEL_W - 20, 26, panelAlpha);
+        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 36, PANEL_W - 20, 32, panelAlpha);
+        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 88, PANEL_W - 20, 32, panelAlpha);
+        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 140, PANEL_W - 20, 32, panelAlpha);
+        TurretUiTheme.drawSection(guiGraphics, panelX + 10, panelY + 196, 164, 40, panelAlpha);
+        TurretUiTheme.drawSection(guiGraphics, panelX + 186, panelY + 196, 164, 40, panelAlpha);
 
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, panelY + 8, TurretUiTheme.COLOR_TEXT);
-        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.target_type"), panelX + 14, panelY + 24, TurretUiTheme.COLOR_TEXT_SUB, false);
-        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.behavior_toggles"), panelX + 14, panelY + 78, TurretUiTheme.COLOR_TEXT_SUB, false);
-        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.entity_analyzer.recent"), panelX + 14, panelY + 118, TurretUiTheme.COLOR_TEXT_SUB, false);
+        guiGraphics.drawCenteredString(this.font, this.title, panelX + PANEL_W / 2, panelY + 10, TurretUiTheme.COLOR_TEXT);
+        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.target_type"), panelX + 14, panelY + 26, TurretUiTheme.COLOR_TEXT_SUB, false);
+        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.behavior_toggles"), panelX + 14, panelY + 76, TurretUiTheme.COLOR_TEXT_SUB, false);
+        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.entity_analyzer.recent"), panelX + 14, panelY + 128, TurretUiTheme.COLOR_TEXT_SUB, false);
 
         String currentRecent = getCurrentRecentScan();
         int idColor = currentRecent == null ? TurretUiTheme.COLOR_TEXT_SUB : TurretUiTheme.COLOR_ACCENT;
         Component idText = currentRecent == null
             ? Component.translatable("gui.advanced_turret.entity_analyzer.recent.empty")
             : Component.literal(currentRecent);
-        guiGraphics.drawString(this.font, idText, panelX + 14, panelY + 148, idColor, false);
+        guiGraphics.drawString(this.font, idText, panelX + 14, panelY + 152, idColor, false);
 
-        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.blacklist_label"), panelX + 14, panelY + 172, TurretUiTheme.COLOR_TEXT_SUB, false);
-        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.whitelist_label"), panelX + 14, panelY + 212, TurretUiTheme.COLOR_TEXT_SUB, false);
+        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.blacklist_label"), panelX + 14, panelY + 184, TurretUiTheme.COLOR_TEXT_SUB, false);
+        guiGraphics.drawString(this.font, Component.translatable("gui.advanced_turret.whitelist_label"), panelX + 190, panelY + 184, TurretUiTheme.COLOR_TEXT_SUB, false);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderStateTooltip(guiGraphics, mouseX, mouseY);

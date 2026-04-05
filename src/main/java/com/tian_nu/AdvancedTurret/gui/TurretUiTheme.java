@@ -67,10 +67,21 @@ public final class TurretUiTheme {
     }
 
     // 绘制科技风按钮背景
-    public static void drawTechyButton(GuiGraphics g, int x, int y, int w, int h, boolean hovered, Component text) {
-        int bgColor = hovered ? 0xAA113333 : 0x880A1A22;
-        int borderColor = hovered ? COLOR_ACCENT_HOVER : 0xAA2A898E;
-        int textColor = hovered ? 0xFFFFFFFF : COLOR_TEXT;
+    public static void drawTechyButton(GuiGraphics g, int x, int y, int w, int h, boolean hovered, boolean selected, boolean active, Component text) {
+        if (!active) {
+            int bgColor = 0x660A1015;
+            int borderColor = 0x551D3A40;
+            g.fill(x, y, x + w, y + h, bgColor);
+            drawBorder(g, x, y, w, h, borderColor);
+            g.drawCenteredString(net.minecraft.client.Minecraft.getInstance().font, text, x + w / 2, y + (h - 8) / 2, 0xFF667788);
+            return;
+        }
+
+        int bgColor = selected ? 0xAA2A898E : (hovered ? 0xAA113333 : 0x880A1A22);
+        int borderColor = selected ? COLOR_ACCENT : (hovered ? COLOR_ACCENT_HOVER : 0xAA2A898E);
+        
+        Integer customColor = text.getStyle().getColor() != null ? text.getStyle().getColor().getValue() : null;
+        int textColor = customColor != null ? customColor : ((hovered || selected) ? 0xFFFFFFFF : COLOR_TEXT);
 
         g.fill(x, y, x + w, y + h, bgColor);
         drawBorder(g, x, y, w, h, borderColor);
@@ -85,21 +96,38 @@ public final class TurretUiTheme {
     public static void drawTechyCheckbox(GuiGraphics g, int x, int y, int w, int h, boolean checked, boolean hovered, Component text) {
         int boxSize = 12;
         int cy = y + (h - boxSize) / 2;
-        
+
         int boxBgColor = checked ? 0x6600FFCC : (hovered ? 0x442A898E : 0x440D141C);
         int boxBorderColor = checked ? COLOR_ACCENT : (hovered ? 0xAA2A898E : 0x662A898E);
-        
-        // 画复选框方块
+
         g.fill(x, cy, x + boxSize, cy + boxSize, boxBgColor);
         drawBorder(g, x, cy, boxSize, boxSize, boxBorderColor);
 
-        // 如果勾选，画内部选中标记
         if (checked) {
             g.fill(x + 3, cy + 3, x + boxSize - 3, cy + boxSize - 3, COLOR_ACCENT);
         }
 
         int textColor = checked ? COLOR_ACCENT : (hovered ? 0xFFFFFFFF : COLOR_TEXT_SUB);
         g.drawString(net.minecraft.client.Minecraft.getInstance().font, text, x + boxSize + 6, y + (h - 8) / 2, textColor, false);
+    }
+
+    public static void drawTechyInput(GuiGraphics g, int x, int y, int w, int h, boolean focused, boolean hovered) {
+        // 使用更深的背景色，使其看起来像凹陷的输入框，与突出的按钮区分开
+        int bgColor = focused ? 0xDD050A10 : (hovered ? 0xBB0A1520 : 0xAA050A10);
+        int borderColor = focused ? COLOR_ACCENT : (hovered ? 0xAA2A898E : 0x551D7373);
+        
+        g.fill(x, y, x + w, y + h, bgColor);
+        
+        // 绘制具有立体凹陷感的边框
+        g.fill(x, y, x + w, y + 1, focused ? borderColor : 0x88000000); // 顶部阴影
+        g.fill(x, y, x + 1, y + h, focused ? borderColor : 0x88000000); // 左侧阴影
+        g.fill(x, y + h - 1, x + w, y + h, borderColor); // 底部高光
+        g.fill(x + w - 1, y, x + w, y + h, borderColor); // 右侧高光
+
+        // 焦点状态下右下角增加一个小标，进一步暗示输入框属性
+        if (focused) {
+            g.fill(x + w - 4, y + h - 1, x + w, y + h, COLOR_ACCENT);
+        }
     }
 
     public static int withAlpha(int color, float alphaMultiplier) {

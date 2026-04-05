@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    "RSE",
+    " I "
+  ],
+  "key": {
+    "C": {
+      "item": "advanced_turret:circuit_board"
+    },
+    "R": {
+      "item": "advanced_turret:radar"
+    },
+    "S": {
+      "item": "advanced_turret:smart_chip"
+    },
+    "E": {
+      "item": "advanced_turret:entity_analyzer"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:remote_terminal",
+    "count": 1
+  }
+}

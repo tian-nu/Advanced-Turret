@@ -7,6 +7,7 @@ import com.tian_nu.AdvancedTurret.blocks.entitys.MissileTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.items.ModItems;
 import com.tian_nu.AdvancedTurret.items.SmartChipItem;
 import com.tian_nu.AdvancedTurret.gui.TurretMenu;
+import com.tian_nu.AdvancedTurret.data.RemoteTerminalBaseIndex;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -22,6 +23,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.Containers;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
@@ -102,6 +104,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     private java.util.UUID owner;
     private String ownerName = "";
+    private Component customName;
     /** 闂傚倸鍊搁崐鐑芥嚄閸撲焦鍏滈柛顐ｆ礀閻ょ偓绻涢幋娆忕仼缂佺姾顫夐妵鍕箛閸撲胶校濠电偛鐗呯划娆撳蓟濞戙垹唯妞ゆ梻鍘ч～顏勵渻閵堝啫鍔氶柣妤佹崌瀵寮撮敍鍕澑闁诲函缍嗘禍鐐寸妤ｅ啯鈷戝ù鍏肩懅缁夘喖霉濠婂啰鍩ｇ€殿喛顕ч埥澶婎潨閸℃ê鍏婇梻浣虹帛閹哥霉闁垮顩锋い鏍仦閳锋垿寮堕悙鏉垮祮婵″墽鍏橀弻娑欑節閸愵亞鐤勫Δ鐘靛仜閸熸挳宕洪敓鐘插窛妞ゆ柨鍚嬮悿鍌滅磽娴ｇ鈷斿褎顨婇弫瀣箾鐎涙鐭嬮柛搴㈠▕濠€渚€姊洪幐搴ｇ畵妞わ箒妫勮灋闁瑰濮风壕鐓庮熆鐠轰警鍎愰悘蹇ョ畵閺屸€崇暆閳ь剟宕伴幘璇茬畺濞村吋娼欓悞娲煕閹般劍娅囩憸鏉挎喘濮婄粯鎷呴搹鐟扮闂佺粯顨嗛〃鍫ュ礆閹烘绠婚悹鍥у级閻庮剟鎮楅獮鍨姎闁硅櫕鍔欏鎶藉幢濞戞瑧鍘遍梺鍝勬储閸斿矂鐛弽顐ょ＜婵°倕顑囩弧鈧梺鍝勭焿缂嶄線骞冮埡鍛劶鐎广儱妫埀顒佺墵濮婅櫣绮欓崠鈩冩暰濠电偠灏欓崰搴ㄦ偩閻戣姤鏅查柛婊€鐒﹂崓鐢告⒑閻撳孩鍟炴い鏃€鐗曡灋闁告劦鍠楅埛鎴︽⒒閸喓銆掔紒鐘插暱閳规垿顢欓懞銉х▏濡炪倖娲╃徊鍧楀箲閸曨垰惟闁靛繒濮虫竟鏇炩攽閻愯尙澧曢柣蹇旂箞瀵悂骞樼紒妯煎幈闁诲函缍嗛崑鍛暦瀹€鍕厸?*/
     private byte enabledFacesMask = 0b111111;
     /** 闂傚倸鍊搁崐椋庣矆娴ｈ櫣绀婂┑鐘插亞閻掔晫鎲搁弮鍫涒偓渚€寮介鐐茬獩濡炪倖妫佸Λ鍕嚕閸ф鈷戦柛鎰级閹牓鏌熼崘鑼闁糕晜鐩顕€宕奸悢鍝勫箥闂傚倷绶￠崣蹇曠不閹寸偞娅犳い鏇楀亾闁哄矉缍侀獮姗€寮堕幋鐘辩礉闂備礁鎼惌澶屾崲濠靛鏄ラ柍褜鍓氶妵鍕箳閹存績鍋撻崷顓涘亾濮橆厼鍝洪柡宀€鍠撶槐鎺懳熼搹鍦嚃闂備椒绱梽鍕偋閻樺樊娼栨繛宸簼閸ゅ啴鏌嶆潪鎵槮濞寸姵锕㈠娲传閵夈儲鐝￠梺绋款儏鐎氼噣宕ｉ崨瀛樷拺缂佸妫楃€氬嘲鈻撻弴銏＄厸?= 0 闂傚倸鍊峰ù鍥х暦閻㈢纾婚柣鎰暩閻瑩鐓崶銊р槈缂佲偓婢舵劕绠规繛锝庡墮婵＄厧顩奸崨顓涙斀妞ゆ梹鏋绘笟娑㈡煕濮椻偓缁犳牠宕洪姀銈呯睄闁稿本顨呮禍鐐殽閻愯尙浠㈤柛鏃€纰嶉妵鍕晜閸喖绁銈冨灪閹告悂鍩㈡惔銊ョ閻庣數顭堥獮鍫ユ⒒娴ｅ憡璐￠柛搴涘€曠叅婵犲﹤鐗嗛柋鍥ㄣ亜韫囨挾澧涢柣?*/
@@ -590,7 +593,40 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         this.ownerName = ownerName == null ? "" : ownerName;
         setChanged();
         syncToClient();
+        syncRemoteTerminalIndex();
     }
+
+    public void setCustomName(@Nullable Component customName) {
+        this.customName = customName;
+        setChanged();
+        syncToClient();
+        syncRemoteTerminalIndex();
+    }
+
+    @Nullable
+    public Component getCustomName() {
+        return customName;
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        syncRemoteTerminalIndex();
+    }
+
+    private void syncRemoteTerminalIndex() {
+        if (!(level instanceof ServerLevel serverLevel) || owner == null) {
+            return;
+        }
+        RemoteTerminalBaseIndex.get(serverLevel.getServer()).upsert(
+                serverLevel,
+                worldPosition,
+                owner,
+                getTier(),
+                getDisplayName().getString()
+        );
+    }
+
     public double getManualRangeLimit() {
         return manualRangeLimit;
     }
@@ -987,6 +1023,9 @@ public boolean hasDestructionPlugin() {
         if (!cachedOwnerName.isEmpty()) {
             tag.putString("OwnerName", cachedOwnerName);
         }
+        if (customName != null) {
+            tag.putString("CustomName", Component.Serializer.toJson(customName));
+        }
         tag.putByte("EnabledFacesMask", enabledFacesMask);
         tag.putDouble("ManualRangeLimit", manualRangeLimit);
         if (hasBuiltInSmartChip() && !builtInSmartChip.isEmpty()) {
@@ -1050,6 +1089,11 @@ public boolean hasDestructionPlugin() {
             ownerName = tag.getString("OwnerName");
         } else {
             ownerName = "";
+        }
+        if (tag.contains("CustomName", 8)) {
+            customName = Component.Serializer.fromJson(tag.getString("CustomName"));
+        } else {
+            customName = null;
         }
         if (tag.contains("EnabledFacesMask")) {
             enabledFacesMask = tag.getByte("EnabledFacesMask");
@@ -1247,7 +1291,10 @@ public boolean hasDestructionPlugin() {
     
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.turret_base");
+        if (customName != null) {
+            return customName;
+        }
+        return Component.translatable(getBlockState().getBlock().getDescriptionId());
     }
     
     @Nullable

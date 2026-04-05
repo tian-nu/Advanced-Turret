@@ -51,7 +51,7 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
     private Button smartConfigButton;
     private Button faceConfigButton;
     private Button personalConfigButton;
-    private EditBox rangeInput;
+    private TechEditBox rangeInput;
     private double lastSubmittedRange = Double.NaN;
 
     public TurretScreen(TurretMenu menu, Inventory playerInventory, Component title) {
@@ -90,7 +90,7 @@ public class TurretScreen extends AbstractContainerScreen<TurretMenu> {
         addRenderableWidget(this.personalConfigButton);
 
         int rangeInputX = guiLeft + RANGE_INPUT_X;
-        this.rangeInput = new EditBox(this.font, rangeInputX, guiTop + RANGE_INPUT_Y, getRangeInputWidth(), getRangeInputHeight(),
+        this.rangeInput = new TechEditBox(this.font, rangeInputX, guiTop + RANGE_INPUT_Y, getRangeInputWidth(), getRangeInputHeight(),
             Component.translatable("gui.advanced_turret.range_control"));
         this.rangeInput.setMaxLength(3);
         this.rangeInput.setFilter(this::isValidRangeInput);
