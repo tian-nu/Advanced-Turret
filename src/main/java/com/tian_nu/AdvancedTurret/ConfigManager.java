@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 客户端配置管理器
@@ -23,6 +25,7 @@ public class ConfigManager {
     public static class ClientConfig {
         public float backgroundAlpha = 0.0F;
         public float energyBarAlpha = 1.0F;
+        public List<String> recentEntityScans = new ArrayList<>();
 
         public ClientConfig() {
         }
@@ -44,6 +47,9 @@ public class ConfigManager {
                     config = GSON.fromJson(reader, ClientConfig.class);
                     if (config == null) {
                         config = new ClientConfig();
+                    }
+                    if (config.recentEntityScans == null) {
+                        config.recentEntityScans = new ArrayList<>();
                     }
                 }
             } else {
@@ -82,5 +88,31 @@ public class ConfigManager {
 
     public static void setEnergyBarAlpha(float alpha) {
         config.energyBarAlpha = Math.max(0.0F, Math.min(1.0F, alpha));
+    }
+
+    public static List<String> getRecentEntityScans() {
+        if (config.recentEntityScans == null) {
+            config.recentEntityScans = new ArrayList<>();
+        }
+        return new ArrayList<>(config.recentEntityScans);
+    }
+
+    public static void pushRecentEntityScan(String entityId) {
+        if (entityId == null || entityId.isBlank()) {
+            return;
+        }
+        if (config.recentEntityScans == null) {
+            config.recentEntityScans = new ArrayList<>();
+        }
+
+        config.recentEntityScans.removeIf(entityId::equals);
+        config.recentEntityScans.add(0, entityId);
+
+        final int maxSize = 12;
+        while (config.recentEntityScans.size() > maxSize) {
+            config.recentEntityScans.remove(config.recentEntityScans.size() - 1);
+        }
+
+        saveConfig();
     }
 }

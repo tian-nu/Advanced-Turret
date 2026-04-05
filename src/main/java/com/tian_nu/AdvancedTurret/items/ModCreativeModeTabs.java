@@ -5,6 +5,7 @@ import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -39,6 +40,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.AMMUNITION_LAUNCHER.get());
                         output.accept(ModItems.CIRCUIT_BOARD.get());
                         output.accept(ModItems.RADAR.get());
+                        output.accept(ModItems.ENTITY_ANALYZER.get());
 
 
                         // 炮塔类型
@@ -87,6 +89,9 @@ public class ModCreativeModeTabs {
      * 添加物品到创造模式标签页
      */
     public static void addCreative(BuildCreativeModeTabContentsEvent event) {
-        // 可以在这里添加物品到其他原版标签页
+        if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES
+            || event.getTabKey() == CreativeModeTabs.COMBAT) {
+            event.accept(ModItems.ENTITY_ANALYZER.get());
+        }
     }
 }

@@ -42,6 +42,8 @@ public class ModItems {
             ITEMS.register("circuit_board", () -> describedItem("item.advanced_turret.circuit_board.tooltip"));
     public static final RegistryObject<Item> RADAR =
             ITEMS.register("radar", () -> describedItem("item.advanced_turret.radar.tooltip"));
+    public static final RegistryObject<Item> ENTITY_ANALYZER =
+            ITEMS.register("entity_analyzer", () -> new EntityAnalyzerItem(new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Item> CREATIVE_POWER_COMPONENT =
             ITEMS.register("creative_power_component", () -> describedItem("item.advanced_turret.creative_power_component.tooltip"));
