@@ -34,6 +34,10 @@ public class ModItems {
             ITEMS.register("missile", () -> describedItem("item.advanced_turret.missile.tooltip"));
     public static final RegistryObject<Item> GRENADE =
             ITEMS.register("grenade", () -> describedItem("item.advanced_turret.grenade.tooltip"));
+    public static final RegistryObject<Item> HAND_GRENADE =
+            ITEMS.register("hand_grenade", () -> new HandGrenadeItem(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> AMMUNITION_LAUNCHER =
+            ITEMS.register("ammunition_launcher", () -> new AmmunitionLauncherItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> CIRCUIT_BOARD =
             ITEMS.register("circuit_board", () -> describedItem("item.advanced_turret.circuit_board.tooltip"));
     public static final RegistryObject<Item> RADAR =

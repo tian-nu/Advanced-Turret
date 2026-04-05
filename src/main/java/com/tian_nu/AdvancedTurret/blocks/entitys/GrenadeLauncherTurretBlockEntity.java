@@ -500,7 +500,7 @@ public class GrenadeLauncherTurretBlockEntity extends BlockEntity implements Geo
      */
     private Vec3 calculateMuzzlePosition(BlockPos pos, Direction facing) {
         // 炮口偏移量（根据模型调整）
-        double outwardOffset = 0.8;  // 向外偏移（枪管长度）
+        double outwardOffset = 0.35; // Keep the launch point close to the barrel center on every mounted face.
         double verticalOffset = 0.0;  // 垂直偏移
         
         Vec3 center = new Vec3(

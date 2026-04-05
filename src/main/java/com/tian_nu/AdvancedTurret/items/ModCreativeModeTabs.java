@@ -35,6 +35,8 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.ROCKET.get());
                         output.accept(ModItems.MISSILE.get());
                         output.accept(ModItems.GRENADE.get());
+                        output.accept(ModItems.HAND_GRENADE.get());
+                        output.accept(ModItems.AMMUNITION_LAUNCHER.get());
                         output.accept(ModItems.CIRCUIT_BOARD.get());
                         output.accept(ModItems.RADAR.get());
 
@@ -44,6 +46,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.RAILGUN_TURRET.get());
                         output.accept(ModBlocks.ROCKET_TURRET.get());
                         output.accept(ModBlocks.MISSILE_TURRET.get());
+                        output.accept(ModBlocks.LASER_TURRET.get());
                         
                         output.accept(ModBlocks.PHASE_FIELD_TURRET.get());
                         output.accept(ModBlocks.RESONANCE_FIELD_TURRET.get());

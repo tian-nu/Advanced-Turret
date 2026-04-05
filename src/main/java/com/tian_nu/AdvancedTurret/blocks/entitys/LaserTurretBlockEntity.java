@@ -287,7 +287,11 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
             return true;
         }
 
-        Vec3 adjustedStart = start.add(toTarget.normalize().scale(0.6));
+        Vec3 adjustedStart = start.add(
+                facing.getStepX() * 0.65D,
+                facing.getStepY() * 0.65D,
+                facing.getStepZ() * 0.65D
+        );
         net.minecraft.world.phys.BlockHitResult hitResult = level.clip(new net.minecraft.world.level.ClipContext(
                 adjustedStart, end,
                 net.minecraft.world.level.ClipContext.Block.COLLIDER,

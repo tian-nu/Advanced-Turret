@@ -57,8 +57,12 @@ public final class LinearTurretTargetingHelper {
             return true;
         }
 
-        // 从炮塔外部开始检测，避免射线先命中炮塔自身。
-        Vec3 adjustedStart = start.add(toPoint.normalize().scale(0.6));
+        // 沿炮塔安装面把起点推出去，避免斜向射线仍从自身碰撞箱内开始。
+        Vec3 adjustedStart = start.add(
+                facing.getStepX() * 0.65D,
+                facing.getStepY() * 0.65D,
+                facing.getStepZ() * 0.65D
+        );
         var hitResult = level.clip(new ClipContext(
                 adjustedStart,
                 end,
@@ -71,11 +75,6 @@ public final class LinearTurretTargetingHelper {
             return true;
         }
 
-        // 当前规则：命中任意方块都视为不可见，包含基座。
-        BlockPos basePos = turretPos.relative(facing.getOpposite());
-        if (hitResult.getType() == HitResult.Type.BLOCK && hitResult.getBlockPos().equals(basePos)) {
-            return false;
-        }
         return false;
     }
 }

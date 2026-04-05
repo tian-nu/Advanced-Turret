@@ -1,0 +1,12 @@
+﻿{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "advanced_turret:grenade"
+    }
+  ],
+  "result": {
+    "item": "advanced_turret:hand_grenade",
+    "count": 1
+  }
+}
