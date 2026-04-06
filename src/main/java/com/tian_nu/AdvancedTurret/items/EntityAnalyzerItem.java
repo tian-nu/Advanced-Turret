@@ -41,8 +41,10 @@ public class EntityAnalyzerItem extends Item {
 
         String entityId = key.toString();
         if (player.level().isClientSide) {
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> EntityAnalyzerClientHooks.handleEntityScan(entityId));
+            boolean openGui = player.isShiftKeyDown();
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> EntityAnalyzerClientHooks.handleEntityScan(entityId, openGui));
         }
+
 
         return InteractionResult.sidedSuccess(player.level().isClientSide);
     }

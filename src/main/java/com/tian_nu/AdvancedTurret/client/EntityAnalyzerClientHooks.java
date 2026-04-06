@@ -14,7 +14,7 @@ public final class EntityAnalyzerClientHooks {
     private EntityAnalyzerClientHooks() {
     }
 
-    public static void handleEntityScan(String entityId) {
+    public static void handleEntityScan(String entityId, boolean openGui) {
         if (entityId == null || entityId.isBlank()) {
             return;
         }
@@ -33,6 +33,9 @@ public final class EntityAnalyzerClientHooks {
             );
         }
 
-        minecraft.setScreen(new EntityAnalyzerResultScreen(entityId, ConfigManager.getRecentEntityScans()));
+        if (openGui) {
+            minecraft.setScreen(new EntityAnalyzerResultScreen(entityId, ConfigManager.getRecentEntityScans()));
+        }
     }
+
 }

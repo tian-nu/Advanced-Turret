@@ -37,6 +37,15 @@ public class RemoteTerminalScreen extends Screen {
     private static String lastSelectedBaseKey = "";
     private static int lastPageIndex = 0;
 
+    public static void prepareNextSelectedBase(String dimensionId, BlockPos pos) {
+        if (dimensionId == null || dimensionId.isBlank() || pos == null) {
+            return;
+        }
+        lastSelectedBaseKey = dimensionId + "|" + pos.asLong();
+        lastPageIndex = 0;
+    }
+
+
     private final List<RemoteTerminalBaseInfo> baseEntries = new ArrayList<>();
     private final List<Integer> filteredIndices = new ArrayList<>();
     private final List<Button> rowButtons = new ArrayList<>();

@@ -3,6 +3,8 @@ package com.tian_nu.AdvancedTurret.client;
 import com.tian_nu.AdvancedTurret.gui.RemoteTerminalScreen;
 import com.tian_nu.AdvancedTurret.network.RemoteTerminalBaseInfo;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -26,6 +28,16 @@ public final class RemoteTerminalClientHooks {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.setScreen(new RemoteTerminalScreen());
     }
+
+    public static void openScreenForBase(String dimensionId, BlockPos pos) {
+        if (dimensionId == null || dimensionId.isBlank() || pos == null) {
+            openScreen();
+            return;
+        }
+        RemoteTerminalScreen.prepareNextSelectedBase(dimensionId, pos);
+        openScreen();
+    }
+
 
     public static void handleBaseList(List<RemoteTerminalBaseInfo> entries) {
         latestEntries = List.copyOf(entries);
