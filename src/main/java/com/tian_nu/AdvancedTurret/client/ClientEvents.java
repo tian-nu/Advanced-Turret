@@ -54,6 +54,7 @@ public class ClientEvents {
         event.registerEntityRenderer(ModEntities.ROCKET.get(), RocketRenderer::new);
         event.registerEntityRenderer(ModEntities.MISSILE.get(), MissileRenderer::new);
         event.registerEntityRenderer(ModEntities.GRENADE.get(), GrenadeRenderer::new);
+        event.registerEntityRenderer(ModEntities.LAUNCHER_GRENADE.get(), GrenadeRenderer::new);
         event.registerEntityRenderer(ModEntities.JUNK_PROJECTILE.get(), JunkProjectileRenderer::new);
     }
 }

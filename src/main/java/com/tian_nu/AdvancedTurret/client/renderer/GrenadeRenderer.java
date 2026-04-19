@@ -15,7 +15,7 @@ import net.minecraft.world.phys.Vec3;
  *
  * <p>使用灰黑色正方体盒体渲染，避免平面贴图在各个角度下看起来发飘。</p>
  */
-public class GrenadeRenderer extends EntityRenderer<GrenadeEntity> {
+public class GrenadeRenderer<T extends GrenadeEntity> extends EntityRenderer<T> {
 
     private static final ResourceLocation TEXTURE = TurretMod.location("textures/entity/projectile_box.png");
     private static final float BOX_SIZE = 4.0F / 16.0F;
@@ -25,12 +25,12 @@ public class GrenadeRenderer extends EntityRenderer<GrenadeEntity> {
     }
 
     @Override
-    public ResourceLocation getTextureLocation(GrenadeEntity entity) {
+    public ResourceLocation getTextureLocation(T entity) {
         return TEXTURE;
     }
 
     @Override
-    public void render(GrenadeEntity entity, float entityYaw, float partialTick, PoseStack poseStack,
+    public void render(T entity, float entityYaw, float partialTick, PoseStack poseStack,
                        MultiBufferSource buffer, int packedLight) {
         poseStack.pushPose();
         alignToMotion(entity, poseStack, partialTick);
@@ -42,7 +42,7 @@ public class GrenadeRenderer extends EntityRenderer<GrenadeEntity> {
         super.render(entity, entityYaw, partialTick, poseStack, buffer, packedLight);
     }
 
-    private void alignToMotion(GrenadeEntity entity, PoseStack poseStack, float partialTick) {
+    private void alignToMotion(T entity, PoseStack poseStack, float partialTick) {
         Vec3 velocity = entity.getDeltaMovement();
         if (velocity.lengthSqr() < 1.0E-6D) {
             poseStack.mulPose(Axis.YP.rotationDegrees(entity.getYRot()));

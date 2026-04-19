@@ -77,6 +77,19 @@ public class ModEntities {
             .fireImmune()
             .build(TurretMod.location("grenade").toString())
     );
+
+    public static final RegistryObject<EntityType<LauncherGrenadeEntity>> LAUNCHER_GRENADE = ENTITIES.register(
+            "launcher_grenade",
+            () -> EntityType.Builder.<LauncherGrenadeEntity>of(
+                    LauncherGrenadeEntity::new,
+                    MobCategory.MISC
+            )
+            .sized(0.4F, 0.4F)
+            .clientTrackingRange(64)
+            .updateInterval(1)
+            .fireImmune()
+            .build(TurretMod.location("launcher_grenade").toString())
+    );
     
     public static final RegistryObject<EntityType<JunkProjectileEntity>> JUNK_PROJECTILE = ENTITIES.register(
             "junk_projectile",

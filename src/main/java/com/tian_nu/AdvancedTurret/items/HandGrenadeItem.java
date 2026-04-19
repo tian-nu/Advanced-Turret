@@ -20,8 +20,9 @@ import java.util.List;
 
 public class HandGrenadeItem extends Item {
 
-    private static final float THROW_SPEED = 1.0F;
-    private static final float THROW_ANGLE_OFFSET = 4.0F;
+    private static final float THROW_SPEED = 1.35F;
+    private static final float THROW_ANGLE_OFFSET = 2.0F;
+    private static final double THROW_SPAWN_FORWARD_OFFSET = 0.6D;
 
     public HandGrenadeItem(Properties properties) {
         super(properties);
@@ -32,13 +33,18 @@ public class HandGrenadeItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
 
         if (!level.isClientSide) {
-            GrenadeEntity grenade = new GrenadeEntity(level, player.getX(), player.getEyeY() - 0.1D, player.getZ(),
+            var look = player.getLookAngle();
+            GrenadeEntity grenade = new GrenadeEntity(
+                    level,
+                    player.getX() + look.x * THROW_SPAWN_FORWARD_OFFSET,
+                    player.getEyeY() - 0.1D + look.y * THROW_SPAWN_FORWARD_OFFSET,
+                    player.getZ() + look.z * THROW_SPAWN_FORWARD_OFFSET,
                     (float) Config.grenadeLauncherDirectDamage);
             grenade.setOwner(player);
             grenade.setExplosionDamage((float) Config.grenadeLauncherExplosionDamage);
             grenade.setExplosionRadius((float) Config.grenadeLauncherExplosionRadius);
             grenade.setDestroyBlocks(false);
-            grenade.shootFromRotation(player, player.getXRot() - THROW_ANGLE_OFFSET, player.getYRot(), 0.0F, THROW_SPEED, 0.5F);
+            grenade.shootFromRotation(player, player.getXRot() - THROW_ANGLE_OFFSET, player.getYRot(), 0.0F, THROW_SPEED, 0.4F);
             level.addFreshEntity(grenade);
 
             level.playSound(null, player.getX(), player.getY(), player.getZ(),
@@ -56,7 +62,6 @@ public class HandGrenadeItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("item.advanced_turret.hand_grenade.tooltip").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("item.advanced_turret.hand_grenade.roast").withStyle(ChatFormatting.DARK_GRAY));
         super.appendHoverText(stack, level, tooltip, flag);
     }
 }

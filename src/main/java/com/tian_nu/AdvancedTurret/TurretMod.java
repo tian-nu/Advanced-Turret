@@ -12,6 +12,7 @@ import com.tian_nu.AdvancedTurret.blocks.entitys.PhaseFieldTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.RailgunTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.ResonanceFieldTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.RocketTurretBlockEntity;
+import com.tian_nu.AdvancedTurret.entity.GrenadeEntity;
 import com.tian_nu.AdvancedTurret.entity.ModEntities;
 import com.tian_nu.AdvancedTurret.gui.ModMenuTypes;
 import com.tian_nu.AdvancedTurret.items.ModCreativeModeTabs;
@@ -19,6 +20,7 @@ import com.tian_nu.AdvancedTurret.items.ModItems;
 import com.tian_nu.AdvancedTurret.network.ModNetwork;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -164,5 +166,14 @@ public class TurretMod {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         LOGGER.info("Advanced Turret server starting");
+    }
+
+    @SubscribeEvent
+    public void onLivingFall(LivingFallEvent event) {
+        if (event.getEntity().getPersistentData().getBoolean(GrenadeEntity.NEXT_FALL_DAMAGE_IMMUNE_TAG)) {
+            event.setCanceled(true);
+            event.getEntity().fallDistance = 0.0F;
+            event.getEntity().getPersistentData().remove(GrenadeEntity.NEXT_FALL_DAMAGE_IMMUNE_TAG);
+        }
     }
 }

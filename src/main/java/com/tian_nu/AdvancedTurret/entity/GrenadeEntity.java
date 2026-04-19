@@ -3,10 +3,15 @@ package com.tian_nu.AdvancedTurret.entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -15,47 +20,34 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-/**
- * 榴弹实体
- * 
- * <p>特点：</p>
- * <ul>
- *   <li>抛物线弹道：受重力影响</li>
- *   <li>爆炸伤害：击中后爆炸</li>
- *   <li>直击伤害：击中实体造成伤害</li>
- *   <li>破坏插件：有破坏插件时破坏方块</li>
- * </ul>
- * 
- * @author tian_nu
- */
 public class GrenadeEntity extends TurretProjectileEntity {
+    public static final String NEXT_FALL_DAMAGE_IMMUNE_TAG = "advanced_turret_grenade_next_fall_immune";
+    private static final float FRIENDLY_EXPLOSION_DAMAGE_CAP = 4.0F;
+    private static final double DEFAULT_BLAST_KNOCKBACK_HORIZONTAL = 0.24D;
+    private static final double DEFAULT_BLAST_KNOCKBACK_VERTICAL = 0.18D;
 
-    // ==================== 榴弹属性 ====================
-    
-    /** 直击伤害 */
     private float directDamage = 5.0F;
-    
-    /** 爆炸伤害 */
     private float explosionDamage = 10.0F;
-    
-    /** 爆炸半径 */
     private float explosionRadius = 3.0F;
-    
-    /** 是否破坏方块（由破坏插件控制） */
     private boolean destroyBlocks = false;
-    
-    /** 重力常数 */
-    private static final double GRAVITY = 0.05;
-    
-    // ==================== 构造函数 ====================
-    
+    private double blastKnockbackHorizontal = DEFAULT_BLAST_KNOCKBACK_HORIZONTAL;
+    private double blastKnockbackVertical = DEFAULT_BLAST_KNOCKBACK_VERTICAL;
+    private boolean constantBlastKnockback = false;
+    private double selfBlastKnockbackMultiplier = 1.0D;
+    private boolean selfDamageDisabled = false;
+    private boolean protectNextFallDamage = false;
+
     public GrenadeEntity(EntityType<? extends GrenadeEntity> type, Level level) {
         super(type, level);
-        this.lifetime = 100; // 5秒
+        this.lifetime = 100;
     }
-    
+
     public GrenadeEntity(Level level, double x, double y, double z, float damage) {
-        super(ModEntities.GRENADE.get(), level);
+        this(ModEntities.GRENADE.get(), level, x, y, z, damage);
+    }
+
+    protected GrenadeEntity(EntityType<? extends GrenadeEntity> type, Level level, double x, double y, double z, float damage) {
+        super(type, level);
         this.setPos(x, y, z);
         this.xo = x;
         this.yo = y;
@@ -64,104 +56,188 @@ public class GrenadeEntity extends TurretProjectileEntity {
         this.directDamage = damage;
         this.lifetime = 100;
     }
-    
-    // ==================== 属性访问器 ====================
-    
-    public void setDirectDamage(float damage) { this.directDamage = damage; }
-    public float getDirectDamage() { return this.directDamage; }
-    
-    public void setExplosionDamage(float damage) { this.explosionDamage = damage; }
-    public float getExplosionDamage() { return this.explosionDamage; }
-    
-    public void setExplosionRadius(float radius) { this.explosionRadius = radius; }
-    public float getExplosionRadius() { return this.explosionRadius; }
-    
-    public void setDestroyBlocks(boolean destroy) { this.destroyBlocks = destroy; }
-    public boolean shouldDestroyBlocks() { return this.destroyBlocks; }
-    
-    // ==================== 击中处理 ====================
-    
+
+    public void setDirectDamage(float damage) {
+        this.directDamage = damage;
+    }
+
+    public float getDirectDamage() {
+        return this.directDamage;
+    }
+
+    public void setExplosionDamage(float damage) {
+        this.explosionDamage = damage;
+    }
+
+    public float getExplosionDamage() {
+        return this.explosionDamage;
+    }
+
+    public void setExplosionRadius(float radius) {
+        this.explosionRadius = radius;
+    }
+
+    public float getExplosionRadius() {
+        return this.explosionRadius;
+    }
+
+    public void setDestroyBlocks(boolean destroy) {
+        this.destroyBlocks = destroy;
+    }
+
+    public boolean shouldDestroyBlocks() {
+        return this.destroyBlocks;
+    }
+
+    public void setBlastKnockback(double horizontal, double vertical, boolean constantWithinRadius) {
+        this.blastKnockbackHorizontal = horizontal;
+        this.blastKnockbackVertical = vertical;
+        this.constantBlastKnockback = constantWithinRadius;
+    }
+
+    public void setSelfBlastKnockbackMultiplier(double multiplier) {
+        this.selfBlastKnockbackMultiplier = multiplier;
+    }
+
+    public void setSelfDamageDisabled(boolean disabled) {
+        this.selfDamageDisabled = disabled;
+    }
+
+    public void setFallProtectionTicks(int ticks) {
+        this.protectNextFallDamage = ticks > 0;
+    }
+
     @Override
     protected void onHitEntity(EntityHitResult result) {
         if (result.getEntity() instanceof LivingEntity livingEntity) {
-            // 白名单检查
             if (shouldIgnoreDamage(livingEntity)) {
                 return;
             }
-            
-            // 直击伤害
             dealDamage(livingEntity, this.directDamage);
+            explode(this.position(), livingEntity);
+            this.discard();
+            return;
         }
         
-        // 爆炸
-        explode(this.position());
+        explode(this.position(), null);
         this.discard();
     }
-    
+
     @Override
     protected void onHitBlock(BlockHitResult result) {
-        // 爆炸
-        explode(result.getLocation());
+        explode(result.getLocation(), null);
         this.discard();
     }
-    
-    /**
-     * 爆炸效果
-     * @param pos 爆炸位置
-     */
-    private void explode(Vec3 pos) {
+
+    private void explode(Vec3 pos, LivingEntity directHitTarget) {
         Level level = this.level();
-        
-        // 爆炸模式：有破坏插件时破坏方块
-        Level.ExplosionInteraction interaction = destroyBlocks 
-            ? Level.ExplosionInteraction.BLOCK 
-            : Level.ExplosionInteraction.NONE;
-        
-        // 创建爆炸效果（视觉+声音）
-        level.explode(null, pos.x, pos.y, pos.z, explosionRadius, false, interaction);
-        
-        // 范围伤害（自定义计算，确保伤害准确）
+        if (destroyBlocks) {
+            level.explode(this, pos.x, pos.y, pos.z, explosionRadius, false, Level.ExplosionInteraction.BLOCK);
+        } else {
+            level.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 0.7F, 1.0F);
+            if (level instanceof ServerLevel serverLevel) {
+                serverLevel.sendParticles(ParticleTypes.EXPLOSION, pos.x, pos.y, pos.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                serverLevel.sendParticles(ParticleTypes.POOF, pos.x, pos.y, pos.z, 12, 0.18D, 0.18D, 0.18D, 0.02D);
+            } else if (level.isClientSide) {
+                level.addParticle(ParticleTypes.EXPLOSION, pos.x, pos.y, pos.z, 0.0D, 0.0D, 0.0D);
+            }
+        }
+
         if (!level.isClientSide) {
             AABB area = new AABB(
-                pos.x - explosionRadius, pos.y - explosionRadius, pos.z - explosionRadius,
-                pos.x + explosionRadius, pos.y + explosionRadius, pos.z + explosionRadius
+                    pos.x - explosionRadius, pos.y - explosionRadius, pos.z - explosionRadius,
+                    pos.x + explosionRadius, pos.y + explosionRadius, pos.z + explosionRadius
             );
-            
+
             List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, area);
             for (LivingEntity entity : entities) {
-                // 跳过白名单中的实体
-                if (shouldIgnoreDamage(entity)) continue;
-                
+                if (shouldIgnoreDamage(entity)) {
+                    continue;
+                }
+
                 double distance = entity.position().distanceTo(pos);
-                if (distance <= explosionRadius) {
-                    // 伤害随距离衰减
-                    float damageMultiplier = 1.0F - (float)(distance / explosionRadius);
-                    float finalDamage = explosionDamage * damageMultiplier;
-                    
-                    if (finalDamage > 0) {
-                        dealDamage(entity, finalDamage);
-                    }
+                if (distance > explosionRadius) {
+                    continue;
+                }
+
+                applyBlastKnockback(entity, pos, distance);
+
+                float damageMultiplier = entity == directHitTarget
+                        ? 1.0F
+                        : 1.0F - (float) (distance / explosionRadius);
+                float finalDamage = explosionDamage * damageMultiplier;
+                if (isSelfBlastTarget(entity) && selfDamageDisabled) {
+                    finalDamage = 0.0F;
+                } else if (isFriendlyBlastTarget(entity)) {
+                    finalDamage = Math.min(finalDamage, FRIENDLY_EXPLOSION_DAMAGE_CAP);
+                }
+
+                if (finalDamage > 0.0F) {
+                    dealDamage(entity, finalDamage);
                 }
             }
         }
     }
-    
-    // ==================== 碰撞检测 ====================
-    
-    /**
-     * 自定义碰撞检测：分离检测实体和方块 + 重力
-     */
+
+    private void applyBlastKnockback(LivingEntity entity, Vec3 explosionPos, double distance) {
+        if (distance >= explosionRadius) {
+            return;
+        }
+
+        Vec3 push = entity.position().subtract(explosionPos);
+        if (push.lengthSqr() < 1.0E-6D) {
+            push = new Vec3(0.0D, 1.0D, 0.0D);
+        }
+
+        Vec3 direction = push.normalize();
+        Vec3 currentVelocity = entity.getDeltaMovement();
+        double multiplier = constantBlastKnockback ? 1.0D : (1.0D - (distance / explosionRadius));
+        if (isSelfBlastTarget(entity)) {
+            multiplier *= selfBlastKnockbackMultiplier;
+        }
+        Vec3 impulse = new Vec3(
+                direction.x * blastKnockbackHorizontal * multiplier,
+                Math.max(blastKnockbackVertical * 0.4D, direction.y * blastKnockbackVertical * multiplier),
+                direction.z * blastKnockbackHorizontal * multiplier
+        );
+        entity.setDeltaMovement(currentVelocity.add(impulse));
+        entity.fallDistance = 0.0F;
+        if (protectNextFallDamage && isSelfBlastTarget(entity)) {
+            entity.getPersistentData().putBoolean(NEXT_FALL_DAMAGE_IMMUNE_TAG, true);
+        }
+        entity.hurtMarked = true;
+    }
+
+    private boolean isFriendlyBlastTarget(LivingEntity entity) {
+        Entity owner = this.getOwner();
+        if (!(owner instanceof LivingEntity livingOwner)) {
+            return false;
+        }
+        if (entity == livingOwner) {
+            return true;
+        }
+        if (entity.isAlliedTo(livingOwner) || livingOwner.isAlliedTo(entity)) {
+            return true;
+        }
+        if (entity instanceof TamableAnimal tameable) {
+            return livingOwner.getUUID().equals(tameable.getOwnerUUID());
+        }
+        return false;
+    }
+
+    private boolean isSelfBlastTarget(LivingEntity entity) {
+        return entity == this.getOwner();
+    }
+
     @Override
     public void tick() {
-        // 生命周期检查
         if (this.lifetime-- <= 0) {
             this.discard();
             return;
         }
 
-        // 应用重力（抛物线弹道）
         Vec3 velocity = this.getDeltaMovement();
-        this.setDeltaMovement(velocity.add(0, -GRAVITY, 0));
+        this.setDeltaMovement(velocity.add(0.0D, -getGravityStrength(), 0.0D));
 
         Vec3 movement = this.getDeltaMovement();
         Vec3 currentPos = this.position();
@@ -171,77 +247,69 @@ public class GrenadeEntity extends TurretProjectileEntity {
         }
 
         if (!this.level().isClientSide) {
-            // 1. 检测实体碰撞（优先）
             EntityHitResult entityHit = net.minecraft.world.entity.projectile.ProjectileUtil.getEntityHitResult(
-                this.level(), this, currentPos, nextPos, 
-                this.getBoundingBox().expandTowards(movement).inflate(1.0),
-                this::canHitEntity
+                    this.level(), this, currentPos, nextPos,
+                    this.getBoundingBox().expandTowards(movement).inflate(1.0D),
+                    this::canHitEntity
             );
-            
+
             if (entityHit != null && entityHit.getType() == HitResult.Type.ENTITY) {
                 this.onHit(entityHit);
                 return;
             }
-            
-            // 2. 检测方块碰撞
+
             ClipContext context = new ClipContext(
-                currentPos, nextPos,
-                ClipContext.Block.COLLIDER,
-                ClipContext.Fluid.NONE,
-                this
+                    currentPos, nextPos,
+                    ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE,
+                    this
             );
             BlockHitResult blockHit = this.level().clip(context);
-            
+
             if (blockHit.getType() == HitResult.Type.BLOCK) {
                 BlockPos hitBlockPos = blockHit.getBlockPos();
-                
-                // 基座方块：必须销毁
+
                 if (basePos != null && hitBlockPos.equals(basePos)) {
                     this.onHit(blockHit);
                     return;
                 }
-                
-                // 炮塔自身：前几tick跳过
+
                 if (ignoreSourceBlockTicks > 0 && sourcePos != null && hitBlockPos.equals(sourcePos)) {
                     ignoreSourceBlockTicks--;
                     this.setPos(nextPos);
                     return;
                 }
-                
-                // 其他方块：爆炸
+
                 this.onHit(blockHit);
                 return;
             }
         }
 
-        // 无碰撞，继续移动
         this.setPos(nextPos);
-        
-        // 客户端：烟雾尾迹粒子
+
         if (this.level().isClientSide) {
             spawnSmokeTrail();
         }
     }
-    
-    /**
-     * 生成烟雾尾迹
-     */
+
     private void spawnSmokeTrail() {
         Vec3 pos = this.position();
         for (int i = 0; i < 2; i++) {
-            double offsetX = (this.random.nextDouble() - 0.5) * 0.2;
-            double offsetY = (this.random.nextDouble() - 0.5) * 0.2;
-            double offsetZ = (this.random.nextDouble() - 0.5) * 0.2;
+            double offsetX = (this.random.nextDouble() - 0.5D) * 0.2D;
+            double offsetY = (this.random.nextDouble() - 0.5D) * 0.2D;
+            double offsetZ = (this.random.nextDouble() - 0.5D) * 0.2D;
             this.level().addParticle(
-                ParticleTypes.SMOKE,
-                pos.x + offsetX, pos.y + offsetY, pos.z + offsetZ,
-                0, 0.02, 0
+                    ParticleTypes.SMOKE,
+                    pos.x + offsetX, pos.y + offsetY, pos.z + offsetZ,
+                    0.0D, 0.02D, 0.0D
             );
         }
     }
-    
-    // ==================== NBT存储 ====================
-    
+
+    protected double getGravityStrength() {
+        return 0.05D;
+    }
+
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
@@ -249,8 +317,14 @@ public class GrenadeEntity extends TurretProjectileEntity {
         tag.putFloat("ExplosionDamage", this.explosionDamage);
         tag.putFloat("ExplosionRadius", this.explosionRadius);
         tag.putBoolean("DestroyBlocks", this.destroyBlocks);
+        tag.putDouble("BlastKnockbackHorizontal", this.blastKnockbackHorizontal);
+        tag.putDouble("BlastKnockbackVertical", this.blastKnockbackVertical);
+        tag.putBoolean("ConstantBlastKnockback", this.constantBlastKnockback);
+        tag.putDouble("SelfBlastKnockbackMultiplier", this.selfBlastKnockbackMultiplier);
+        tag.putBoolean("SelfDamageDisabled", this.selfDamageDisabled);
+        tag.putBoolean("ProtectNextFallDamage", this.protectNextFallDamage);
     }
-    
+
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
@@ -265,6 +339,26 @@ public class GrenadeEntity extends TurretProjectileEntity {
         }
         if (tag.contains("DestroyBlocks")) {
             this.destroyBlocks = tag.getBoolean("DestroyBlocks");
+        }
+        if (tag.contains("BlastKnockbackHorizontal")) {
+            this.blastKnockbackHorizontal = tag.getDouble("BlastKnockbackHorizontal");
+        }
+        if (tag.contains("BlastKnockbackVertical")) {
+            this.blastKnockbackVertical = tag.getDouble("BlastKnockbackVertical");
+        }
+        if (tag.contains("ConstantBlastKnockback")) {
+            this.constantBlastKnockback = tag.getBoolean("ConstantBlastKnockback");
+        }
+        if (tag.contains("SelfBlastKnockbackMultiplier")) {
+            this.selfBlastKnockbackMultiplier = tag.getDouble("SelfBlastKnockbackMultiplier");
+        }
+        if (tag.contains("SelfDamageDisabled")) {
+            this.selfDamageDisabled = tag.getBoolean("SelfDamageDisabled");
+        }
+        if (tag.contains("ProtectNextFallDamage")) {
+            this.protectNextFallDamage = tag.getBoolean("ProtectNextFallDamage");
+        } else if (tag.contains("FallProtectionTicks")) {
+            this.protectNextFallDamage = tag.getInt("FallProtectionTicks") > 0;
         }
     }
 }
