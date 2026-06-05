@@ -19,10 +19,13 @@ build
 
 # run directory (logs, saves, configs)
 run/
+run-clean/
 eclipse
 
 # Files from Forge MDK
 forge*changelog.txt
+CREDITS.txt
+MOD_FEATURES.md
 
 # IDE
 .vscode/
