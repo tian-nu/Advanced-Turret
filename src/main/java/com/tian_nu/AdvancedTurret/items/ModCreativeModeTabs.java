@@ -24,13 +24,16 @@ public class ModCreativeModeTabs {
 
     public static final RegistryObject<CreativeModeTab> TURRET_TAB =
             CREATIVE_MODE_TABS.register("turret_tab", () -> CreativeModeTab.builder()
-                    .icon(() -> new ItemStack(ModItems.TURRET.get()))
+                    .icon(() -> new ItemStack(ModBlocks.TURRET_BASE_T1.get()))
                     .title(Component.translatable("itemGroup.turret_tab"))
                     .displayItems((params, output) -> {
                         // 基础物品
-                        output.accept(ModItems.TURRET.get());
-                        
+                        output.accept(ModItems.TURRET_TEMPLATE.get());
+                        output.accept(ModItems.IRON_GEAR.get());
+                        output.accept(ModItems.PRECISION_GEAR_SET.get());
+
                         // 弹药
+
                         output.accept(ModItems.MACHINE_GUN_BULLET.get());
                         output.accept(ModItems.RAILGUN_BULLET.get());
                         output.accept(ModItems.ROCKET.get());

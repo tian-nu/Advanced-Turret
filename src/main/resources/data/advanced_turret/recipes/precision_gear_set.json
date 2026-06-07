@@ -1,26 +1,24 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " R ",
-    "IGI",
-    " P "
+    " I ",
+    "RGR",
+    " I "
   ],
   "key": {
     "I": {
       "item": "minecraft:iron_ingot"
     },
-    "P": {
-      "item": "advanced_turret:precision_component_t1"
-    },
     "R": {
       "item": "minecraft:redstone"
     },
     "G": {
-      "item": "advanced_turret:precision_gear_set"
+      "item": "advanced_turret:iron_gear"
     }
   },
   "result": {
-    "item": "advanced_turret:precision_component_t2",
+    "item": "advanced_turret:precision_gear_set",
     "count": 1
   }
 }
+

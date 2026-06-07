@@ -2,21 +2,24 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     " D ",
-    "CBC",
-    " S "
+    "PBP",
+    "ISI"
   ],
   "key": {
     "D": {
       "item": "minecraft:dropper"
     },
-    "C": {
-      "item": "minecraft:cobblestone"
+    "P": {
+      "tag": "minecraft:planks"
     },
     "B": {
       "item": "advanced_turret:precision_component_t1"
     },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
     "S": {
-      "item": "minecraft:string"
+      "item": "minecraft:stone"
     }
   },
   "result": {

@@ -9,6 +9,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -25,6 +27,8 @@ public class GrenadeEntity extends TurretProjectileEntity {
     private static final float FRIENDLY_EXPLOSION_DAMAGE_CAP = 4.0F;
     private static final double DEFAULT_BLAST_KNOCKBACK_HORIZONTAL = 0.24D;
     private static final double DEFAULT_BLAST_KNOCKBACK_VERTICAL = 0.18D;
+    private static final int SLOWNESS_DURATION_TICKS = 60;
+    private static final int SLOWNESS_AMPLIFIER = 3;
 
     private float directDamage = 5.0F;
     private float explosionDamage = 10.0F;
@@ -135,13 +139,10 @@ public class GrenadeEntity extends TurretProjectileEntity {
             level.explode(this, pos.x, pos.y, pos.z, explosionRadius, false, Level.ExplosionInteraction.BLOCK);
         } else {
             level.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 0.7F, 1.0F);
-            if (level instanceof ServerLevel serverLevel) {
-                serverLevel.sendParticles(ParticleTypes.EXPLOSION, pos.x, pos.y, pos.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
-                serverLevel.sendParticles(ParticleTypes.POOF, pos.x, pos.y, pos.z, 12, 0.18D, 0.18D, 0.18D, 0.02D);
-            } else if (level.isClientSide) {
-                level.addParticle(ParticleTypes.EXPLOSION, pos.x, pos.y, pos.z, 0.0D, 0.0D, 0.0D);
-            }
         }
+
+        spawnExplosionDust(pos);
+
 
         if (!level.isClientSide) {
             AABB area = new AABB(
@@ -155,7 +156,7 @@ public class GrenadeEntity extends TurretProjectileEntity {
                     continue;
                 }
 
-                double distance = entity.position().distanceTo(pos);
+                double distance = distanceToExplosion(entity, pos);
                 if (distance > explosionRadius) {
                     continue;
                 }
@@ -175,11 +176,33 @@ public class GrenadeEntity extends TurretProjectileEntity {
                 if (finalDamage > 0.0F) {
                     dealDamage(entity, finalDamage);
                 }
+                applyGrenadeDebuff(entity);
             }
         }
     }
 
+    private void spawnExplosionDust(Vec3 pos) {
+        Level level = this.level();
+        double visualRadius = this.explosionRadius + 0.5D;
+
+        if (level instanceof ServerLevel serverLevel) {
+            int explosionCount = Math.max(2, (int) Math.ceil(visualRadius * 1.2D));
+            int poofCount = Math.max(18, (int) Math.ceil(visualRadius * 22.0D));
+            int smokeCount = Math.max(10, (int) Math.ceil(visualRadius * 10.0D));
+
+            serverLevel.sendParticles(ParticleTypes.EXPLOSION, pos.x, pos.y, pos.z, explosionCount,
+                    visualRadius * 0.12D, visualRadius * 0.12D, visualRadius * 0.12D, 0.02D);
+            serverLevel.sendParticles(ParticleTypes.POOF, pos.x, pos.y, pos.z, poofCount,
+                    visualRadius * 0.55D, visualRadius * 0.35D, visualRadius * 0.55D, 0.07D);
+            serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE, pos.x, pos.y, pos.z, smokeCount,
+                    visualRadius * 0.45D, visualRadius * 0.3D, visualRadius * 0.45D, 0.03D);
+        } else if (level.isClientSide) {
+            level.addParticle(ParticleTypes.EXPLOSION, pos.x, pos.y, pos.z, 0.0D, 0.0D, 0.0D);
+        }
+    }
+
     private void applyBlastKnockback(LivingEntity entity, Vec3 explosionPos, double distance) {
+
         if (distance >= explosionRadius) {
             return;
         }
@@ -227,6 +250,19 @@ public class GrenadeEntity extends TurretProjectileEntity {
 
     private boolean isSelfBlastTarget(LivingEntity entity) {
         return entity == this.getOwner();
+    }
+
+    private void applyGrenadeDebuff(LivingEntity entity) {
+        if (isSelfBlastTarget(entity)) {
+            return;
+        }
+        entity.addEffect(new MobEffectInstance(
+                MobEffects.MOVEMENT_SLOWDOWN,
+                SLOWNESS_DURATION_TICKS,
+                SLOWNESS_AMPLIFIER,
+                false,
+                true
+        ));
     }
 
     @Override

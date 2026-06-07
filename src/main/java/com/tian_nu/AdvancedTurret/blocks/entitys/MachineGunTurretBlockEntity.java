@@ -60,7 +60,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
     /** 子弹速度 */
     public static final double BULLET_SPEED = 3.0;
     /** 子弹伤害 */
-    public static final float BULLET_DAMAGE = 3.0F;
+    public static final float BULLET_DAMAGE = 4.0F;
 
     public static int getFireRate() { return Config.machineGunFireRate; }
     public static double getSearchRadius() { return Config.machineGunRange; }

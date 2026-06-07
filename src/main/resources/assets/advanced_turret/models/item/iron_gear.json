@@ -1,6 +1,6 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "advanced_turret:item/entity_analyzer"
+    "layer0": "advanced_turret:item/iron_gear"
   }
 }

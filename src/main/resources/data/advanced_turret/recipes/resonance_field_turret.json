@@ -1,13 +1,13 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " S ",
+    " G ",
     "ABA",
-    " G "
+    "ITI"
   ],
   "key": {
-    "S": {
-      "item": "advanced_turret:smart_chip"
+    "G": {
+      "item": "minecraft:glowstone_dust"
     },
     "A": {
       "item": "minecraft:amethyst_shard"
@@ -15,8 +15,11 @@
     "B": {
       "item": "advanced_turret:precision_component_t4"
     },
-    "G": {
-      "item": "minecraft:glowstone_dust"
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "T": {
+      "item": "advanced_turret:turret_template"
     }
   },
   "result": {

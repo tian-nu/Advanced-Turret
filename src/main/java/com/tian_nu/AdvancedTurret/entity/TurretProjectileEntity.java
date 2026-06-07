@@ -23,6 +23,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -290,11 +291,11 @@ public abstract class TurretProjectileEntity extends Projectile {
      * <p>解决多炮塔同时攻击时伤害丢失问题</p>
      */
     protected void dealDamage(LivingEntity target, float damage) {
-        // 清除无敌帧
+        // ????????
         target.invulnerableTime = 0;
         target.hurtTime = 0;
         
-        // 造成伤害
+        // ??????
         Entity owner = this.getOwner();
         if (owner instanceof LivingEntity livingOwner) {
             target.hurt(this.damageSources().mobProjectile(this, livingOwner), damage);
@@ -302,13 +303,21 @@ public abstract class TurretProjectileEntity extends Projectile {
             target.hurt(this.damageSources().mobProjectile(this, null), damage);
         }
     }
+
+    protected double distanceToExplosion(LivingEntity target, Vec3 explosionPos) {
+        AABB box = target.getBoundingBox();
+        double clampedX = Math.max(box.minX, Math.min(explosionPos.x, box.maxX));
+        double clampedY = Math.max(box.minY, Math.min(explosionPos.y, box.maxY));
+        double clampedZ = Math.max(box.minZ, Math.min(explosionPos.z, box.maxZ));
+        return explosionPos.distanceTo(new Vec3(clampedX, clampedY, clampedZ));
+    }
     
-    // ==================== 发射 ====================
+    // ==================== ??? ====================
     
     /**
-     * 发射子弹
-     * @param direction 飞行方向（会被归一化）
-     * @param speed 飞行速度
+     * ??????
+     * @param direction ?????????????????
+     * @param speed ??????
      */
     public void shoot(Vec3 direction, float speed) {
         this.setDeltaMovement(direction.normalize().scale(speed));

@@ -1190,7 +1190,7 @@ public boolean hasDestructionPlugin() {
 
     public float getDamageForFace(Direction face, float baseDamage) {
         int count = countUpgradeItems(face, ModItems.ATTACK_BOOST_COMPONENT.get());
-        double multiplier = Math.min(3.0, 1.0 + (count * 0.10));
+        double multiplier = Math.min(3.0, 1.0 + (count * 0.05));
         return (float) (baseDamage * multiplier);
     }
 

@@ -67,9 +67,9 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
     /** 搜索范围 */
     public static final double SEARCH_RADIUS = 48.0;
     /** 子弹初始速度 */
-    public static final double BULLET_SPEED = 2.0;
-    /** 加速度系数 (指数增长: 初始2速，20tick后达到5速，k=(5/2)^(1/20)-1≈0.047) */
-    public static final double ACCELERATION = 0.047;
+    public static final double BULLET_SPEED = 1.5;
+    /** 加速度系数 (指数增长: 初始1.5速，20tick后达到5速，k=(5/1.5)^(1/20)-1≈0.062) */
+    public static final double ACCELERATION = 0.062;
     /** 直击伤害 */
     public static final float DIRECT_DAMAGE = 10.0F;
     /** 爆炸伤害 */
@@ -332,7 +332,7 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
 
         // 计算伤害（应用升级组件）
         float directDamage = base.getDamageForFace(facing, getDirectDamage());
-        float explosionDamage = getExplosionDamage(); // 爆炸伤害不随升级组件变化
+        float explosionDamage = base.getDamageForFace(facing, getExplosionDamage());
 
         // 创建火箭弹
         RocketEntity rocket = new RocketEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, directDamage);
@@ -366,7 +366,8 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
 		if (!(state.getBlock() instanceof RocketTurretBlock)) return getDirectDamage() + getExplosionDamage();
 		Direction facing = state.getValue(RocketTurretBlock.FACING);
 		float directDamage = base.getDamageForFace(facing, getDirectDamage());
-		return directDamage + getExplosionDamage();
+		float explosionDamage = base.getDamageForFace(facing, getExplosionDamage());
+		return directDamage + explosionDamage;
 	}
 
     /**
@@ -474,7 +475,18 @@ public class RocketTurretBlockEntity extends BlockEntity implements GeoBlockEnti
     private Vec3 getVisibleTargetPoint(LivingEntity entity, Level level, BlockPos pos) {
         Direction facing = getBlockState().getValue(RocketTurretBlock.FACING);
         Vec3 start = calculateMuzzlePosition(pos, facing);
-        return LinearTurretTargetingHelper.findVisibleTargetPoint(level, pos, facing, start, entity);
+
+        Vec3 headPoint = entity.position().add(0, entity.getEyeHeight(), 0);
+        if (LinearTurretTargetingHelper.canSeePoint(level, pos, facing, start, headPoint)) {
+            return headPoint;
+        }
+
+        Vec3 bodyPoint = entity.position().add(0, entity.getBbHeight() * 0.6, 0);
+        if (LinearTurretTargetingHelper.canSeePoint(level, pos, facing, start, bodyPoint)) {
+            return bodyPoint;
+        }
+
+        return null;
     }
 
     private boolean canSeePoint(Level level, BlockPos pos, Vec3 start, Vec3 end) {

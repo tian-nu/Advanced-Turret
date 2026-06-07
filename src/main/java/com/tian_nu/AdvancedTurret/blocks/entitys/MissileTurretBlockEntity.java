@@ -47,7 +47,7 @@ import java.util.List;
  * <ul>
  *   <li>远程攻击：64格搜索范围</li>
  *   <li>高伤害：直击10 + 爆炸15（半径4格）</li>
- *   <li>低射速：6.7秒/发</li>
+ *   <li>低射速：7秒/发</li>
  *   <li>高能耗：10000 FE/发</li>
  *   <li>破坏插件：可破坏方块</li>
  * </ul>
@@ -67,22 +67,22 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 
     // ========== 常量（来自炮塔数值与机制.md） ==========
 
-    /** 射击间隔 (tick) - 6.7秒 */
-    public static final int FIRE_RATE = 200;
+    /** 射击间隔 (tick) - 7秒 */
+    public static final int FIRE_RATE = 140;
     /** 搜索范围 */
     public static final double SEARCH_RADIUS = 64.0;
     /** 子弹初始速度 */
     public static final double BULLET_SPEED = 1.5;
-    /** 加速度 (每tick速度增加) */
-    public static final double ACCELERATION = 0.03;
+    /** 加速度 (指数增长：初始1.5速，20tick后达到5速，k≈0.062) */
+    public static final double ACCELERATION = 0.062;
     /** 转向速率 (每tick转向插值系数) */
     public static final double TURN_RATE = 0.3;
     /** 直击伤害 */
     public static final float DIRECT_DAMAGE = 10.0F;
     /** 爆炸伤害 */
-    public static final float EXPLOSION_DAMAGE = 20.0F;
+    public static final float EXPLOSION_DAMAGE = 15.0F;
     /** 爆炸半径 */
-    public static final float EXPLOSION_RADIUS = 4.0F;
+    public static final float EXPLOSION_RADIUS = 10.0F;
     /** 能量消耗 */
     public static final int ENERGY_COST = 10000;
 
@@ -338,7 +338,7 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 
         // 计算伤害（应用升级组件）
         float directDamage = base.getDamageForFace(facing, getDirectDamage());
-        float explosionDamage = getExplosionDamage(); // 爆炸伤害不随升级组件变化
+        float explosionDamage = base.getDamageForFace(facing, getExplosionDamage());
 
         // 创建导弹
         MissileEntity missile = new MissileEntity(level, muzzlePos.x, muzzlePos.y, muzzlePos.z, directDamage);
@@ -374,7 +374,8 @@ public class MissileTurretBlockEntity extends BlockEntity implements GeoBlockEnt
 		if (!(state.getBlock() instanceof MissileTurretBlock)) return getDirectDamage() + getExplosionDamage();
 		Direction facing = state.getValue(MissileTurretBlock.FACING);
 		float directDamage = base.getDamageForFace(facing, getDirectDamage());
-		return directDamage + getExplosionDamage();
+		float explosionDamage = base.getDamageForFace(facing, getExplosionDamage());
+		return directDamage + explosionDamage;
 	}
 
     /**

@@ -436,7 +436,7 @@ public class GrenadeLauncherTurretBlockEntity extends BlockEntity implements Geo
      * 检查目标是否可以通过抛物线弹道击中
      * 使用逐段射线检测，任意路径碰撞方块都视为不可达
      */
-    private boolean canReachWithParabola(LivingEntity target, Level level, BlockPos pos) {
+    private boolean canReachWithParabola(LivingEntity target, Level level, BlockPos pos, double maxRange) {
         BlockState state = getBlockState();
         if (!(state.getBlock() instanceof GrenadeLauncherTurretBlock)) return false;
         Direction facing = state.getValue(GrenadeLauncherTurretBlock.FACING);
@@ -447,7 +447,7 @@ public class GrenadeLauncherTurretBlockEntity extends BlockEntity implements Geo
         Vec3 diff = end.subtract(start);
         double horizontalDist = Math.sqrt(diff.x * diff.x + diff.z * diff.z);
 
-        if (horizontalDist > MAX_EFFECTIVE_RANGE) return false;
+        if (horizontalDist > maxRange) return false;
 
         Vec3 velocity = calculateParabolicVelocity(start, end, getBulletSpeed());
 
@@ -586,7 +586,7 @@ public class GrenadeLauncherTurretBlockEntity extends BlockEntity implements Geo
             return false;
         }
 
-        return canReachWithParabola(entity, level, pos);
+        return canReachWithParabola(entity, level, pos, searchRadius);
     }
 
     private boolean isTargetInRange(LivingEntity target, BlockPos pos, double range) {

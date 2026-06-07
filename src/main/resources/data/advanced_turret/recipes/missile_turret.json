@@ -3,7 +3,7 @@
   "pattern": [
     " R ",
     "CBC",
-    " S "
+    "ITI"
   ],
   "key": {
     "R": {
@@ -15,8 +15,11 @@
     "B": {
       "item": "advanced_turret:precision_component_t4"
     },
-    "S": {
-      "item": "advanced_turret:smart_chip"
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "T": {
+      "item": "advanced_turret:turret_template"
     }
   },
   "result": {

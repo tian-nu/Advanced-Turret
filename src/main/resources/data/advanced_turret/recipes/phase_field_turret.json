@@ -1,13 +1,13 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " S ",
+    " E ",
     "ABA",
-    " E "
+    "ITI"
   ],
   "key": {
-    "S": {
-      "item": "advanced_turret:smart_chip"
+    "E": {
+      "item": "minecraft:fermented_spider_eye"
     },
     "A": {
       "item": "minecraft:amethyst_shard"
@@ -15,8 +15,11 @@
     "B": {
       "item": "advanced_turret:precision_component_t4"
     },
-    "E": {
-      "item": "minecraft:fermented_spider_eye"
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "T": {
+      "item": "advanced_turret:turret_template"
     }
   },
   "result": {

@@ -2,11 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     " C ",
-    "GTG",
+    "IGI",
     " P "
   ],
   "key": {
     "G": {
+      "item": "advanced_turret:precision_gear_set"
+    },
+    "I": {
       "item": "minecraft:gold_ingot"
     },
     "P": {
@@ -14,9 +17,6 @@
     },
     "C": {
       "item": "advanced_turret:circuit_board"
-    },
-    "T": {
-      "item": "advanced_turret:turret"
     }
   },
   "result": {

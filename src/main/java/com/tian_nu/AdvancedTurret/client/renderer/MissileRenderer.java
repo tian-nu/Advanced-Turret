@@ -15,8 +15,7 @@ import net.minecraft.world.phys.Vec3;
  */
 public class MissileRenderer extends EntityRenderer<MissileEntity> {
 
-    private static final ResourceLocation TEXTURE =
-        ResourceLocation.fromNamespaceAndPath(TurretMod.MOD_ID, "textures/item/missile.png");
+    private static final ResourceLocation TEXTURE = TurretMod.location("textures/entity/projectile_box.png");
     private static final float BODY_WIDTH = 3.0F / 16.0F;
     private static final float BODY_HEIGHT = 3.0F / 16.0F;
     private static final float BODY_DEPTH = 10.0F / 16.0F;
@@ -38,9 +37,9 @@ public class MissileRenderer extends EntityRenderer<MissileEntity> {
             BODY_WIDTH,
             BODY_HEIGHT,
             BODY_DEPTH,
-            255,
-            255,
-            255,
+            220,
+            50,
+            50,
             255
         );
         poseStack.popPose();

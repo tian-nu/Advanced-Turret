@@ -1,6 +1,6 @@
 {
   "replace": false,
   "values": [
-    "advanced_turret:turret"
+    "advanced_turret:turret_template"
   ]
 }

@@ -52,7 +52,7 @@ public class ModBlocks {
             registerBlock("turret_base_t5", () -> new TurretBaseBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.EMERALD)
                     .requiresCorrectToolForDrops()
-                    .strength(3.5f, 14.0f)));
+                    .strength(3.5f, 1200.0f)));
     
     // 机枪炮塔
     public static final RegistryObject<Block> MACHINE_GUN_TURRET =

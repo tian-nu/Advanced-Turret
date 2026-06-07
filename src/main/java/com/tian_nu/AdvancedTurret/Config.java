@@ -128,7 +128,7 @@ public class Config {
 
     public static final ForgeConfigSpec.DoubleValue ROCKET_EXPLOSION_RADIUS = BUILDER
             .comment("config")
-            .defineInRange("rocketExplosionRadius", 4.0, 0.1, 64.0);
+            .defineInRange("rocketExplosionRadius", 4.5, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue ROCKET_RANGE = BUILDER
             .comment("config")
@@ -140,11 +140,11 @@ public class Config {
 
     public static final ForgeConfigSpec.DoubleValue ROCKET_BULLET_SPEED = BUILDER
             .comment("config")
-            .defineInRange("rocketBulletSpeed", 2.0, 0.1, 64.0);
+            .defineInRange("rocketBulletSpeed", 1.5, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue ROCKET_ACCELERATION = BUILDER
             .comment("config")
-            .defineInRange("rocketAcceleration", 0.047, 0.0, 4.0);
+            .defineInRange("rocketAcceleration", 0.062, 0.0, 4.0);
 
     public static final ForgeConfigSpec.IntValue ROCKET_ENERGY_COST = BUILDER
             .comment("config")
@@ -160,7 +160,7 @@ public class Config {
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_EXPLOSION_RADIUS = BUILDER
             .comment("config")
-            .defineInRange("missileExplosionRadius", 4.0, 0.1, 64.0);
+            .defineInRange("missileExplosionRadius", 4.5, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue MISSILE_RANGE = BUILDER
             .comment("config")
@@ -196,7 +196,7 @@ public class Config {
 
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_EXPLOSION_RADIUS = BUILDER
             .comment("config")
-            .defineInRange("grenadeLauncherExplosionRadius", 3.0, 0.1, 64.0);
+            .defineInRange("grenadeLauncherExplosionRadius", 3.5, 0.1, 64.0);
 
     public static final ForgeConfigSpec.DoubleValue GRENADE_LAUNCHER_RANGE = BUILDER
             .comment("config")

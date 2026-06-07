@@ -1,22 +1,22 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "QCQ",
-    "CBC",
-    " G "
+    "ACA",
+    "QBQ",
+    "ACA"
   ],
   "key": {
-    "Q": {
-      "item": "minecraft:quartz"
+    "A": {
+      "item": "advanced_turret:accuracy_component"
     },
     "C": {
       "item": "advanced_turret:circuit_board"
     },
+    "Q": {
+      "item": "minecraft:quartz"
+    },
     "B": {
       "item": "minecraft:comparator"
-    },
-    "G": {
-      "item": "minecraft:gold_ingot"
     }
   },
   "result": {

@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     " R ",
-    "DTD",
+    "DGD",
     " P "
   ],
   "key": {
@@ -15,8 +15,8 @@
     "R": {
       "item": "advanced_turret:radar"
     },
-    "T": {
-      "item": "advanced_turret:turret"
+    "G": {
+      "item": "advanced_turret:precision_gear_set"
     }
   },
   "result": {

@@ -19,8 +19,12 @@ public class ModItems {
     public static final DeferredRegister<Item> ITEMS =
             DeferredRegister.create(ForgeRegistries.ITEMS, TurretMod.MOD_ID);
 
-    public static final RegistryObject<Item> TURRET =
-            ITEMS.register("turret", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> TURRET_TEMPLATE =
+            ITEMS.register("turret_template", () -> describedItem("item.advanced_turret.turret_template.tooltip"));
+    public static final RegistryObject<Item> IRON_GEAR =
+            ITEMS.register("iron_gear", () -> describedItem("item.advanced_turret.iron_gear.tooltip"));
+    public static final RegistryObject<Item> PRECISION_GEAR_SET =
+            ITEMS.register("precision_gear_set", () -> describedItem("item.advanced_turret.precision_gear_set.tooltip"));
 
     // 炮塔方块物品在 ModBlocks 中作为 BlockItem 注册。
 

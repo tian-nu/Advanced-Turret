@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     " S ",
-    "NTN",
+    "NGN",
     " P "
   ],
   "key": {
@@ -15,8 +15,8 @@
     "S": {
       "item": "advanced_turret:smart_chip"
     },
-    "T": {
-      "item": "advanced_turret:turret"
+    "G": {
+      "item": "advanced_turret:precision_gear_set"
     }
   },
   "result": {

@@ -3,6 +3,9 @@ package com.tian_nu.AdvancedTurret.entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -45,8 +48,8 @@ public class RocketEntity extends TurretProjectileEntity {
     /** 是否破坏方块（由破坏插件控制） */
     private boolean destroyBlocks = false;
     
-    /** 加速度系数 (指数增长: 初始2速，20tick后达到5速，k=(5/2)^(1/20)-1≈0.047) */
-    private double acceleration = 0.047;
+    /** 加速度系数 (指数增长: 初始1.5速，20tick后达到5速，k=(5/1.5)^(1/20)-1≈0.062) */
+    private double acceleration = 0.062;
     
     /** 标记：是否允许修改速度（内部使用） */
     private boolean allowDeltaMovementChange = false;
@@ -143,14 +146,16 @@ public class RocketEntity extends TurretProjectileEntity {
      */
     private void explode(Vec3 pos) {
         Level level = this.level();
-        
-        // 爆炸模式：有破坏插件时破坏方块
-        Level.ExplosionInteraction interaction = destroyBlocks 
-            ? Level.ExplosionInteraction.BLOCK 
-            : Level.ExplosionInteraction.NONE;
-        
+
         // 创建爆炸效果（视觉+声音）
-        level.explode(null, pos.x, pos.y, pos.z, explosionRadius, false, interaction);
+        if (destroyBlocks) {
+            level.explode(this, pos.x, pos.y, pos.z, explosionRadius, false, Level.ExplosionInteraction.BLOCK);
+        } else {
+            level.playSound(null, pos.x, pos.y, pos.z, SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 0.7F, 1.0F);
+        }
+
+        spawnExplosionDust(pos);
+
         
         // 范围伤害（自定义计算，确保伤害准确）
         if (!level.isClientSide) {
@@ -164,7 +169,7 @@ public class RocketEntity extends TurretProjectileEntity {
                 // 跳过白名单中的实体
                 if (shouldIgnoreDamage(entity)) continue;
                 
-                double distance = entity.position().distanceTo(pos);
+                double distance = distanceToExplosion(entity, pos);
                 if (distance <= explosionRadius) {
                     // 伤害随距离衰减
                     float damageMultiplier = 1.0F - (float)(distance / explosionRadius);
@@ -178,7 +183,28 @@ public class RocketEntity extends TurretProjectileEntity {
         }
     }
     
+    private void spawnExplosionDust(Vec3 pos) {
+        Level level = this.level();
+        double visualRadius = this.explosionRadius + 0.5D;
+
+        if (level instanceof ServerLevel serverLevel) {
+            int explosionCount = Math.max(2, (int) Math.ceil(visualRadius * 1.2D));
+            int poofCount = Math.max(18, (int) Math.ceil(visualRadius * 22.0D));
+            int smokeCount = Math.max(10, (int) Math.ceil(visualRadius * 10.0D));
+
+            serverLevel.sendParticles(ParticleTypes.EXPLOSION, pos.x, pos.y, pos.z, explosionCount,
+                    visualRadius * 0.12D, visualRadius * 0.12D, visualRadius * 0.12D, 0.02D);
+            serverLevel.sendParticles(ParticleTypes.POOF, pos.x, pos.y, pos.z, poofCount,
+                    visualRadius * 0.55D, visualRadius * 0.35D, visualRadius * 0.55D, 0.07D);
+            serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE, pos.x, pos.y, pos.z, smokeCount,
+                    visualRadius * 0.45D, visualRadius * 0.3D, visualRadius * 0.45D, 0.03D);
+        } else if (level.isClientSide) {
+            level.addParticle(ParticleTypes.EXPLOSION, pos.x, pos.y, pos.z, 0.0D, 0.0D, 0.0D);
+        }
+    }
+
     // ==================== 碰撞检测 ====================
+
     
     /**
      * 自定义碰撞检测：分离检测实体和方块

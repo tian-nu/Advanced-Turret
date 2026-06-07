@@ -5,6 +5,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
@@ -98,10 +99,17 @@ public class RailgunBulletEntity extends TurretProjectileEntity {
             
             // 记录已击中的实体（防止重复伤害）
             hitEntities.add(livingEntity.getId());
-            
-            // 造成伤害
-            dealDamage(livingEntity, this.getDamage());
-            
+
+            // 末影人特殊处理：磁轨炮命中时不触发躲避逻辑，直接吃伤害
+            if (livingEntity instanceof EnderMan) {
+                livingEntity.invulnerableTime = 0;
+                livingEntity.hurtTime = 0;
+                livingEntity.hurt(this.damageSources().magic(), this.getDamage());
+            } else {
+                // 造成伤害
+                dealDamage(livingEntity, this.getDamage());
+            }
+
             // 减少穿透次数
             penetrationCount--;
             

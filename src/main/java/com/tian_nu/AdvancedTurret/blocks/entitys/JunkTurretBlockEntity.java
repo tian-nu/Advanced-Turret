@@ -62,7 +62,7 @@ public class JunkTurretBlockEntity extends BlockEntity implements GeoBlockEntity
     /** 子弹速度 */
     public static final double BULLET_SPEED = 2.0;
     /** 子弹伤害 */
-    public static final float BULLET_DAMAGE = 2.0F;
+    public static final float BULLET_DAMAGE = 4.0F;
 
     /** 重力常数 */
     public static final double GRAVITY = 0.05;

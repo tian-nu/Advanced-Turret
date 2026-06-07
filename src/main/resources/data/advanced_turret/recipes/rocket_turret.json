@@ -1,13 +1,13 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " F ",
+    " X ",
     "CBC",
-    " R "
+    "ITI"
   ],
   "key": {
-    "F": {
-      "item": "minecraft:fire_charge"
+    "X": {
+      "item": "minecraft:tnt"
     },
     "C": {
       "item": "advanced_turret:circuit_board"
@@ -15,8 +15,11 @@
     "B": {
       "item": "advanced_turret:precision_component_t3"
     },
-    "R": {
-      "item": "advanced_turret:range_component"
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "T": {
+      "item": "advanced_turret:turret_template"
     }
   },
   "result": {
