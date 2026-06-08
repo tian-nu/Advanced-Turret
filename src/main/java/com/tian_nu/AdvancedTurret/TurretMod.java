@@ -33,7 +33,7 @@ import software.bernie.geckolib.network.SerializableDataTicket;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
- * Main entry point for the turret mod.
+ * 炮塔模组的主入口点。
  */
 @Mod(TurretMod.MOD_ID)
 public class TurretMod {
@@ -42,7 +42,7 @@ public class TurretMod {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     /**
-     * Creates a namespaced resource location under this mod id.
+     * 创建此模组 ID 下的命名空间资源位置。
      */
     public static ResourceLocation location(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);

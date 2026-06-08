@@ -180,7 +180,7 @@ public class RemoteTerminalScreen extends Screen {
             selectedIndex = -1;
             statusMessage = Component.translatable("gui.advanced_turret.remote_terminal.no_base").getString();
         } else {
-            selectedIndex = -1; // Default to -1 (nothing selected) if we don't find it
+            selectedIndex = -1; // 未找到则默认为 -1（无选中）
             if (!selectedKeyBefore.isBlank()) {
                 for (int i = 0; i < baseEntries.size(); i++) {
                     if (selectedKeyBefore.equals(buildBaseKey(baseEntries.get(i)))) {
@@ -190,10 +190,10 @@ public class RemoteTerminalScreen extends Screen {
                 }
             }
             if (selectedIndex == -1 && !lastSelectedBaseKey.isBlank()) {
-               // Maybe the last selected base was destroyed, just don't select anything
+               // 上次选中的基座可能已被拆除，不选中任何项
                selectedIndex = -1;
             } else if (selectedIndex == -1 && selectedKeyBefore.isBlank()) {
-               // Initial open, don't auto-select base 0
+               // 初次打开，不自动选中第 0 个基座
                selectedIndex = -1;
             }
             if (!keepStatusOnNextSync) {
@@ -346,7 +346,7 @@ public class RemoteTerminalScreen extends Screen {
         pageIndex = Math.max(0, Math.min(pageIndex, totalPages - 1));
         lastPageIndex = pageIndex;
 
-        // If search filters out the currently selected index, don't reset it to 0, keep it or clear selection
+        // 如果搜索过滤掉了当前选中项，不重置为 0，保持或清除选中
     }
 
     private boolean matchesKeyword(RemoteTerminalBaseInfo entry, String keyword) {
@@ -514,7 +514,7 @@ public class RemoteTerminalScreen extends Screen {
             return baseEntries.get(selectedIndex);
         }
         if (!filteredIndices.contains(selectedIndex)) {
-            return null; // Don't auto-select the first filtered if it doesn't match
+            return null; // 不匹配时不要自动选中过滤结果的第一项
         }
         return baseEntries.get(selectedIndex);
     }

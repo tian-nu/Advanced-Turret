@@ -291,11 +291,11 @@ public abstract class TurretProjectileEntity extends Projectile {
      * <p>解决多炮塔同时攻击时伤害丢失问题</p>
      */
     protected void dealDamage(LivingEntity target, float damage) {
-        // ????????
+        // 清除无敌帧
         target.invulnerableTime = 0;
         target.hurtTime = 0;
         
-        // ??????
+        // 造成伤害
         Entity owner = this.getOwner();
         if (owner instanceof LivingEntity livingOwner) {
             target.hurt(this.damageSources().mobProjectile(this, livingOwner), damage);
@@ -312,12 +312,12 @@ public abstract class TurretProjectileEntity extends Projectile {
         return explosionPos.distanceTo(new Vec3(clampedX, clampedY, clampedZ));
     }
     
-    // ==================== ??? ====================
+    // ==================== 射击 ====================
     
     /**
-     * ??????
-     * @param direction ?????????????????
-     * @param speed ??????
+     * 发射
+     * @param direction 发射方向
+     * @param speed 速度
      */
     public void shoot(Vec3 direction, float speed) {
         this.setDeltaMovement(direction.normalize().scale(speed));

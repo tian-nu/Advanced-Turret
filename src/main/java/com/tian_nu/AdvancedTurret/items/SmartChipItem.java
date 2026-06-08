@@ -26,7 +26,7 @@ import java.util.List;
 
 public class SmartChipItem extends Item {
     
-// NBT Keys
+// NBT 键
 	public static final String KEY_TARGET_MODE = "TargetMode";
 	public static final String KEY_FRIENDLY_FIRE = "FriendlyFire";
 	public static final String KEY_PREDICTIVE_AIMING = "PredictiveAiming";
@@ -49,10 +49,10 @@ public class SmartChipItem extends Item {
         }
     }
     
-    // NBT Key for combination mode
+    // 组合模式的 NBT 键
     public static final String KEY_TARGET_FLAGS = "TargetFlags";
     
-    // Flags
+    // 标志位
     public static final int FLAG_HOSTILE = 1;
     public static final int FLAG_NEUTRAL = 2;
     public static final int FLAG_FRIENDLY = 4;
@@ -143,7 +143,7 @@ public class SmartChipItem extends Item {
         return tag.getInt(KEY_TARGET_FLAGS);
     }
 
-    // ========== NBT Helpers ==========
+    // ========== NBT 辅助方法 ==========
 
     public static void setTargetMode(ItemStack stack, TargetMode mode) {
         stack.getOrCreateTag().putInt(KEY_TARGET_MODE, mode.ordinal());
@@ -178,7 +178,7 @@ public class SmartChipItem extends Item {
 
     public static byte getEnabledFaces(ItemStack stack) {
         CompoundTag tag = getReadOnlyTag(stack);
-        if (tag == null || !tag.contains(KEY_ENABLED_FACES)) return 0b111111; // Default all enabled
+        if (tag == null || !tag.contains(KEY_ENABLED_FACES)) return 0b111111; // 默认全部启用
         return tag.getByte(KEY_ENABLED_FACES);
     }
 
@@ -202,7 +202,7 @@ public class SmartChipItem extends Item {
         } else {
             list = new ListTag();
         }
-        // Avoid duplicates
+        // 避免重复
         for (int i = 0; i < list.size(); i++) {
             if (list.getString(i).equals(entityId)) return;
         }

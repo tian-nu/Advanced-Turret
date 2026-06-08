@@ -6,13 +6,13 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 /**
- * Forge config values for turret stats, energy, plugins, and field effects.
+ * 炮塔属性、能量、插件和力场效果的 Forge 配置值。
  */
 @Mod.EventBusSubscriber(modid = TurretMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-    // Base energy storage and transfer
+    // 基础能量存储与传输
     public static final ForgeConfigSpec.IntValue TURRET_BASE_MAX_ENERGY_T1 = BUILDER
             .comment("config")
             .defineInRange("turretBaseMaxEnergyT1", 10000, 1000, 100000);
@@ -49,7 +49,7 @@ public class Config {
             .comment("config")
             .defineInRange("turretBaseMaxTransferRateT5", 10000, 10, 1000000);
 
-    // Machine gun turret stats
+    // 机枪炮塔属性
     public static final ForgeConfigSpec.DoubleValue MACHINE_GUN_DAMAGE = BUILDER
             .comment("config")
             .defineInRange("machineGunDamage", 4.0, 0.1, 1000.0);

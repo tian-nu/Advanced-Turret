@@ -18,7 +18,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public class SmartChipConfigPacket {
-	private final BlockPos pos; // Null if handheld
+	private final BlockPos pos; // 为 null 表示手持模式
 	private final TargetMode targetMode;
 	private final boolean friendlyFire;
 	private final boolean predictiveAiming;
@@ -40,7 +40,7 @@ public class SmartChipConfigPacket {
 		this.targetFlags = targetFlags;
 	}
 
-	// Legacy constructor for backward compatibility
+	// 旧版构造器，保持向后兼容性
 	public SmartChipConfigPacket(BlockPos pos, TargetMode targetMode, boolean friendlyFire, boolean predictiveAiming, byte enabledFacesMask, List<String> blacklist, List<String> whitelist, int targetFlags) {
 		this(pos, targetMode, friendlyFire, predictiveAiming, false, enabledFacesMask, blacklist, whitelist, targetFlags);
 	}
@@ -67,26 +67,26 @@ public class SmartChipConfigPacket {
 		TargetMode mode = buf.readEnum(TargetMode.class);
 		boolean ff = buf.readBoolean();
 		boolean pa = buf.readBoolean();
-		boolean tm = false; // Default for old packets
+		boolean tm = false; // 旧数据包的默认值
 		try {
 			if (buf.isReadable()) {
 				tm = buf.readBoolean();
 			}
 		} catch (Exception e) {
-			// Old packet without thriftyMode
+			// 不包含 thriftyMode 的旧数据包
 		}
 		byte faces = buf.readByte();
 
 		List<String> blacklist = buf.readCollection(ArrayList::new, FriendlyByteBuf::readUtf);
 		List<String> whitelist = buf.readCollection(ArrayList::new, FriendlyByteBuf::readUtf);
 
-		int flags = 1; // Default
+		int flags = 1; // 默认值
 		try {
 			if (buf.isReadable()) {
 				flags = buf.readInt();
 			}
 		} catch (Exception e) {
-			// End of stream if old packet
+			// 旧数据包到达流末尾
 		}
 
 		return new SmartChipConfigPacket(pos, mode, ff, pa, tm, faces, blacklist, whitelist, flags);
@@ -159,7 +159,7 @@ public class SmartChipConfigPacket {
         } else {
             list = new net.minecraft.nbt.ListTag();
         }
-        // Avoid duplicates
+        // 避免重复
         for (int i = 0; i < list.size(); i++) {
             if (list.getString(i).equals(value)) return;
         }

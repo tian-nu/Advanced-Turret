@@ -63,7 +63,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
 
         @Override
         public void set(int index, int value) {
-            // Menu data is read-only; values are sourced from the block entity state.
+            // 菜单数据只读；值来源于方块实体状态。
         }
 
         @Override
@@ -518,7 +518,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         return false;
     }
     
-    // Setters now update the ItemStack (Update the FIRST found chip)
+    // Setter 方法现在更新 ItemStack（更新找到的第一个芯片）
     public void setFriendlyFire(boolean friendlyFire) {
         ItemStack stack = getPluginStack();
         if (stack.isEmpty() && hasBuiltInSmartChip()) {
@@ -936,7 +936,7 @@ public boolean hasDestructionPlugin() {
 		float reserved = getReservedDamage(entityId);
 		float remainingHealth = currentHealth - reserved;
 		
-		// If reserved damage already covers the remaining health, skip the target.
+		// 若预扣伤害已覆盖剩余生命值，跳过该目标。
 		return remainingHealth > 0;
 	}
 
@@ -1226,7 +1226,7 @@ public boolean hasDestructionPlugin() {
 
     public double getSearchRadiusForFace(Direction face, double baseRadius) {
         int count = countUpgradeItems(face, ModItems.RANGE_COMPONENT.get());
-        // Range upgrades increase the base radius by 1 per installed component.
+        // 射程升级每安装一个组件增加 1 格基础半径。
         double upgradedRadius = baseRadius + count;
         if (manualRangeLimit > 0.0D) {
             return Math.max(1.0D, Math.min(upgradedRadius, manualRangeLimit));

@@ -271,7 +271,7 @@ public class MachineGunTurretBlockEntity extends BlockEntity implements GeoBlock
 	 * 执行射击
 	 */
 	private void shoot(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity base) {
-		// Double check energy cost before shooting logic (redundant but safe)
+		// 射击前再次检查能量消耗（冗余但安全）
 		Direction facing = state.getValue(MachineGunTurretBlock.FACING);
 		int energyCost = base.getEnergyCostForFace(facing, Config.machineGunEnergyCost);
 		if (base.getEnergyStored() < energyCost) return;

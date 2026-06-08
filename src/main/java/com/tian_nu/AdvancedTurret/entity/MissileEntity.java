@@ -350,8 +350,8 @@ public class MissileEntity extends TurretProjectileEntity {
             rotateY(moveDir, -30),             // 左偏30°
             rotateY(moveDir, 60),              // 右偏60°
             rotateY(moveDir, -60),             // 左偏60°
-            moveDir.add(0, 0.35, 0).normalize(), // ?????????????
-            moveDir.add(0, 0.7, 0).normalize()   // ?????????????
+            moveDir.add(0, 0.35, 0).normalize(), // 偏上35%
+            moveDir.add(0, 0.7, 0).normalize()   // 偏上70%
         };
 
         Vec3 bestAvoidanceDir = null;

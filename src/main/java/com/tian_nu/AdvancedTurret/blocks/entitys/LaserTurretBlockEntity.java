@@ -130,7 +130,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
             blockEntity.isAimed = false;
             blockEntity.setAnimData(HAS_TARGET, false);
             blockEntity.setAnimData(BEAM_ACTIVE, false);
-            // Return rotation to zero (rest position).
+            // 旋转归零（回到默认姿态）。
             blockEntity.yRot0 = blockEntity.lerpAngle(blockEntity.yRot0, 0);
             blockEntity.xRot0 = blockEntity.lerpAngle(blockEntity.xRot0, 0);
             return;
@@ -468,7 +468,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
                 setAnimData(TARGET_POS_Y, visiblePoint.y);
                 setAnimData(TARGET_POS_Z, visiblePoint.z);
                 setAnimData(HAS_TARGET, true);
-                // New target requires re-aiming.
+                // 新目标需要重新瞄准。
                 isAimed = false;
                 setAnimData(BEAM_ACTIVE, false);
             } else {
