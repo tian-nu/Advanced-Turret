@@ -36,14 +36,14 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * 婵€鍏夌偖濉旀柟鍧楀疄浣?
+ * 激光炮塔方块实体。
  *
- * <p>鐗规€э細</p>
+ * <p>特性：</p>
  * <ul>
- *   <li>鏃犲脊鑽秷鑰楋紝绾兘閲忛┍鍔?/li>
- *   <li>姣弔ick鎸佺画浼ゅ鐩爣</li>
- *   <li>鐐圭噧鏁堟灉</li>
- *   <li>鍏夋潫娓叉煋鍚屾</li>
+ *   <li>无弹药消耗，纯能量驱动</li>
+ *   <li>每 tick 持续伤害目标</li>
+ *   <li>点燃效果</li>
+ *   <li>光束渲染与服务器状态同步</li>
  * </ul>
  *
  * @author tian_nu
@@ -52,12 +52,12 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    // ========== 甯搁噺 ==========
-    /** 姣弔ick浼ゅ */
+    // ========== 常量 ==========
+    /** 每 tick 基础伤害（不含面配置加成）。 */
     public static final float DAMAGE_PER_TICK = 2.0F;
-    /** 鎼滅储鑼冨洿 */
+    /** 默认搜索半径（格）。 */
     public static final double SEARCH_RADIUS = 32.0;
-    /** 鐐圭噧鏃堕棿锛堢锛?*/
+    /** 点燃目标的持续时间（秒）。 */
     public static final int FIRE_SECONDS = 3;
 
     public static float getDamagePerTick() { return (float) Config.laserDamagePerTick; }
@@ -65,25 +65,25 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     public static int getFireSeconds() { return Config.laserFireSeconds; }
     public static float getAimThreshold() { return (float) Config.laserAimThreshold; }
     public static float getTurnSpeed() { return (float) Config.laserTurnSpeed; }
-    /** 鐬勫噯瑙掑害闃堝€硷紙寮у害锛夛紝绾?5搴?*/
+    /** 瞄准角度阈值（弧度，约15度）。低于此值即视为已瞄准。 */
     public static final float AIM_THRESHOLD = 0.26F;
-    /** 杞悜閫熷害锛堝姬搴?tick锛夛紝绾?0搴?tick = 200搴?绉?*/
+    /** 转向速度（弧度/tick，约0.18 rad/tick = 约10度/tick = 200度/秒）。 */
     public static final float TURN_SPEED = 0.18F;
 
-    // ========== GeckoLib鏁版嵁鍚屾绁?==========
+    // ========== GeckoLib 同步数据票 ==========
     public static SerializableDataTicket<Boolean> HAS_TARGET;
     public static SerializableDataTicket<Double> TARGET_POS_X;
     public static SerializableDataTicket<Double> TARGET_POS_Y;
     public static SerializableDataTicket<Double> TARGET_POS_Z;
-    /** 鍏夋潫鏄惁婵€娲伙紙鐢ㄤ簬娓叉煋锛?*/
+    /** 光束是否激活（用于渲染）。 */
     public static SerializableDataTicket<Boolean> BEAM_ACTIVE;
-    /** 灏勯€熷姞鎴愭暟閲忥紙鐢ㄤ簬婵€鍏夐€忔槑搴︼級 */
+    /** 已安装的射速组件数量（用于激光透明度效果）。 */
     public static SerializableDataTicket<Integer> FIRE_RATE_COUNT;
 
-    // ========== GeckoLib鍔ㄧ敾缂撳瓨 ==========
+    // ========== GeckoLib 动画缓存 ==========
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    // ========== 瀛楁 ==========
+    // ========== 字段 ==========
     private LivingEntity target = null;
     private int targetLostTicks = 0;
     private Vec3 visibleTargetPoint = null;
@@ -91,10 +91,10 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     public float yRot0 = 0.0f;
     public float xRot0 = 0.0f;
     
-    /** 鐩爣瑙掑害锛堢敤浜庣瀯鍑嗗垽鏂級 */
+    /** 旋转目标角度（用于瞄准判断）。 */
     private float targetYRot = 0.0f;
     private float targetXRot = 0.0f;
-    /** 鏄惁宸插畬鎴愮瀯鍑?*/
+    /** 炮塔是否已完成对目标的瞄准。 */
     private boolean isAimed = false;
 
     public LaserTurretBlockEntity(BlockPos pos, BlockState state) {
@@ -109,7 +109,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
         TurretBaseBlockEntity base = blockEntity.getBaseEntity();
         if (base == null) return;
 
-        // 鏃犵數閲忎綆澶村姩鐢?
+        // 能量不足：低电量动画（炮口朝下）。
         if (base.getEnergyStored() < Config.laserEnergyPerTick) {
             blockEntity.target = null;
             blockEntity.isAimed = false;
@@ -118,7 +118,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
             blockEntity.setAnimData(TARGET_POS_Y, pos.getY() - 2.0);
             blockEntity.setAnimData(TARGET_POS_Z, pos.getZ() + 0.5);
             blockEntity.setAnimData(BEAM_ACTIVE, false);
-            // 杞悜褰掗浂
+            // 旋转归零（回到默认姿态）。
             blockEntity.yRot0 = blockEntity.lerpAngle(blockEntity.yRot0, 0);
             blockEntity.xRot0 = blockEntity.lerpAngle(blockEntity.xRot0, 0);
             return;
@@ -130,7 +130,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
             blockEntity.isAimed = false;
             blockEntity.setAnimData(HAS_TARGET, false);
             blockEntity.setAnimData(BEAM_ACTIVE, false);
-            // 杞悜褰掗浂
+            // Return rotation to zero (rest position).
             blockEntity.yRot0 = blockEntity.lerpAngle(blockEntity.yRot0, 0);
             blockEntity.xRot0 = blockEntity.lerpAngle(blockEntity.xRot0, 0);
             return;
@@ -139,34 +139,34 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
         blockEntity.updateTarget(level, pos, base, facing);
 
         if (blockEntity.target != null && blockEntity.target.isAlive()) {
-            // 鏇存柊鐩爣瑙掑害
+            // 根据当前目标位置更新目标角度。
             blockEntity.updateTargetAngles(pos);
             
-            // 鏈嶅姟绔篃鏇存柊褰撳墠瑙掑害锛堟ā鎷熻浆鍚戣繃绋嬶級
+            // 服务端：通过更新当前角度来模拟旋转过程。
             blockEntity.updateCurrentAngles();
             
-            // 妫€鏌ユ槸鍚﹀凡鐬勫噯
+            // 检查是否已瞄准目标。
             blockEntity.updateAimedState();
             
             if (blockEntity.isAimed && blockEntity.canHitTarget(blockEntity.target, level, pos)) {
-                // 鎵ц浼ゅ
+                // 对目标造成伤害。
                 blockEntity.dealDamageToTarget(blockEntity.target, base, level);
 
-                // 娑堣€楄兘閲?
+                // 每 tick 消耗能量。
                 base.consumeEnergy(Config.laserEnergyPerTick);
 
-                // 鍚屾鍏夋潫浣嶇疆
+                // 同步光束位置到客户端。
                 blockEntity.syncBeamPosition();
                 
-                // 鍚屾灏勯€熺粍浠舵暟閲忥紙鐢ㄤ簬閫忔槑搴︼級
+                // 同步射速组件数量（用于透明度效果）。
                 int fireRateCount = blockEntity.countFireRateComponents(base, facing);
                 blockEntity.setAnimData(FIRE_RATE_COUNT, fireRateCount);
             } else {
-                // 鏈瀯鍑嗘椂涓嶆樉绀哄厜鏉?
+                // 未瞄准时不显示光束。
                 blockEntity.setAnimData(BEAM_ACTIVE, false);
             }
             
-            // 鍗充娇鏈瀯鍑嗕篃瑕佸悓姝ョ洰鏍囦綅缃紙璁╃偖濉旇浆鍚戯級
+            // 即使未瞄准也要同步目标位置（用于炮塔旋转动画）。
             if (blockEntity.visibleTargetPoint != null) {
                 blockEntity.setAnimData(TARGET_POS_X, blockEntity.visibleTargetPoint.x);
                 blockEntity.setAnimData(TARGET_POS_Y, blockEntity.visibleTargetPoint.y);
@@ -174,20 +174,20 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
                 blockEntity.setAnimData(HAS_TARGET, true);
             }
             
-            if (!blockEntity.isAimed || !blockEntity.canHitTarget(blockEntity.target, level, pos)) {
-                // 鐩爣涓㈠け锛堟湭鐬勫噯浣嗙洰鏍囦笉鍙嚮涓椂锛?
+                // 目标丢失：未瞄准且目标不可击中。
+                // 注意：不取消目标，让炮塔继续旋转追踪。
                 // 娉ㄦ剰锛氫笉鍙栨秷鐩爣锛岃鐐缁х画杞悜
             }
         } else {
             blockEntity.isAimed = false;
             blockEntity.setAnimData(BEAM_ACTIVE, false);
-            // 娌℃湁鐩爣鏃讹紝杞悜褰掗浂
+            // 没有目标：旋转归零（回到默认姿态）。
             blockEntity.yRot0 = blockEntity.lerpAngle(blockEntity.yRot0, 0);
             blockEntity.xRot0 = blockEntity.lerpAngle(blockEntity.xRot0, 0);
         }
     }
 
-    // ========== GeckoLib鍔ㄧ敾鎺у埗 ==========
+    // ========== GeckoLib 动画控制 ==========
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
@@ -200,7 +200,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     }
 
     /**
-     * 鑾峰彇杩炴帴鐨勭偖濉斿熀搴?
+     * 获取连接的炮塔基座方块实体。
      */
     public TurretBaseBlockEntity getBaseEntity() {
         Level level = getLevel();
@@ -220,7 +220,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     }
 
     /**
-     * 鏇存柊鐩爣
+     * 更新当前目标：验证、寻找新目标或处理目标丢失。
      */
     private void updateTarget(Level level, BlockPos pos, TurretBaseBlockEntity base, Direction facing) {
         if (target == null || !isValidTarget(target, level, pos)) {
@@ -229,7 +229,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
             }
             target = findTarget(level, pos, base.getSearchRadiusForFace(facing, getSearchRadius()));
             targetLostTicks = 0;
-            // 鏂扮洰鏍囬渶瑕侀噸鏂扮瀯鍑?
+            // 新目标需要重新瞄准。
             isAimed = false;
 
             if (target != null && base.isThriftyMode()) {
@@ -266,14 +266,14 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
                 } else {
                     targetLostTicks = 0;
                     visibleTargetPoint = visiblePoint;
-                    // 娉ㄦ剰锛氫笉鍦ㄨ繖閲岃缃瓸EAM_ACTIVE锛岀敱tick()涓殑isAimed鍒ゆ柇鍐冲畾
+                    // 注意：BEAM_ACTIVE 不在此处设置，由 tick() 中的 isAimed 检查决定。
                 }
             }
         }
     }
 
     /**
-     * 妫€鏌ョ洰鏍囨槸鍚﹀彲琚嚮涓?
+     * 检查激光是否能击中目标（视线无方块阻挡）。
      */
     private boolean canHitTarget(LivingEntity target, Level level, BlockPos pos) {
         if (!target.isAlive()) return false;
@@ -304,35 +304,35 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
 
 
     /**
-     * 瀵圭洰鏍囬€犳垚浼ゅ
+     * 对目标造成魔法伤害并附加点燃效果。
      */
     private void dealDamageToTarget(LivingEntity target, TurretBaseBlockEntity base, Level level) {
-        // 娓呴櫎鏃犳晫甯?
+        // 清除无敌帧，使激光能造成持续伤害。
         target.invulnerableTime = 0;
         target.hurtTime = 0;
 
-        // 璁＄畻浼ゅ锛堝熀纭€浼ゅ + 闈㈤厤缃姞鎴愶級
+        // 计算伤害：基础伤害 + 面配置加成。
         Direction facing = getBlockState().getValue(LaserTurretBlock.FACING);
         float damage = base.getDamageForFace(facing, getDamagePerTick());
 
-        // 閫犳垚榄旀硶浼ゅ
+        // 造成魔法伤害。
         target.hurt(level.damageSources().magic(), damage);
 
-        // 鐐圭噧鏁堟灉锛堟瘡20tick鍒锋柊涓€娆★級
+        // 点燃效果：每 20 tick 刷新一次。
         if (level.getGameTime() % 20 == 0) {
             target.setSecondsOnFire(getFireSeconds());
         }
     }
 
     /**
-     * 鍚屾鍏夋潫浣嶇疆缁欏鎴风
+     * 将光束激活状态同步到客户端用于渲染。
      */
     private void syncBeamPosition() {
         setAnimData(BEAM_ACTIVE, true);
     }
 
     /**
-     * 鑾峰彇棰勬湡浼ゅ锛堢敤浜庡帀琛岃妭绾︼級
+     * 获取每 tick 预期伤害（用于节约模式的预扣计算）。
      */
     public float getExpectedDamage(TurretBaseBlockEntity base) {
         BlockState state = getBlockState();
@@ -342,7 +342,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     }
     
     /**
-     * 鏇存柊鐩爣瑙掑害锛堥渶瑕佽浆鍚戝埌鐨勮搴︼級
+     * 根据可见目标点更新旋转目标角度。
      */
     private void updateTargetAngles(BlockPos pos) {
         if (visibleTargetPoint == null) return;
@@ -351,7 +351,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
         Vec3 center = new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
         Vec3 delta = new Vec3(visibleTargetPoint.x - center.x, visibleTargetPoint.y - center.y, visibleTargetPoint.z - center.z);
         
-        // 鏍规嵁鏈濆悜杞崲鍧愭爣
+        // 根据炮塔朝向变换坐标系。
         double dx = delta.x, dy = delta.y, dz = delta.z;
         switch (facing) {
             case NORTH -> { dz = -delta.y; dy = -delta.z; }
@@ -366,26 +366,26 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
         targetYRot = (float) -Math.atan2(dx, dz);
         targetXRot = (float) -Math.atan2(dy, horizontalDist);
         
-        // UP鏈濆悜闇€瑕佺壒娈婂鐞?
+        // UP、EAST、WEST 方向需要特殊角度处理。
         if (facing == Direction.UP || facing == Direction.EAST || facing == Direction.WEST) {
             targetYRot += (float) Math.PI;
         }
     }
     
     /**
-     * 鏇存柊鐬勫噯鐘舵€侊紙妫€鏌ュ綋鍓嶈搴︽槸鍚︽帴杩戠洰鏍囪搴︼級
+     * 更新瞄准状态：检查当前角度是否接近目标角度。
      */
     private void updateAimedState() {
-        // 璁＄畻瑙掑害宸紙浣跨敤寮у害锛?
+        // 计算角度差（弧度）。
         float yRotDiff = Math.abs(normalizeAngle(targetYRot - yRot0));
         float xRotDiff = Math.abs(normalizeAngle(targetXRot - xRot0));
         
-        // 涓や釜瑙掑害閮藉皬浜庨槇鍊兼墠绠楃瀯鍑嗗畬鎴?
+        // 两个角度均低于阈值才算瞄准完成。
         isAimed = yRotDiff < getAimThreshold() && xRotDiff < getAimThreshold();
     }
     
     /**
-     * 褰掍竴鍖栬搴﹀埌 [-PI, PI]
+     * 将角度归一化到 [-PI, PI] 范围内。
      */
     private float normalizeAngle(float angle) {
         while (angle > Math.PI) angle -= 2 * Math.PI;
@@ -394,28 +394,28 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     }
     
     /**
-     * 鏇存柊褰撳墠瑙掑害锛堟湇鍔＄妯℃嫙杞悜杩囩▼锛?
+     * 更新当前旋转角度（服务端旋转模拟）。
      */
     private void updateCurrentAngles() {
-        // 浣跨敤涓?GeoModel 鐩稿悓鐨?lerp 閫昏緫
+        // 使用与 GeoModel 相同的 lerp 逻辑实现平滑旋转。
         yRot0 = lerpAngle(yRot0, targetYRot);
         xRot0 = lerpAngle(xRot0, targetXRot);
     }
     
     /**
-     * 瑙掑害鎻掑€硷紙鍥哄畾閫熷害杞悜锛?
-     * 姣弔ick绉诲姩 TURN_SPEED 寮у害锛屾帴杩戠洰鏍囨椂鐩存帴瀵归綈
+     * 固定速度的角度插值。
+     * 每 tick 向目标角度移动 TURN_SPEED 弧度。
      */
     private float lerpAngle(float current, float target) {
         float diff = normalizeAngle(target - current);
         if (Math.abs(diff) < getTurnSpeed()) {
-            return target; // 鎺ヨ繎鐩爣锛岀洿鎺ュ榻?
+            return target; // 足够接近：直接对齐到目标角度。
         }
         return current + Math.signum(diff) * getTurnSpeed();
     }
 
     /**
-     * 璁＄畻鐐彛浣嶇疆
+     * 根据炮塔朝向计算炮口位置，用于射线检测。
      */
     public Vec3 calculateMuzzlePosition(BlockPos pos, Direction facing) {
         double outwardOffset = 0;
@@ -434,7 +434,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     }
 
     /**
-     * 鎼滅储鐩爣
+     * 在搜索半径内查找有效目标。
      */
     private LivingEntity findTarget(Level level, BlockPos pos, double searchRadius) {
         AABB searchArea = new AABB(
@@ -468,7 +468,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
                 setAnimData(TARGET_POS_Y, visiblePoint.y);
                 setAnimData(TARGET_POS_Z, visiblePoint.z);
                 setAnimData(HAS_TARGET, true);
-                // 鏂扮洰鏍囬渶瑕侀噸鏂扮瀯鍑?
+                // New target requires re-aiming.
                 isAimed = false;
                 setAnimData(BEAM_ACTIVE, false);
             } else {
@@ -482,7 +482,7 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     }
 
     /**
-     * 妫€鏌ユ槸鍚︿负鏈夋晥鐩爣
+     * 检查给定实体是否为激光炮塔的有效目标。
      */
     private boolean isValidTarget(LivingEntity entity, Level level, BlockPos pos) {
         TurretBaseBlockEntity base = getBaseEntity();
@@ -542,7 +542,8 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
     }
 
     /**
-     * 璁＄畻灏勯€熺粍浠舵暟閲忥紙鐢ㄤ簬婵€鍏夐€忔槑搴︼級
+     * 统计指定面上已安装的射速升级组件数量。
+     * 用于激光光束透明度效果。
      */
     private int countFireRateComponents(TurretBaseBlockEntity base, Direction facing) {
         net.minecraftforge.items.IItemHandler upgrades = base.getFaceUpgradeSlots(facing);
