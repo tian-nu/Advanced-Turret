@@ -383,14 +383,12 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     /**
      * 返回当前能量值。调用前确保等级容量是最新的。
      */
-     */
     public int getEnergyStored() {
         return energyStorage.getEnergyStored();
     }
     
     /**
      * 返回最大能量容量，确保存储容量与当前等级匹配。
-     */
      */
     public int getMaxEnergyStored() {
         ensureEnergyCapacity();
@@ -420,7 +418,6 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     /**
      * 返回所有插件物品堆（实体槽位 + 若无实体芯片则包含内置智能芯片）。
-     */
      */
     public java.util.List<ItemStack> getAllPluginStacks() {
         java.util.List<ItemStack> plugins = new java.util.ArrayList<>();
@@ -641,7 +638,6 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     /**
      * 请求客户端同步方块实体状态。syncToClient() 的别名。
      */
-     */
     public void requestClientUpdate() {
         syncToClient();
     }
@@ -745,7 +741,6 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     /**
      * 检查是否有插件槽包含太阳能插件（被动能量生成）。
      */
-     */
     public boolean hasSolarPlugin() {
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
         for (int i = 0; i < slotCount; i++) {
@@ -759,7 +754,6 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     /**
      * 检查是否有插件槽包含弹药回收插件（概率不消耗弹药）。
-     */
      */
     public boolean hasAmmoRecyclingPlugin() {
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
@@ -788,7 +782,6 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     /**
      * 检查是否有插件槽包含破坏插件（启用方块破坏）。
-     */
      */
 public boolean hasDestructionPlugin() {
 		int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
@@ -867,7 +860,6 @@ public boolean hasDestructionPlugin() {
 	 * @param entityId 目标实体的网络 ID
 	 * @return 已预扣伤害总量
 	 */
-	 */
 	public float getReservedDamage(int entityId) {
 		return reservedDamage.getOrDefault(entityId, 0.0f);
 	}
@@ -889,7 +881,6 @@ public boolean hasDestructionPlugin() {
 	 * @param entityId 目标实体的网络 ID
 	 * @param damage 实际造成的伤害量
 	 */
-	 */
 	public void confirmDamage(int entityId, float damage) {
 		float reserved = reservedDamage.getOrDefault(entityId, 0.0f);
 		if (reserved <= damage) {
@@ -906,7 +897,6 @@ public boolean hasDestructionPlugin() {
 	/**
 	 * 移除已超过超时时间（200 tick / 10 秒）的伤害预扣记录。
 	 * @param currentTime 当前游戏 tick
-	 */
 	 */
 	private void clearExpiredReservations(long currentTime) {
 		Iterator<Map.Entry<Integer, Long>> iterator = reservationTime.entrySet().iterator();
@@ -949,7 +939,6 @@ public boolean hasDestructionPlugin() {
     /**
      * 将能量存储设为最大值。供创造能量组件使用。
      */
-     */
     private void setEnergyFull() {
         if (energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
             energyStorage.setEnergyStored(energyStorage.getMaxEnergyStored());
@@ -963,7 +952,6 @@ public boolean hasDestructionPlugin() {
      * 直接向能量存储添加能量，不通过 capability 的 receiveEnergy 接口。
      * @param amount 要添加的能量值
      * @return 实际添加的能量值（受剩余空间限制）
-     */
      */
     private int addEnergyDirectly(int amount) {
         int maxEnergy = energyStorage.getMaxEnergyStored();

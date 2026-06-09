@@ -174,9 +174,9 @@ public class LaserTurretBlockEntity extends BlockEntity implements GeoBlockEntit
                 blockEntity.setAnimData(HAS_TARGET, true);
             }
             
+            if (!blockEntity.isAimed || !blockEntity.canHitTarget(blockEntity.target, level, pos)) {
                 // 目标丢失：未瞄准且目标不可击中。
                 // 注意：不取消目标，让炮塔继续旋转追踪。
-                // 娉ㄦ剰锛氫笉鍙栨秷鐩爣锛岃鐐缁х画杞悜
             }
         } else {
             blockEntity.isAimed = false;
