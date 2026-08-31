@@ -1,6 +1,7 @@
 package com.tian_nu.AdvancedTurret.items;
 
 import com.tian_nu.AdvancedTurret.blocks.entitys.TurretBaseBlockEntity;
+import com.tian_nu.AdvancedTurret.client.SmartChipClientHooks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -19,6 +20,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -73,7 +76,7 @@ public class SmartChipItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (level.isClientSide) {
-            net.minecraft.client.Minecraft.getInstance().setScreen(new com.tian_nu.AdvancedTurret.gui.SmartChipConfigScreen(player.getItemInHand(hand), null));
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> SmartChipClientHooks.openConfigScreen(player.getItemInHand(hand)));
         }
         return InteractionResultHolder.success(player.getItemInHand(hand));
     }

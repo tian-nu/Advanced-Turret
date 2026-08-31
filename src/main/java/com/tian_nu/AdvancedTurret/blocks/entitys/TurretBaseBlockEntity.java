@@ -40,16 +40,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * Core block entity for the turret base.
+ * 炮塔基座的核心方块实体。
  *
- * <p>Handles shared energy, ammo storage, plugin slots, per-face upgrades,
- * ownership, targeting preferences, and menu synchronization.</p>
+ * <p>负责共享能量、弹药存储、插件槽、各面升级、所有权、索敌偏好与菜单同步。</p>
  *
  * @author tian_nu
  */
 public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
-    // ========== Mounted Turret Types ==========
+    
     
     protected final ContainerData data = new ContainerData() {
         @Override
@@ -72,21 +71,21 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
     };
 
-    // ========== Mounted Turret Types ==========
     
-    /** Maximum energy by base tier (T1..T5). */
+    
+    /** 各等级基座（T1..T5）的最大能量。 */
     public static final int[] MAX_ENERGIES = {10000, 40000, 100000, 250000, 500000};
-    /** Default transfer rate before tier-specific overrides are applied. */
+    /** 等级覆写生效前的默认能量传输速率。 */
     public static final int MAX_TRANSFER_RATE = 1000;
     
-    /** Shared ammo slots on the base. */
+    /** 基座共享弹药槽数量。 */
     public static final int AMMO_SLOTS = 9;
-    /** Maximum plugin slots available on high-tier bases. */
+    /** 高阶基座的最大插件槽数量。 */
     public static final int MAX_PLUGIN_SLOTS = 2;
-    /** Maximum upgrade slots available per mounted face. */
+    /** 每个已安装炮塔面的最大升级槽数量。 */
     public static final int MAX_UPGRADE_SLOTS_PER_FACE = 3;
     
-    // ========== Mounted Turret Types ==========
+    
     
     public enum TurretType {
         NONE,
@@ -94,7 +93,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         RAILGUN
     }
     
-    // ========== Base State ==========
+    // ========== 基座状态 ==========
     
     // 6个面（每位对应一个 Direction：0=下, 1=上, 2=北, 3=南, 4=西, 5=东）。
     // 0b111111 = 默认全部6个面启用。将该位设为0即可禁用对应面。
@@ -110,7 +109,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     /** T5 基座的内置智能芯片（始终存在，始终位于槽位 0）。 */
     private ItemStack builtInSmartChip = ItemStack.EMPTY;
 
-	// ========== Mounted Turret Types ==========
+	
 	
 	/** 实体ID → 已预扣伤害量的映射。用于多个炮塔面之间的伤害协调。 */
 	private final Map<Integer, Float> reservedDamage = new HashMap<>();
@@ -119,14 +118,14 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
 	/** 伤害预扣的超时时间（tick）。超过此时间后预扣将过期。200 tick = 10 秒。 */
 	private static final long RESERVATION_TIMEOUT = 200; // 200 tick = 10 秒
 
-	// ========== Mounted Turret Types ==========
+	
     
     private int currentTransferRate = getMaxTransferRateForTier();
     private BaseEnergyStorage energyStorage = createEnergyStorage(getMaxEnergyForTier(), currentTransferRate);
     
     private final LazyOptional<IEnergyStorage> energyCapability = LazyOptional.of(() -> energyStorage);
     
-    // ========== Mounted Turret Types ==========
+    
     
     private final ItemStackHandler ammoInventory = new ItemStackHandler(AMMO_SLOTS) {
         @Override
@@ -259,7 +258,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
     
     private final LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> combinedInventory);
     
-    // ========== Mounted Turret Types ==========
+    
     
     public TurretBaseBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TURRET_BASE.get(), pos, state);
@@ -268,7 +267,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
     
-    // ========== Mounted Turret Types ==========
+    
     
     public int getTier() {
         BlockState state = getBlockState();
@@ -642,7 +641,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         syncToClient();
     }
     
-    // ========== Mounted Turret Types ==========
+    
     
     public static void tick(Level level, BlockPos pos, BlockState state, TurretBaseBlockEntity blockEntity) {
         if (level.isClientSide) return;
@@ -725,7 +724,7 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
     
-    // ========== Mounted Turret Types ==========
+    
     
     private boolean hasCreativePowerComponent() {
         int slotCount = Math.min(getPluginSlotCount(), basePluginSlot.getSlots());
@@ -805,7 +804,7 @@ public boolean hasDestructionPlugin() {
 		return false;
 	}
 
-	// ========== Mounted Turret Types ==========
+	
 
 	/**
 	 * 为目标实体预扣伤害，防止多个炮塔过度击杀同一目标。
@@ -920,7 +919,7 @@ public boolean hasDestructionPlugin() {
 	 */
 	public boolean isTargetWorthAttacking(int entityId, float currentHealth) {
 		if (!isThriftyMode()) {
-			return true; // Reservation logic only applies while thrifty mode is active.
+			return true; // 预扣逻辑仅在厉行节约模式启用时生效。
 		}
 		
 		float reserved = getReservedDamage(entityId);
@@ -966,7 +965,7 @@ public boolean hasDestructionPlugin() {
         return toAdd;
     }
     
-    // ========== Mounted Turret Types ==========
+    
     
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
@@ -1016,7 +1015,7 @@ public boolean hasDestructionPlugin() {
         }
     }
     
-    // ========== Mounted Turret Types ==========
+    
     
     @Override
     protected void saveAdditional(CompoundTag tag) {
@@ -1250,7 +1249,7 @@ public boolean hasDestructionPlugin() {
         return total;
     }
     
-    // ========== Mounted Turret Types ==========
+    
     
     @Override
     public CompoundTag getUpdateTag() {
@@ -1306,7 +1305,7 @@ public boolean hasDestructionPlugin() {
         }
     }
     
-    // ========== Mounted Turret Types ==========
+    
     
     @Override
     public Component getDisplayName() {

@@ -1,8 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " I",
-    "I "
+    "  I",
+    " I ",
+    "I  "
   ],
   "key": {
     "I": {
@@ -11,6 +12,6 @@
   },
   "result": {
     "item": "advanced_turret:railgun_bullet",
-    "count": 4
+    "count": 6
   }
 }
