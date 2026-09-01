@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EDE",
+    "CBC",
+    "AAA"
+  ],
+  "key": {
+    "E": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "D": {
+      "item": "minecraft:glass"
+    },
+    "C": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "B": {
+      "item": "advanced_turret:teleport_core"
+    },
+    "A": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "result": {
+    "item": "advanced_turret:body_restoration_turret",
+    "count": 1
+  }
+}

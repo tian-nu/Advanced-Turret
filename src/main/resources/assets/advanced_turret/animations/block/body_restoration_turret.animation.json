@@ -1,0 +1,21 @@
+{
+    "format_version": "1.8.0",
+    "animations": {
+        "animation.turret.idle": {
+            "loop": true,
+            "animation_length": 1.0,
+            "bones": {
+                "turret": {
+                    "rotation": {
+                        "vector": [0, 0, 0]
+                    }
+                },
+                "cannon": {
+                    "rotation": {
+                        "vector": [0, 0, 0]
+                    }
+                }
+            }
+        }
+    }
+}

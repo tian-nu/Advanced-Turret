@@ -75,6 +75,10 @@ public class ModItems {
             ITEMS.register("accuracy_component", () -> describedItem("item.advanced_turret.accuracy_component.tooltip"));
     public static final RegistryObject<Item> FIRE_RATE_COMPONENT =
             ITEMS.register("fire_rate_component", () -> describedItem("item.advanced_turret.fire_rate_component.tooltip"));
+    public static final RegistryObject<Item> BODY_ESSENCE_CANISTER =
+            ITEMS.register("body_essence_canister", () -> describedItem("item.advanced_turret.body_essence_canister.tooltip"));
+    public static final RegistryObject<Item> TELEPORT_CORE =
+            ITEMS.register("teleport_core", () -> describedItem("item.advanced_turret.teleport_core.tooltip"));
     public static final RegistryObject<Item> PRECISION_COMPONENT_T1 =
             ITEMS.register("precision_component_t1", () -> describedItem("item.advanced_turret.precision_component_t1.tooltip"));
     public static final RegistryObject<Item> PRECISION_COMPONENT_T2 =

@@ -66,6 +66,11 @@ public class ModBlockEntities {
                     BlockEntityType.Builder.of(JunkTurretBlockEntity::new,
                             ModBlocks.JUNK_TURRET.get()
                     ).build(null));
+    public static final RegistryObject<BlockEntityType<BodyRestorationTurretBlockEntity>> BODY_RESTORATION_TURRET =
+            BLOCK_ENTITIES.register("body_restoration_turret", () ->
+                    BlockEntityType.Builder.of(BodyRestorationTurretBlockEntity::new,
+                            ModBlocks.BODY_RESTORATION_TURRET.get()
+                    ).build(null));
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);
     }

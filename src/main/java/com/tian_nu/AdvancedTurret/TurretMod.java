@@ -2,6 +2,7 @@ package com.tian_nu.AdvancedTurret;
 
 import com.mojang.logging.LogUtils;
 import com.tian_nu.AdvancedTurret.blocks.ModBlocks;
+import com.tian_nu.AdvancedTurret.blocks.entitys.BodyRestorationEvents;
 import com.tian_nu.AdvancedTurret.blocks.entitys.GrenadeLauncherTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.JunkTurretBlockEntity;
 import com.tian_nu.AdvancedTurret.blocks.entitys.LaserTurretBlockEntity;
@@ -62,6 +63,7 @@ public class TurretMod {
         modEventBus.addListener(ModCreativeModeTabs::addCreative);
 
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(BodyRestorationEvents.class);
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
         registerDataTickets();
     }

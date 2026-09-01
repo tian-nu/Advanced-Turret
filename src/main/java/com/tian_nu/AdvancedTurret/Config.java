@@ -288,6 +288,18 @@ public class Config {
     public static final ForgeConfigSpec.IntValue RESONANCE_FIELD_EFFECT_DURATION = BUILDER
             .comment("config")
             .defineInRange("resonanceFieldEffectDuration", 1200, 1, 12000);
+    public static final ForgeConfigSpec.DoubleValue BODY_RESTORATION_RANGE = BUILDER
+            .comment("config")
+            .defineInRange("bodyRestorationRange", 32.0, 1.0, 256.0);
+    public static final ForgeConfigSpec.IntValue BODY_RESTORATION_STANDBY_ENERGY = BUILDER
+            .comment("config")
+            .defineInRange("bodyRestorationStandbyEnergy", 250, 1, 100000);
+    public static final ForgeConfigSpec.IntValue BODY_RESTORATION_REVIVE_ENERGY = BUILDER
+            .comment("config")
+            .defineInRange("bodyRestorationReviveEnergy", 50000, 1, 10000000);
+    public static final ForgeConfigSpec.IntValue BODY_RESTORATION_REVIVE_COOLDOWN_TICKS = BUILDER
+            .comment("config")
+            .defineInRange("bodyRestorationReviveCooldownTicks", 5, 0, 200);
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static int turretBaseMaxEnergyT1;
@@ -364,6 +376,10 @@ public class Config {
     public static double resonanceFieldRange;
     public static int resonanceFieldEnergyPerTick;
     public static int resonanceFieldEffectDuration;
+    public static double bodyRestorationRange;
+    public static int bodyRestorationStandbyEnergy;
+    public static int bodyRestorationReviveEnergy;
+    public static int bodyRestorationReviveCooldownTicks;
 
     public static int solarEnergyGeneration;
     public static double ammoRecycleChance;
@@ -449,6 +465,10 @@ public class Config {
         resonanceFieldRange = RESONANCE_FIELD_RANGE.get();
         resonanceFieldEnergyPerTick = RESONANCE_FIELD_ENERGY_PER_TICK.get();
         resonanceFieldEffectDuration = RESONANCE_FIELD_EFFECT_DURATION.get();
+        bodyRestorationRange = BODY_RESTORATION_RANGE.get();
+        bodyRestorationStandbyEnergy = BODY_RESTORATION_STANDBY_ENERGY.get();
+        bodyRestorationReviveEnergy = BODY_RESTORATION_REVIVE_ENERGY.get();
+        bodyRestorationReviveCooldownTicks = BODY_RESTORATION_REVIVE_COOLDOWN_TICKS.get();
 
         solarEnergyGeneration = SOLAR_ENERGY_GENERATION.get();
         ammoRecycleChance = AMMO_RECYCLE_CHANCE.get();

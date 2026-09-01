@@ -45,6 +45,7 @@ public class ClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.RESONANCE_FIELD_TURRET.get(), ResonanceFieldTurretGeoRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.GRENADE_LAUNCHER_TURRET.get(), GrenadeLauncherTurretGeoRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.JUNK_TURRET.get(), JunkTurretGeoRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.BODY_RESTORATION_TURRET.get(), BodyRestorationTurretGeoRenderer::new);
     }
 
     @SubscribeEvent
