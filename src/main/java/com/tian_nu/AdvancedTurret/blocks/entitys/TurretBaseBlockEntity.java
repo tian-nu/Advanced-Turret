@@ -21,6 +21,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.Containers;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
@@ -508,6 +509,10 @@ public class TurretBaseBlockEntity extends BlockEntity implements MenuProvider {
             return base != null && base.getBlockPos().equals(getBlockPos());
         }
         if (be instanceof ResonanceFieldTurretBlockEntity turret) {
+            TurretBaseBlockEntity base = turret.getBaseEntity();
+            return base != null && base.getBlockPos().equals(getBlockPos());
+        }
+        if (be instanceof BodyRestorationTurretBlockEntity turret) {
             TurretBaseBlockEntity base = turret.getBaseEntity();
             return base != null && base.getBlockPos().equals(getBlockPos());
         }
@@ -1152,6 +1157,11 @@ public boolean hasDestructionPlugin() {
     private boolean isValidAmmoForMountedTurrets(ItemStack stack) {
         if (stack.isEmpty()) return false;
 
+        // 红石转化插件解锁弹药栏存放红石/红石块：插件在 tick 中从这里取用并转化为能量。
+        if (hasRedstoneConversionPlugin() && isRedstoneFuel(stack)) {
+            return true;
+        }
+
         Level level = getLevel();
         if (level == null) {
             return isGenericAmmo(stack);
@@ -1188,6 +1198,9 @@ public boolean hasDestructionPlugin() {
                 hasMountedTurret = true;
             } else if (be instanceof ResonanceFieldTurretBlockEntity turret && turret.getBaseEntity() == this) {
                 hasMountedTurret = true;
+            } else if (be instanceof BodyRestorationTurretBlockEntity turret && turret.getBaseEntity() == this) {
+                hasMountedTurret = true;
+                hasSpecificAmmoMatch |= stack.is(ModItems.BODY_ESSENCE_CANISTER.get());
             }
         }
 
@@ -1195,6 +1208,11 @@ public boolean hasDestructionPlugin() {
         if (hasMountedTurret) return hasSpecificAmmoMatch;
 
         return isGenericAmmo(stack);
+    }
+
+    /** 红石转化插件的燃料：红石粉与红石块。 */
+    private boolean isRedstoneFuel(ItemStack stack) {
+        return stack.is(Items.REDSTONE) || stack.is(Items.REDSTONE_BLOCK);
     }
 
     private boolean isGenericAmmo(ItemStack stack) {
